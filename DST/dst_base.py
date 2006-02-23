@@ -1,8 +1,26 @@
 class DST_BASE:
-    
-    def __init__(self):
-        pass
-        
+    # ----- initialization
+    def __init__(self,resource):
+        raise NotImplementedError
+
+    # ----- explicit close
+    def release_resource(self):
+        raise NotImpemetedError
+
+    # ----- configuration
+
+    # ----- inspection
+    def num_avail_SO(self):
+        raise NotImplementedError
+
+    # ----- read information
+    def getSO(self,id):
+        raise NotImplementedError
+
+    # ----- write information
+    def writeSO(self,so):
+        raise NotImplementedError
+
 def getInstance(mime_type,resource,*args,**kwargs):
     # prepare the arguments
     my_args=[resource]
