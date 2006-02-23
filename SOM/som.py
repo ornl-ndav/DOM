@@ -1,4 +1,3 @@
-import so
 import attribute
 
 class SOM(list):
