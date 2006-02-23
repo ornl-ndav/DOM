@@ -11,3 +11,4 @@ class SOM(list):
         self.attr_list[SOM.TITLE]   = SOM.EMPTY
         self.attr_list[SOM.X_UNITS] = SOM.EMPTY
         self.attr_list[SOM.Y_UNITS] = SOM.EMPTY
+        self.dst = None
