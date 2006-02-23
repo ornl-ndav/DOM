@@ -13,3 +13,4 @@ if __name__=="__main__":
     dst=dst_base.getInstance("application/x-NeXus",filename)
     print dst
     
+    print dst.list_entries()
