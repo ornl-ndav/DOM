@@ -27,7 +27,7 @@ class DST_BASE:
     def writeSO(self,so):
         raise NotImplementedError
 
-    def writeSOM(self,so):
+    def writeSOM(self,som):
         raise NotImplementedError
 
 def getInstance(mime_type,resource,*args,**kwargs):
