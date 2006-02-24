@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ###############################################################################
 #
 # Script for installing the DOM package modules
@@ -5,7 +6,7 @@
 # $Id$
 #
 ###############################################################################
-#!/usr/bin/env python
+
 
 from distutils.core import setup
 import sys
