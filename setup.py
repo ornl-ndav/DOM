@@ -7,19 +7,16 @@
 ###############################################################################
 
 from distutils.core import setup
-import sys,os
-import glob
 
 package_name = "DOM"
-#DOM_components = ['DST.ascii3col_dst', 'DST.dst_base',
-#                  'DST.nexus_dst', 'SOM.attribute', 'SOM.so',
-#                  'SOM.som']
+version_id = "none"
 
-# For when __init.py__ is available
-DOM_components = ['DOM','DOM/DST', 'DOM/SOM']
+def main():
+    setup(name=package_name,
+          version=version_id,
+          extra_path=package_name,
+          package_dir={"": "."},
+          packages=["DST", "SOM"])
 
-setup(name=package_name,
-      version='None',
-      package_dir={'DOM': ''},
-      #py_modules=DOM_components)
-      packages=DOM_components)
+if __name__ == "__main__":
+    main()
