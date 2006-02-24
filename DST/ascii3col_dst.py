@@ -9,10 +9,14 @@
 ###############################################################################
 
 import dst_base
+import math
+import sys
 
 class Ascii3ColDST(dst_base.DST_BASE):
     MIME_TYPE="text/Spec"
-
+    EMPTY=""
+    COLUMNS=3
+    
     ########## DST_BASE functions
 
     def __init__(self, resource, *args, **kwargs):
@@ -24,21 +28,34 @@ class Ascii3ColDST(dst_base.DST_BASE):
 
 
     def writeSO(self,so):
-        self.__so = so
-        writeData()
+        self.writeData(so)
 
 
     def writeSOM(self,som):
-        self.__som = som
-        writeHeader()
-        writeData()
+        self.writeHeader(som)
+        for so in som:
+            self.writeData(so)
 
     ########## Special functions
 
-    def writeHeader(self):
-        raise NotImplementedError
+    def writeHeader(self,som):
+        print >> self.__file, "#F",som.attr_list["filename"]
+        print >> self.__file, "#E",som.attr_list["epoch"]
+        print >> self.__file, "#D",som.attr_list["timestamp"]
+        print >> self.__file, "#C Title:",som.attr_list["title"]
+        print >> self.__file, "#C User:",som.attr_list["username"]
+        print >> self.__file, "#N", self.COLUMNS
+        print >> self.__file, "#L TOF(",som.attr_list["x_units"],")",
+        print >> self.__file, "Counts(", som.attr_list["y_units"],")",
+        print >> self.__file, "Sigma(",som.attr_list["y_units"],")"
 
+    def writeData(self,so):
+        print >> self.__file, "#C Pixel", so.id
+        for i in range(len(so)+1):
+            print >> self.__file, so.x[i]," ",
+            if i < len(so.y):
+                print >> self.__file, so.y[i]," ",
+                print >> self.__file, math.sqrt(so.var_y[i])
+            else:
+                print >> self.__file, self.EMPTY
 
-    def writeData(self):
-        raise NotImplementedError
-        
