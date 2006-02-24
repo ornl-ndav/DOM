@@ -13,6 +13,32 @@ import dst_base
 class Ascii3ColDST(dst_base.DST_BASE):
     MIME_TYPE="text/Spec"
 
-    def __init__(self, resource, *args, **kwargs):
-        pass
+    ########## DST_BASE functions
 
+    def __init__(self, resource, *args, **kwargs):
+        self.__file = resource
+
+
+    def release_resource(self):
+        self.__file.close()
+
+
+    def writeSO(self,so):
+        self.__so = so
+        writeData()
+
+
+    def writeSOM(self,som):
+        self.__som = som
+        writeHeader()
+        writeData()
+
+    ########## Special functions
+
+    def writeHeader(self):
+        raise NotImplementedError
+
+
+    def writeData(self):
+        raise NotImplementedError
+        
