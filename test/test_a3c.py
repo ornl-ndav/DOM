@@ -2,7 +2,7 @@
 
 # $Id$
 
-import dst_base
+import ascii3col_dst
 from so import SO
 from som import SOM
 from time import localtime, strftime, time
@@ -27,7 +27,7 @@ for i in range(2):
 
 file = open(filename_SOM1, "w")
 
-a3c = dst_base.getInstance("text/Spec", file)
+a3c = ascii3col_dst.Ascii3ColDST(file)
 a3c.writeSOM(SOM1)
 a3c.release_resource()
 
