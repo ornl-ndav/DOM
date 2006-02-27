@@ -40,6 +40,14 @@ class Enum:
         try: return max([x for x in vars(self).values() if type(x)==type(0)]) + 1
         except ValueError: return 0
     
+    def key(self,value):
+        vals=vars(self).values()
+        try:
+            index=vals.index(value)
+        except ValueError:
+            raise KeyError,"Value \"%s\" does not exist" % value
+        return vars(self).keys()[index]
+
     def _parse(self, names):
         ### If names is a string, parse it as a list of names.
         if type(names) == type(""): return names.split()
