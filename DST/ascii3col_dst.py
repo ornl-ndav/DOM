@@ -44,13 +44,16 @@ class Ascii3ColDST(dst_base.DST_BASE):
         print >> self.__file, "#D",som.attr_list["timestamp"]
         print >> self.__file, "#C Title:",som.attr_list["title"]
         print >> self.__file, "#C User:",som.attr_list["username"]
-        print >> self.__file, "#N", self.COLUMNS
-        print >> self.__file, "#L TOF(",som.attr_list["x_units"],")",
-        print >> self.__file, "Counts(", som.attr_list["y_units"],")",
-        print >> self.__file, "Sigma(",som.attr_list["y_units"],")"
+
+        self.__axes_and_units = "#L TOF(%s) Counts(%s) Sigma(%s)" \
+        % (som.attr_list["x_units"], som.attr_list["y_units"],
+         som.attr_list["y_units"])
 
     def writeData(self,so):
-        print >> self.__file, "#C Pixel", so.id
+        print >> self.__file, self.EMPTY
+        print >> self.__file, "#S",so.id+1,"Pixel",so.id
+        print >> self.__file, "#N", self.COLUMNS
+        print >> self.__file, self.__axes_and_units
         for i in range(len(so)+1):
             print >> self.__file, so.x[i]," ",
             if i < len(so.y):
