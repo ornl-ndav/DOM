@@ -48,6 +48,9 @@ class Enum:
             raise KeyError,"Value \"%s\" does not exist" % value
         return vars(self).keys()[index]
 
+    def val(self,key):
+        return vars(self)[key]
+
     def _parse(self, names):
         ### If names is a string, parse it as a list of names.
         if type(names) == type(""): return names.split()
