@@ -217,6 +217,8 @@ class NeXusFile:
         result=[]
         for i in range(i_length):
             result.append(self.get_sds_value(value,type,i))
+        if len(result)==1:
+            result=result[0]
         return result
 
     def getgroupID(self):
