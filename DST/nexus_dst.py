@@ -128,7 +128,7 @@ class NeXusDST(dst_base.DST_BASE):
                     if value==signal:
                         self.__data_counts=child
                 elif key=="axis": # look for the axis to label themselves
-                    axes[value]=key
+                    axes[value]=child
 
         # look for the axes as an attribute to the signal data
         counts_attrlist=children[self.__data_counts]
@@ -142,7 +142,7 @@ class NeXusDST(dst_base.DST_BASE):
         if len(axes)>0:
             self.__data_axes=[]
         for i in range(len(axes)):
-            self.__data_axes.append(axes[i])
+            self.__data_axes.append(axes[i+1])
 
         # if the varience in the counts is not found then set it to be
         # the counts
