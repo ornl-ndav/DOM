@@ -248,6 +248,7 @@ class NeXusDST(dst_base.DST_BASE):
             self.__data_axes=[]
         for i in range(len(axes)):
             self.__data_axes.append(axes[i+1])
+        self.set_SO_axis(self.__data_axes[0])
 
         # if the varience in the counts is not found then set it to be
         # the counts
