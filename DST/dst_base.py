@@ -10,10 +10,10 @@ class DST_BASE:
     # ----- configuration
 
     # ----- inspection
-    def num_avail_SO(self,som_id):
+    def get_SO_ids(self,som_id):
         raise NotImplementedError
 
-    def num_avail_SOM(self):
+    def get_SOM_ids(self):
         raise NotImplementedError
 
     # ----- read information
