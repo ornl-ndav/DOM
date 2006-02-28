@@ -3,7 +3,7 @@ import dst_base
 import sys
 
 if __name__=="__main__":
-    filename="blah"
+    filename=None
     try:
         filename=sys.argv[1]
     except IndexError:
@@ -12,5 +12,3 @@ if __name__=="__main__":
     
     dst=dst_base.getInstance("application/x-NeXus",filename)
     print dst
-    
-    print dst.list_entries()
