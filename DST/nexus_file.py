@@ -191,8 +191,13 @@ class NeXusFile:
         info=nxpython.nx_getnextentry(self.__HANDLE__,SEPARATOR)
         if(info==None):
             return (None,None)
-        (name,type,number)=info.split(SEPARATOR)
-        return (name,type)
+        result=info.split(SEPARATOR)
+        try:
+            result.index("CDF0.0")
+            return (result[0],"CDF0.0")
+        except ValueError:
+            (name,type,number)=result
+            return (name,type)
 
     def getnextattr(self):
         SEPARATOR=":"
