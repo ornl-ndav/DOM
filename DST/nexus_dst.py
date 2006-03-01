@@ -136,13 +136,7 @@ class NeXusDST(dst_base.DST_BASE):
         # create the list of children with attributes
         data_children={}
         for sds in SDS_list:
-            self.__nexus.openpath(sds)
-            child_attrs={}
-            while True:
-                (attr_name,attr_value)=self.__nexus.getnextattr()
-                if(attr_name==None): break
-                child_attrs[attr_name]=attr_value
-            data_children[sds]=child_attrs
+            data_children[sds]=__get_sds_attr__(self.__nexus,sds)
 
         return data_children
 
@@ -178,31 +172,19 @@ class NeXusDST(dst_base.DST_BASE):
         print "      L_AXES  %s" % self.__label_axes
 
 
-    def __1d_c2nessi(self,c_ptr,type,length):
-        result=nessi_vector.NessiVector()
-        for i in range(length):
-            val=self.__nexus.get_sds_value(c_ptr,type,i)
-            result.append(val)
-        return result
-
     def set_SO_axis(self,so_axis):
+        print "=====", self.__so_axis,so_axis
         if self.__data_axes==None:
+            return
+        if self.__so_axis==so_axis:
             return
 
         self.__label_axes=[]
         for axis in self.__data_axes:
-            if axis.endswith(so_axis):
-                self.__so_axis=axis
+            if axis.location.endswith(so_axis):
+                self.__so_axis=axis.location
             else:
-                self.__label_axes.append(axis)
-
-        # for giggles, get the so axis values
-        self.__nexus.openpath(self.__so_axis)
-        c_so_axis=self.__nexus.getdata()
-        so_axis_info=self.__nexus.getinfo()
-        print self.__so_axis,"=",so_axis_info,c_so_axis
-        nv_so_axis=self.__1d_c2nessi(c_so_axis,so_axis_info[0],so_axis_info[1][0])
-        print nv_so_axis
+                self.__label_axes.append(axis.location)
 
     def set_data(self,path,signal=1):
         if(path==None): # unset everything
@@ -233,7 +215,7 @@ class NeXusDST(dst_base.DST_BASE):
                     if value==self.__data_signal:
                         self.__data_counts=child
                 elif key=="axis": # look for the axis to label themselves
-                    axes[value]=child
+                    axes[value]=NeXusAxis(self.__nexus,child)
 
         # look for the axes as an attribute to the signal data
         counts_attrlist=children[self.__data_counts]
@@ -241,18 +223,88 @@ class NeXusDST(dst_base.DST_BASE):
             if key=="axes":
                 inner_list=(counts_attr_list[key]).split(",")
                 for i in range(len(inner_list)):
-                    axes[i]=inner_list[i]
+                    axes[i]=NeXusAxis(self.__nexus,inner_list[i])
 
         # set the axes
         if len(axes)>0:
             self.__data_axes=[]
         for i in range(len(axes)):
             self.__data_axes.append(axes[i+1])
-        self.set_SO_axis(self.__data_axes[0])
+        self.set_SO_axis(self.__data_axes[0].location)
 
         # if the varience in the counts is not found then set it to be
         # the counts
         if self.__data_var==None:
             self.__data_var=self.__data_counts
 
-        #self.print_data_info() # DEBUG PRINT STATEMENT
+        self.print_data_info() # DEBUG PRINT STATEMENT
+
+class NeXusData:
+    def __init__(self,path,filehandle,signal=1):
+        self.__location=path
+        self.__nexus=filehandle
+        self.__signal=signal
+
+    def location(self):
+        return self.__location
+    def signal(self):
+        return self.__signal
+
+    def __repr__(self,verbose=True):
+        result="%s:%d" % (self.__location,self.__signal)
+        if not verbose:
+            return result
+        result=result+"\n" \
+                +"blah"
+
+        return result
+
+class NeXusAxis:
+    def __init__(self,filehandle,path):
+        # set the location
+        self.location=path
+
+        # the label is the tail of the path
+        self.label=path.split("/")[-1]
+
+        # get the value
+        filehandle.openpath(path)
+        c_axis=filehandle.getdata()
+        c_axis_info=filehandle.getinfo()
+        self.val=__conv_1d_c2nessi__(filehandle,c_axis,c_axis_info[0],
+                                     c_axis_info[1][0])
+
+        # get the list of attributes to set the label and units
+        attrs=__get_sds_attr__(filehandle,path)
+        print "ATTRS:",attrs
+        try:
+            self.units=attrs["units"]
+        except KeyError:
+            self.units=None
+        try:
+            self.number=attrs["axis"]
+        except KeyError:
+            self.number=None
+
+
+    def __str__(self):
+        return "[%d]%s (%s)" % (int(self.number),str(self.label),
+                                str(self.units))
+
+def __conv_1d_c2nessi__(filehandle,c_ptr,type,length):
+    result=nessi_vector.NessiVector()
+    for i in range(length):
+        val=filehandle.get_sds_value(c_ptr,type,i)
+        result.append(val)
+    return result
+
+
+def __get_sds_attr__(filehandle,path):
+    attrs={}
+    filehandle.openpath(path)
+    while True:
+        (name,value)=filehandle.getnextattr()
+        if(name==None): break
+        attrs[name]=value
+    return attrs
+
