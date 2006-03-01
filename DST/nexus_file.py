@@ -174,13 +174,13 @@ class NeXusFile:
         # create exception if this doesn't make sense
         if(info==None):
             raise NeXusError,"getinfo() FAILED"
-        type=self.get_sds_type(info)
+        type=get_sds_type(info)
         # get the dimensions
-        rank=self.get_sds_rank(info)
-        rank=(self.get_sds_dim(rank,info))[0]
+        rank=get_sds_rank(info)
+        rank=(get_sds_dim(rank,info))[0]
         dims=[]
         for i in range(rank):
-            dims.append(self.get_sds_value(info,self.SDS_TYPES.INT32,i))
+            dims.append(get_sds_value(info,self.SDS_TYPES.INT32,i))
         dims=dims[2:]
 
         # return the result
@@ -221,7 +221,7 @@ class NeXusFile:
 
         result=[]
         for i in range(i_length):
-            result.append(self.get_sds_value(value,type,i))
+            result.append(get_sds_value(value,type,i))
         if len(result)==1:
             result=result[0]
         return result
@@ -252,66 +252,66 @@ class NeXusFile:
 #extern  NXstatus  NXmalloc(void** data, int rank, int dimensions[], int datatype);
 #extern  NXstatus  NXfree(void** data);
 
-    # ----- nxdataset.i (c <-> python) stuff
-    def create_sds(self,type,dims):
-        args=[type]
-        try:
-            args.extend(dims)
-        except TypeError:
-            args.append(dims)
-        return apply(nxpython.create_nxds,args)
+# ----- nxdataset.i (c <-> python) stuff
+def create_sds(type,dims):
+    args=[type]
+    try:
+        args.extend(dims)
+    except TypeError:
+        args.append(dims)
+    return apply(nxpython.create_nxds,args)
 
-    def create_text_sds(self,value):
-        return nxpython.create_text_nxds(value)
+def create_text_sds(value):
+    return nxpython.create_text_nxds(value)
 
-    def delete_sds(self,c_ptr):
-        nxpython.drop_nxds(c_ptr)
+def delete_sds(c_ptr):
+    nxpython.drop_nxds(c_ptr)
 
-    def get_sds_rank(self,c_ptr):
-        return nxpython.get_nxds_rank(c_ptr)
+def get_sds_rank(c_ptr):
+    return nxpython.get_nxds_rank(c_ptr)
 
-    def get_sds_type(self,c_ptr):
-        type=nxpython.get_nxds_type(c_ptr)
-        return self.SDS_TYPES.key(type)
+def get_sds_type(c_ptr):
+    type=nxpython.get_nxds_type(c_ptr)
+    return NeXusFile.SDS_TYPES.key(type)
 
-    def get_sds_dim(self,rank,c_ptr):
-        result=[]
-        for i in range(rank):
-            result.append(nxpython.get_nxds_dim(c_ptr,i))
-        return result
+def get_sds_dim(rank,c_ptr):
+    result=[]
+    for i in range(rank):
+        result.append(nxpython.get_nxds_dim(c_ptr,i))
+    return result
 
-    def get_sds_value(self,c_ptr,type,index):
-        args=[c_ptr]
-        try:
-            args.extend(index)
-        except TypeError:
-            args.append(index)
-        value=apply(nxpython.get_nxds_value,args)
-        if(type==self.SDS_TYPES.FLOAT32 or type==self.SDS_TYPES.FLOAT64):
-            return value
-        else:
-            return int(value)
+def get_sds_value(c_ptr,type,index):
+    args=[c_ptr]
+    try:
+        args.extend(index)
+    except TypeError:
+        args.append(index)
+    value=apply(nxpython.get_nxds_value,args)
+    if(type==NeXusFile.SDS_TYPES.FLOAT32 or type==NeXusFile.SDS_TYPES.FLOAT64):
+        return value
+    else:
+        return int(value)
 
-    def get_sds_text(self,c_ptr):
-        return nxpython.get_nxds_text(c_ptr)
+def get_sds_text(c_ptr):
+    return nxpython.get_nxds_text(c_ptr)
+    
+def put_sds_value(c_ptr,value,index):
+    args=[c_ptr,value]
+    try:
+        args.extend(index)
+    except TypeError:
+        args.append(index)
+    result=apply(nxpython.put_nxds_value,args)
+    if result!=NeXusFile.STATUS.OK:
+        raise NeXusError,"put_sds_value(?,%s,%s) FAILED[%d]" % (str(value),str(index))
 
-    def put_sds_value(self,c_ptr,value,index):
-        args=[c_ptr,value]
-        try:
-            args.extend(index)
-        except TypeError:
-            args.append(index)
-        result=apply(nxpython.put_nxds_value,args)
-        if result!=self.STATUS.OK:
-            raise NeXusError,"put_sds_value(?,%s,%s) FAILED[%d]" % (str(value),str(index))
-
-    # ----- utility functions
-    def dims_to_cdims(self,dims):
-        """The result of this needs to be freed using delete_sds(self,c_ptr)"""
-        # convert the information to c-natives
-        rank=len(dims)
-        c_dims=self.create_sds(self.SDS_TYPES.INT8,rank)
-        for (it,pos) in map(None,dims,range(rank)):
-            self.put_sds_value(c_dims,it,pos)
-        # return the void pointer
-        return (rank,c_dims)
+# ----- utility functions
+def dims_to_cdims(dims):
+    """The result of this needs to be freed using delete_sds(c_ptr)"""
+    # convert the information to c-natives
+    rank=len(dims)
+    c_dims=self.create_sds(NeXusFile.SDS_TYPES.INT8,rank)
+    for (it,pos) in map(None,dims,range(rank)):
+        self.put_sds_value(c_dims,it,pos)
+    # return the void pointer
+    return (rank,c_dims)

@@ -294,7 +294,7 @@ class NeXusAxis:
 def __conv_1d_c2nessi__(filehandle,c_ptr,type,length):
     result=nessi_vector.NessiVector()
     for i in range(length):
-        val=filehandle.get_sds_value(c_ptr,type,i)
+        val=nexus_file.get_sds_value(c_ptr,type,i)
         result.append(val)
     return result
 
