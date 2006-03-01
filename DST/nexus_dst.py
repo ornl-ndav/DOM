@@ -165,11 +165,13 @@ class NeXusData:
         self.__nexus=filehandle
         self.signal=None
         self.__data=None
-        self.__data_var=None
+        self.__data_var=None # if left unset use the data for this
+        self.__data_dims=[]
         self.data_label=""
         self.data_units=""
         self.axes=[]
         self.variable=""
+        self.__data_cptr=None # replace with getslab stuff
         
         # now start pushing through attributes
         children=self.__get_data_children(tree,path)
@@ -205,24 +207,98 @@ class NeXusData:
             self.axes.append(axes[i+1])
         self.variable=self.axes[0]
 
-        # if the varience in the counts is not found then set it to be
-        # the counts
-        if self.__data_var==None:
-            self.__data_var=self.__data
+    def __del__(self):
+        self.release_ptrs()
 
-    def get_so(self,id):
+    def release_ptrs(self):
+        if(self.__data_cptr==None):
+            return
+        nexus_file.delete_sds(self.__data_cptr)
+        self.__data_cptr=None
+
+    def __id_to_index(self,so_id):
+        num_axes=len(self.axes)
+
+        if num_axes==2:
+            if self.axes[0]==self.variable:
+                return [0,self.axes[1].value.index(so_id)]
+            else:
+                return [self.axes[1].value.index(so_id),0]
+
+    def __get_slice(self,location,start_dim=None):
+        self.__nexus.openpath(location)
+
+        if start_dim==None: # assume that it is 1d
+            print "---------> 1d"
+            c_ptr=self.__nexus.getdata()
+            info=self.__nexus.getinfo()
+            result=__conv_1d_c2nessi__(c_ptr,info[0],info[1][0])
+            nexus_file.delete_sds(c_ptr)
+            return result
+            
+        print "---------> %dd <-" % len(start_dim)
+        # the number of values in the independent axis direction
+        num_points=len(self.variable)-1 # assume histogram
+
+        # set up the arguments for getting the slab
+#        end_dim=[num_points]
+#        for item in start_dim:
+#            end_dim.append(0)
+#        var_index=self.axes.index(self.variable)
+#        end_dim[var_index]=end_dim[var_index]+num_points
+
+        # cache the data
+        if(self.__data_cptr==None):
+            self.__nexus.openpath(self.__data)
+            self.__data_cptr=self.__nexus.getdata()
+            info=self.__nexus.getinfo()
+            self.__data_cptr_type=info[0]
+            self.__data_dims=info[1]
+
+        # set up the indexing scheme
+        index=[]
+        var_index=self.axes.index(self.variable)
+        for item in start_dim:
+            index.append(item)
+
+        # get and return the slice
+        result=nessi_vector.NessiVector()
+        for i in range(num_points):
+            index[var_index]=index[var_index]+1
+            val=nexus_file.get_sds_value(self.__data_cptr,
+                                         self.__data_cptr_type,index)
+            result.append(val)
+        return result
+
+#        # get the value
+#        c_ptr=self.__nexus.getslab(start_dim,end_dim)
+#        info=self.__nexus.getinfo()
+#        result=__conv_1d_c2nessi__(c_ptr,info[0],num_points)
+#        nexus_file.delete_sds(c_ptr)
+#        return result
+
+    def get_so(self,so_id):
         # create a spectrum object
         spectrum=so.SO()
 
         # give it the id specified
-        spectrum.id=id
+        spectrum.id=so_id
 
         # give it the appropriate independent variable
-        for axis in self.axes:
-            if axis.location==self.variable:
-                spectrum.x=axis.value
-                break
-        
+        spectrum.x=self.variable.value
+
+        # locate the data slice
+        start_dim=self.__id_to_index(so_id)
+        print "SO_ID",id,"->",start_dim
+
+        # set the data
+        spectrum.y=self.__get_slice(self.__data,start_dim)
+
+        # set the variance to be the data if no location is specified
+        if self.__data_var==None:
+            spectrum.var_y=spectrum.y
+        else:
+            spectrum.var_y=self.__get_slice(self.__data_var,start_dim)
 
         return spectrum
 
@@ -302,9 +378,9 @@ class NeXusAxis:
         # get the value
         filehandle.openpath(path)
         c_axis=filehandle.getdata()
-        c_axis_info=filehandle.getinfo()
-        self.value=__conv_1d_c2nessi__(filehandle,c_axis,c_axis_info[0],
-                                     c_axis_info[1][0])
+        axis_info=filehandle.getinfo()
+        self.value=__conv_1d_c2nessi__(c_axis,axis_info[0],axis_info[1][0])
+        nexus_file.delete_sds(c_axis)
 
         # get the list of attributes to set the label and units
         attrs=__get_sds_attr__(filehandle,path)
@@ -322,7 +398,10 @@ class NeXusAxis:
         return "[%d]%s (%s)" % (int(self.number),str(self.label),
                                 str(self.units))
 
-def __conv_1d_c2nessi__(filehandle,c_ptr,type,length):
+    def __len__(self):
+        return len(self.value)
+
+def __conv_1d_c2nessi__(c_ptr,type,length):
     result=nessi_vector.NessiVector()
     for i in range(length):
         val=nexus_file.get_sds_value(c_ptr,type,i)
