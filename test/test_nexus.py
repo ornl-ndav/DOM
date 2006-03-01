@@ -22,3 +22,4 @@ if __name__=="__main__":
         print "   x  ",so.x
         print "   y  ",so.y
         print "   var",so.var_y
+    print dst.getSOM(som_list[0])

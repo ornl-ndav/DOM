@@ -2,6 +2,7 @@ import dst_base
 import nexus_file
 import nessi_vector
 import so
+import som
 
 class NeXusDST(dst_base.DST_BASE):
     MIME_TYPE="application/x-NeXus"
@@ -53,8 +54,18 @@ class NeXusDST(dst_base.DST_BASE):
 
     def getSOM(self,som_id=None):
         if(som_id!=None):
-            self.set_data((som_id,1))
-        return None
+            data=self.__avail_data[som_id]
+        else:
+            data=self.__avail_data[(self.__data_group,self.__signal)]
+
+        result=som.SOM()
+        result.attr_list[result.TITLE]="" # should put something here
+        result.attr_list[result.X_LABEL]=data.variable.label
+        result.attr_list[result.X_UNITS]=data.variable.units
+        result.attr_list[result.Y_LABEL]=data.data_label
+        result.attr_list[result.Y_UNITS]=data.data_units
+
+        return result
 
     ########## special functions
     def __generate_SOM_ids(self):
