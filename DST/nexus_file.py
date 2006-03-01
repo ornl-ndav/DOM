@@ -135,17 +135,24 @@ class NeXusFile:
         return result
 
     def getslab(self,dims,size):
+        print "00:NeXusFile.getslab(",dims,",",size,")"
         # convert the information to c-natives
         (rank,c_size)=dims_to_cdims(size)
+        print "01:"
         (rank,c_dims)=dims_to_cdims(dims)
         # get the data
-        result=nxpython.nx_get_slab(self.__HANDLE__,c_dims,c_size)
+        print "02:"
+        result=nxpython.nx_getslab(self.__HANDLE__,c_dims,c_size)
         # cleanup
-        self.delete_sds(c_dims)
-        self.delete_sds(c_size)
+        print "03:"
+        delete_sds(c_dims)
+        print "04:"
+        delete_sds(c_size)
         #return the result
+        print "05:"
         if(result==None):
             raise NeXusError,"getslab() FAILED"
+        print "06:"
         return result
 
     def putattr(self,name,c_ptr):
@@ -310,8 +317,8 @@ def dims_to_cdims(dims):
     """The result of this needs to be freed using delete_sds(c_ptr)"""
     # convert the information to c-natives
     rank=len(dims)
-    c_dims=self.create_sds(NeXusFile.SDS_TYPES.INT8,rank)
+    c_dims=create_sds(NeXusFile.SDS_TYPES.INT8,rank)
     for (it,pos) in map(None,dims,range(rank)):
-        self.put_sds_value(c_dims,it,pos)
+        put_sds_value(c_dims,it,pos)
     # return the void pointer
     return (rank,c_dims)
