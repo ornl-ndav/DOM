@@ -164,10 +164,12 @@ class NeXusData:
         self.location=path
         self.__nexus=filehandle
         self.signal=None
-        self.data=None
-        self.data_var=None
-        self.axes=None
-        self.variable=None
+        self.__data=None
+        self.__data_var=None
+        self.data_label=""
+        self.data_units=""
+        self.axes=[]
+        self.variable=""
         
         # now start pushing through attributes
         children=self.__get_data_children(tree,path)
@@ -178,31 +180,35 @@ class NeXusData:
                 if key=="signal": # look for the data
                     if value==signal:
                         self.signal=signal
-                        self.data=child
+                        self.__data=child
+                        self.data_label=child.split("/")[-1]
                 elif key=="axis": # look for the axis to label themselves
                     axes[value]=NeXusAxis(self.__nexus,child)
         if self.signal==None:
             raise ValueError,"Could not find signal=%d" % int(signal)
 
         # look for the axes as an attribute to the signal data
-        counts_attrlist=children[self.data]
+        # also find the units
+        counts_attrlist=children[self.__data]
         for key in counts_attrlist.keys():
             if key=="axes":
                 inner_list=(counts_attr_list[key]).split(",")
                 for i in range(len(inner_list)):
                     axes[i]=NeXusAxis(self.__nexus,inner_list[i])
+            if key=="units":
+                self.units=counts_attrlist[key]
 
         # set the axes
         if len(axes)>0:
             self.axes=[]
         for i in range(len(axes)):
             self.axes.append(axes[i+1])
-        self.variable=self.axes[0].location
+        self.variable=self.axes[0]
 
         # if the varience in the counts is not found then set it to be
         # the counts
-        if self.data_var==None:
-            self.data_var=self.data
+        if self.__data_var==None:
+            self.__data_var=self.__data
 
     def get_so(self,id):
         # create a spectrum object
@@ -223,23 +229,23 @@ class NeXusData:
     def get_ids(self,var_axis=None):
         if(var_axis==None):
             var_axis=self.variable
-        if not var_axis.startswith("/"):
+        elif not var_axis.startswith("/"):
             for my_axis in self.axes:
                 if my_axis.label==var_axis:
-                    var_axis=my_axis.location
+                    var_axis=my_axis
 
         num_axes=len(self.axes)
         if num_axes==1:
             return [0]
         elif num_axes==2:
-            if self.axes[0].location==var_axis:
+            if self.axes[0]==var_axis:
                 return self.axes[1].value
             else:
                 return self.axes[0].value
         elif num_axes==3:
             label_axes=[]
             for axis in self.axes:
-                if axis.location!=var_axis:
+                if axis!=var_axis:
                     label_axes.append(axis)
             print label_axes
             id_list=[]
