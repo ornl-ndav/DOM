@@ -6,7 +6,7 @@ class NeXusDST(dst_base.DST_BASE):
     MIME_TYPE="application/x-NeXus"
 
     ########## DST_BASE function
-    def __init__(self,resource,data_group_path=None,so_axis="time_of_flight",
+    def __init__(self,resource,data_group_path=None,signal=1,so_axis="time_of_flight",
                  *args,**kwargs):
 
         # allocate places for everything
@@ -14,63 +14,62 @@ class NeXusDST(dst_base.DST_BASE):
         self.__tree=self.__build_tree()
         self.__data_group=None
         self.__data_signal=None
-        self.__data_axes=None
-        self.__data_counts=None
-        self.__data_var=None
         self.__so_axis=None
-        self.__label_axes=None
+        self.__avail_data={}
+
+        # create the data list
+        som_ids=self.__generate_SOM_ids()
+        for (location,signal) in som_ids:
+            data=NeXusData(self.__nexus,self.__tree,location,signal)
+            self.__avail_data[(location,signal)]=data
 
         # set the data group if there is only one
-        if(data_group_path==None):
-            data_list=self.list_type("NXdata")
-            if len(data_list)==1:
-                data_group_path=data_list[0]
-        self.set_data(data_group_path)
+        if data_group_path==None:
+            if len(self.__avail_data)==1:
+                key=self.__avail_data.keys()[0]
+                self.__data_group=key[0]
+                self.__signal=key[1]
 
         # set the so axis
-        self.set_SO_axis(so_axis)
+        self.__so_axis=so_axis
 
     def release_resource(self):
         self.__nexus.close()
 
     def get_SO_ids(self,SOM_id=None):
-        change_som= (SOM_id!=None) \
-                    and (SOM_id!=(self.__data_group,self.__data_signal))
-        print "CHANGE:",change_som
+        return None
 
-        # cache initial state
-        my_data_group=self.__data_group
-        my_data_signal=self.__data_signal
-        my_so_axis=self.__so_axis
-
-        # set the active SOM
-        if change_som:
-            apply(self.set_data,SOM_id)
-
-        print "AXES",self.__so_axis,self.__label_axes
-
-        num_axes=len(self.__data_axes)
-        so_list=[]
-        if num_axes==1:
-            so_list.append(1)
-        elif num_axes==2:
-            pass
-
-        # restore the initial SOM
-        if(change_som):
-            self.set_data(my_data_group,my_data_signal)
-            self.set_SO_axis(my_so_axis)
-
-        return so_list
+#        change_som= (SOM_id!=None) \
+#                    and (SOM_id!=(self.__data_group,self.__data_signal))
+#        print "CHANGE:",change_som
+#
+#        # cache initial state
+#        my_data_group=self.__data_group
+#        my_data_signal=self.__data_signal
+#        my_so_axis=self.__so_axis
+#
+#        # set the active SOM
+#        if change_som:
+#            apply(self.set_data,SOM_id)
+#
+#        print "AXES",self.__so_axis,self.__label_axes
+#
+#        num_axes=len(self.__data_axes)
+#        so_list=[]
+#        if num_axes==1:
+#            so_list.append(1)
+#        elif num_axes==2:
+#            pass
+#
+#        # restore the initial SOM
+#        if(change_som):
+#            self.set_data(my_data_group,my_data_signal)
+#            self.set_SO_axis(my_so_axis)
+#
+#        return so_list
 
     def get_SOM_ids(self):
-        path_list=self.list_type("NXdata")
-        SOM_list=[]
-        for path in path_list:
-            signal_list=self.__get_avail_signals(path)
-            for it in signal_list:
-                SOM_list.append((path,it))
-        return SOM_list
+        return self.__avail_data.keys()
 
     def getSO(self,som_id,so_id):
         return None
@@ -81,6 +80,15 @@ class NeXusDST(dst_base.DST_BASE):
         return None
 
     ########## special functions
+    def __generate_SOM_ids(self):
+        path_list=self.list_type("NXdata")
+        SOM_list=[]
+        for path in path_list:
+            signal_list=self.__get_avail_signals(path)
+            for it in signal_list:
+                SOM_list.append((path,it))
+        return SOM_list
+
     def __list_level(self):
         listing={}
         self.__nexus.initgroupdir()
@@ -124,7 +132,7 @@ class NeXusDST(dst_base.DST_BASE):
         if(data_group==None):
             data_group=self.__data_group
         if data_group==None:
-            return None
+            return {}
 
         # get the list of SDS in the data group
         SDS_list=[]
@@ -159,66 +167,48 @@ class NeXusDST(dst_base.DST_BASE):
                 my_list.append(key)
         return my_list
 
-    def print_data_info(self):
-        print "***** DATA    %s" % self.__data_group
-        print "      COUNTS  %s" % self.__data_counts
-        print "      VAR     %s" % self.__data_var
-        if(self.__data_axes==None):
-            print "      AXES    %s" % self.__data_axes
-        else:
-            for i in range(len(self.__data_axes)):
-                print "      AXIS[%d] %s" % (i,self.__data_axes[i])
-        print "      SO_AXIS %s" % self.__so_axis
-        print "      L_AXES  %s" % self.__label_axes
-
-
     def set_SO_axis(self,so_axis):
-        print "=====", self.__so_axis,so_axis
-        if self.__data_axes==None:
-            return
-        if self.__so_axis==so_axis:
-            return
-
-        self.__label_axes=[]
-        for axis in self.__data_axes:
-            if axis.location.endswith(so_axis):
-                self.__so_axis=axis.location
-            else:
-                self.__label_axes.append(axis.location)
+        data=self.__avail_data[(self.__data_group,self.__data_signal)]
+        if data.has_axis(so_axis):
+            self.__so_axis=so_axis
+        else:
+            raise ValueError,"Invalid axis specified (%s)" % so_axis
 
     def set_data(self,path,signal=1):
-        if(path==None): # unset everything
-            self.__data_group=None
-            self.__data_signal=None
-            self.__data_axes=None
-            self.__data_counts=None
-            self.__data_var=None
-            return
+        if self.__avail_data.has_key((path,signal)):
+            self.__data_group=path
+            self.__data_signal=signal
+        else:
+            raise ValueError,"Invalid data specified (%s,%d)" % (path,signal)
 
-        if not path in self.__tree.keys():
-            raise ValueError,"Specified invalid data path \"%s\"" % path
-
-        # set starting values
-        self.__data_group=path
-        self.__data_signal=signal
-        self.__data_axes=None
-        self.__data_counts=None
-        self.__data_var=None
-
-        # search through available attributes for information
-        children=self.__get_data_children()
+class NeXusData:
+    def __init__(self,filehandle,tree,path,signal):
+        # do the easy part
+        self.location=path
+        self.__nexus=filehandle
+        self.signal=None
+        self.data=None
+        self.data_var=None
+        self.axes=None
+        self.variable=None
+        
+        # now start pushing through attributes
+        children=self.__get_data_children(tree,path)
         axes={}
         for child in children.keys():
             for key in children[child]:
                 value=children[child][key]
                 if key=="signal": # look for the data
-                    if value==self.__data_signal:
-                        self.__data_counts=child
+                    if value==signal:
+                        self.signal=signal
+                        self.data=child
                 elif key=="axis": # look for the axis to label themselves
                     axes[value]=NeXusAxis(self.__nexus,child)
+        if self.signal==None:
+            raise ValueError,"Could not find signal=%d" % int(signal)
 
         # look for the axes as an attribute to the signal data
-        counts_attrlist=children[self.__data_counts]
+        counts_attrlist=children[self.data]
         for key in counts_attrlist.keys():
             if key=="axes":
                 inner_list=(counts_attr_list[key]).split(",")
@@ -227,37 +217,50 @@ class NeXusDST(dst_base.DST_BASE):
 
         # set the axes
         if len(axes)>0:
-            self.__data_axes=[]
+            self.axes=[]
         for i in range(len(axes)):
-            self.__data_axes.append(axes[i+1])
-        self.set_SO_axis(self.__data_axes[0].location)
+            self.axes.append(axes[i+1])
+        self.variable=self.axes[0].location
 
         # if the varience in the counts is not found then set it to be
         # the counts
-        if self.__data_var==None:
-            self.__data_var=self.__data_counts
+        if self.data_var==None:
+            self.data_var=self.data
 
-        self.print_data_info() # DEBUG PRINT STATEMENT
+    def has_axis(self,axis):
+        for my_axis in self.axes:
+            if my_axis.label==axis:
+                return true
+            if my_axis.path==axis:
+                return true
+        return false
 
-class NeXusData:
-    def __init__(self,path,filehandle,signal=1):
-        self.__location=path
-        self.__nexus=filehandle
-        self.__signal=signal
-
-    def location(self):
-        return self.__location
-    def signal(self):
-        return self.__signal
-
-    def __repr__(self,verbose=True):
-        result="%s:%d" % (self.__location,self.__signal)
+    def __repr__(self,verbose=False):
+        result="%s:%d" % (self.location,self.signal)
         if not verbose:
             return result
-        result=result+"\n" \
-                +"blah"
 
+        for axis in self.axes:
+            result=result+"\n  "+str(axis)
         return result
+
+    def __get_data_children(self,tree,data_group=None):
+        if data_group==None:
+            return {}
+
+        # get the list of SDS in the data group
+        SDS_list=[]
+        for key in tree.keys():
+            if tree[key]=="SDS":
+                if key.startswith(data_group):
+                    SDS_list.append(key)
+
+        # create the list of children with attributes
+        data_children={}
+        for sds in SDS_list:
+            data_children[sds]=__get_sds_attr__(self.__nexus,sds)
+
+        return data_children
 
 class NeXusAxis:
     def __init__(self,filehandle,path):
@@ -276,7 +279,6 @@ class NeXusAxis:
 
         # get the list of attributes to set the label and units
         attrs=__get_sds_attr__(filehandle,path)
-        print "ATTRS:",attrs
         try:
             self.units=attrs["units"]
         except KeyError:
