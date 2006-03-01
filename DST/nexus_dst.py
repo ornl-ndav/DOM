@@ -1,6 +1,7 @@
 import dst_base
 import nexus_file
 import nessi_vector
+import so
 
 class NeXusDST(dst_base.DST_BASE):
     MIME_TYPE="application/x-NeXus"
@@ -37,42 +38,18 @@ class NeXusDST(dst_base.DST_BASE):
         self.__nexus.close()
 
     def get_SO_ids(self,SOM_id=None,so_axis=None):
-        return None
+        if(SOM_id!=None):
+            data=self.__avail_data[SOM_id]
+        else:
+            data=self.__avail_data[(self.__data_group,self.__signal)]
 
-#        change_som= (SOM_id!=None) \
-#                    and (SOM_id!=(self.__data_group,self.__data_signal))
-#        print "CHANGE:",change_som
-#
-#        # cache initial state
-#        my_data_group=self.__data_group
-#        my_data_signal=self.__data_signal
-#        my_so_axis=self.__so_axis
-#
-#        # set the active SOM
-#        if change_som:
-#            apply(self.set_data,SOM_id)
-#
-#        print "AXES",self.__so_axis,self.__label_axes
-#
-#        num_axes=len(self.__data_axes)
-#        so_list=[]
-#        if num_axes==1:
-#            so_list.append(1)
-#        elif num_axes==2:
-#            pass
-#
-#        # restore the initial SOM
-#        if(change_som):
-#            self.set_data(my_data_group,my_data_signal)
-#            self.set_SO_axis(my_so_axis)
-#
-#        return so_list
+        return data.get_ids()
 
     def get_SOM_ids(self):
         return self.__avail_data.keys()
 
     def getSO(self,som_id,so_id):
-        return None
+        return self.__avail_data[som_id].get_so(so_id)
 
     def getSOM(self,som_id=None):
         if(som_id!=None):
@@ -227,6 +204,52 @@ class NeXusData:
         if self.data_var==None:
             self.data_var=self.data
 
+    def get_so(self,id):
+        # create a spectrum object
+        spectrum=so.SO()
+
+        # give it the id specified
+        spectrum.id=id
+
+        # give it the appropriate independent variable
+        for axis in self.axes:
+            if axis.location==self.variable:
+                spectrum.x=axis.value
+                break
+        
+
+        return spectrum
+
+    def get_ids(self,var_axis=None):
+        if(var_axis==None):
+            var_axis=self.variable
+        if not var_axis.startswith("/"):
+            for my_axis in self.axes:
+                if my_axis.label==var_axis:
+                    var_axis=my_axis.location
+
+        num_axes=len(self.axes)
+        if num_axes==1:
+            return [0]
+        elif num_axes==2:
+            if self.axes[0].location==var_axis:
+                return self.axes[1].value
+            else:
+                return self.axes[0].value
+        elif num_axes==3:
+            label_axes=[]
+            for axis in self.axes:
+                if axis.location!=var_axis:
+                    label_axes.append(axis)
+            print label_axes
+            id_list=[]
+            for i in range(len(label_axes[0].value)):
+                for j in range(len(label_axes[1].value)):
+                    id_list.append((label_axes[0].value[i],label_axes[1].value[j]))
+            return id_list
+
+        raise SystemError,"Cannot generate ids for %dd data" % num_axes
+
     def has_axis(self,axis):
         for my_axis in self.axes:
             if my_axis.label==axis:
@@ -274,7 +297,7 @@ class NeXusAxis:
         filehandle.openpath(path)
         c_axis=filehandle.getdata()
         c_axis_info=filehandle.getinfo()
-        self.val=__conv_1d_c2nessi__(filehandle,c_axis,c_axis_info[0],
+        self.value=__conv_1d_c2nessi__(filehandle,c_axis,c_axis_info[0],
                                      c_axis_info[1][0])
 
         # get the list of attributes to set the label and units

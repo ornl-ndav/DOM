@@ -14,5 +14,11 @@ if __name__=="__main__":
     som_list=dst.get_SOM_ids()
     for item in som_list:
         print "FOR SOM:",item
-        print " SO IDS:",dst.get_SO_ids(item)
-        
+        so_list=dst.get_SO_ids(item)
+        print " SO IDS:",so_list
+        so=dst.getSO(item,so_list[0])
+        print " SO:",so_list[0]
+        print "   id ",so.id
+        print "   x  ",so.x
+        print "   y  ",so.y
+        print "   var",so.var_y
