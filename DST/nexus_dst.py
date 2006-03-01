@@ -36,7 +36,7 @@ class NeXusDST(dst_base.DST_BASE):
     def release_resource(self):
         self.__nexus.close()
 
-    def get_SO_ids(self,SOM_id=None):
+    def get_SO_ids(self,SOM_id=None,so_axis=None):
         return None
 
 #        change_som= (SOM_id!=None) \
