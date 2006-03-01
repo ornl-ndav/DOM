@@ -15,7 +15,9 @@ SOM1.attr_list["epoch"] = time()
 SOM1.attr_list["timestamp"] = strftime("%Y-%m-%d %T",
                                        localtime(SOM1.attr_list["epoch"]))
 SOM1.attr_list["username"] = "Michael Reuter and the Gang"
+SOM1.attr_list["x_label"] = "TOF"
 SOM1.attr_list["x_units"] = "microseconds"
+SOM1.attr_list["y_label"] = "Counts"
 SOM1.attr_list["y_units"] = "beats"
 
 for i in range(2):

@@ -45,9 +45,10 @@ class Ascii3ColDST(dst_base.DST_BASE):
         print >> self.__file, "#C Title:",som.attr_list["title"]
         print >> self.__file, "#C User:",som.attr_list["username"]
 
-        self.__axes_and_units = "#L TOF(%s) Counts(%s) Sigma(%s)" \
-        % (som.attr_list["x_units"], som.attr_list["y_units"],
-         som.attr_list["y_units"])
+        self.__axes_and_units = "#L %s(%s) %s(%s) Sigma(%s)" \
+        % (som.attr_list["x_label"], som.attr_list["x_units"],
+           som.attr_list["y_label"], som.attr_list["y_units"],
+           som.attr_list["y_units"])
 
     def writeData(self,so):
         print >> self.__file, self.EMPTY
