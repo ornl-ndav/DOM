@@ -132,14 +132,17 @@ class NeXusDST(dst_base.DST_BASE):
 
 #        print "INFO",info
 #        print "TYPE",path,i_type
-        if i_type==24: #self.__nexus.SDS_TYPES.CHAR: #this is a hack
-        #if i_type==self.__nexus.SDS_TYPES.CHAR: #this is a hack
-            result=nexus_file.get_sds_text(c_ptr)
-            nexus_file.delete_sds(c_ptr)
-            return result
-        result=__conv_1d_c2nessi__(c_ptr,i_type,length)
-        nexus_file.delete_sds(c_ptr)
 
+        # try to convert to a string
+        result=nexus_file.get_sds_text(c_ptr)
+        # if it didn't work try to convert to a NessiVector
+        if result=="NO type problem":
+            result=__conv_1d_c2nessi__(c_ptr,i_type,length)
+            if len(result)==1: # convert to a scalar
+                result=result[0]
+
+        # clean up memory and return result
+        nexus_file.delete_sds(c_ptr)
         return str(result)
 
     def __generate_SOM_ids(self):
