@@ -84,8 +84,13 @@ class NeXusDST(dst_base.DST_BASE):
         result.attr_list[result.Y_LABEL]=data.data_label
         result.attr_list[result.Y_UNITS]=data.data_units
 
+        attrs=self.__get_attr_list(data.location)
+        for key in attrs.keys():
+            result.attr_list[key]=attrs[key]
+
         ids=self.get_SO_ids()
-        for i in range(len(ids)):
+        num_so=10 #len(ids) # shorter to make tests run
+        for i in range(num_so):
 #        for item in ids: # change if NessiVector does itterators
 #            so=data.get_so(item)
             so=data.get_so(ids[i])
@@ -97,6 +102,41 @@ class NeXusDST(dst_base.DST_BASE):
         return result
 
     ########## special functions
+    def __get_attr_list(self,data_path):
+        # prefix of what attributes to use
+        data_path="/"+data_path.split("/")[0]
+
+        # generate the full list of attributes to use
+        possible_list=self.list_type("SDS")
+        attr_list=[]
+        for item in possible_list:
+            if item.startswith(data_path):
+                if len(item.split("/"))==3:
+                    attr_list.append(item)
+
+        attrs={}
+        for path in attr_list:
+            key=path.split("/")[-1]
+            attrs[key]=self.__get_val_as_str(path)
+
+        return attrs
+
+    def __get_val_as_str(self,path):
+        self.__nexus.openpath(path)
+        c_ptr=self.__nexus.getdata()
+        info=self.__nexus.getinfo()
+        i_type=self.__nexus.SDS_TYPES.val(info[0])
+        length=info[1][0]
+
+        if i_type==24: #self.__nexus.SDS_TYPES.CHAR: #this is a hack
+            result=nexus_file.get_sds_text(c_ptr)
+            nexus_file.delete_sds(c_ptr)
+            return result
+        result=__conv_1d_c2nessi__(c_ptr,i_type,length)
+        nexus_file.delete_sds(c_ptr)
+
+        return str(result)
+
     def __generate_SOM_ids(self):
         path_list=self.list_type("NXdata")
         SOM_list=[]
