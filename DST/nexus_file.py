@@ -181,7 +181,10 @@ class NeXusFile:
         # create exception if this doesn't make sense
         if(info==None):
             raise NeXusError,"getinfo() FAILED"
+        # get the type
         type=get_sds_type(info)
+        type=self.SDS_TYPES.val(type)
+
         # get the dimensions
         rank=get_sds_rank(info)
         rank=(get_sds_dim(rank,info))[0]

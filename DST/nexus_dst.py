@@ -83,12 +83,14 @@ class NeXusDST(dst_base.DST_BASE):
         result.attr_list[result.X_UNITS]=data.variable.units
         result.attr_list[result.Y_LABEL]=data.data_label
         result.attr_list[result.Y_UNITS]=data.data_units
+        result.attr_list["filename"]=self.__nexus.filename()
 
         attrs=self.__get_attr_list(data.location)
         for key in attrs.keys():
             result.attr_list[key]=attrs[key]
 
         ids=self.get_SO_ids()
+        print ids[0:20]
         num_so=10 #len(ids) # shorter to make tests run
         for i in range(num_so):
 #        for item in ids: # change if NessiVector does itterators
@@ -125,10 +127,11 @@ class NeXusDST(dst_base.DST_BASE):
         self.__nexus.openpath(path)
         c_ptr=self.__nexus.getdata()
         info=self.__nexus.getinfo()
-        i_type=self.__nexus.SDS_TYPES.val(info[0])
+        i_type=info[0]
         length=info[1][0]
 
         if i_type==24: #self.__nexus.SDS_TYPES.CHAR: #this is a hack
+        #if i_type==self.__nexus.SDS_TYPES.CHAR: #this is a hack
             result=nexus_file.get_sds_text(c_ptr)
             nexus_file.delete_sds(c_ptr)
             return result
@@ -383,6 +386,7 @@ class NeXusData:
         return result
 
     def get_so(self,so_id):
+        print "retrieving",so_id # remove
         # create a spectrum object
         spectrum=so.SO()
 
@@ -427,11 +431,23 @@ class NeXusData:
             for axis in self.axes:
                 if axis!=var_axis:
                     label_axes.append(axis)
-            print label_axes
+            for axis in label_axes:
+                print axis,
+                for i in range(10):
+                    print axis.value[i],
+                print
             id_list=[]
+            counter=0
             for i in range(len(label_axes[0].value)):
                 for j in range(len(label_axes[1].value)):
-                    id_list.append((label_axes[0].value[i],label_axes[1].value[j]))
+                    so_id=(label_axes[0].value[i],
+                           label_axes[1].value[j])
+                    if counter<20:
+                        print so_id,"",
+                        counter=counter+1
+                    id_list.append(so_id)
+            print
+            print len(id_list)
             return id_list
 
         raise SystemError,"Cannot generate ids for %dd data" % num_axes
