@@ -64,7 +64,20 @@ class NeXusDST(dst_base.DST_BASE):
         return result
         
 
-    def getSOM(self,som_id=None,so_axis=None):
+    def getSOM(self,som_id=None,so_axis=None,**kwds):
+        """Available keywords are start_id,end_id which provide a way
+        to carve out the data to retrieve"""
+
+        # grab the keyword paramaters
+        if(kwds.has_key("start_id")):
+            start_id=kwds["start_id"]
+        else:
+            start_id=None
+        if(kwds.has_key("end_id")):
+            end_id=kwds["end_id"]
+        else:
+            end_id=None
+
         if(som_id!=None):
             data=self.__avail_data[som_id]
         else:
@@ -89,13 +102,19 @@ class NeXusDST(dst_base.DST_BASE):
         for key in attrs.keys():
             result.attr_list[key]=attrs[key]
 
-        ids=self.get_SO_ids()
-        print ids[0:20]
-        num_so=10 #len(ids) # shorter to make tests run
-        for i in range(num_so):
-#        for item in ids: # change if NessiVector does itterators
-#            so=data.get_so(item)
-            so=data.get_so(ids[i])
+        min_id=data.get_id_min()
+        max_id=data.get_id_max()
+
+        if (start_id==None) or (min_id>start_id):
+            start_id=min_id
+
+        if (end_id==None) or (max_id<end_id):
+            end_id=max_id
+
+        ids=self.__generate_ids(start_id,end_id)
+
+        for item in ids:
+            so=data.get_so(item)
             result.append(so)
 
         if orig_axis!=None:
@@ -104,6 +123,24 @@ class NeXusDST(dst_base.DST_BASE):
         return result
 
     ########## special functions
+    def __generate_ids(self,start,stop):
+        if(start==stop):
+            return [start]
+        try:
+            dim=len(start)
+            result=[]
+            if dim==2:
+                for i in range(start[0],stop[0]+1):
+                    for j in range(start[1],stop[1]+1):
+                        result.append((i,j))
+                return result
+            else:
+                raise RuntimeError,"Do not understand %dd indices" % dim
+        except TypeError,e: #assume it is a scalar
+            return range(start,stop)
+            
+        
+
     def __get_attr_list(self,data_path):
         # prefix of what attributes to use
         data_path="/"+data_path.split("/")[0]
@@ -453,6 +490,36 @@ class NeXusData:
             return id_list
 
         raise SystemError,"Cannot generate ids for %dd data" % num_axes
+
+    def get_id_min(self):
+        num_axes=len(self.axes)
+        if num_axes==1:
+            return 0
+        elif num_axes==2:
+            return 0
+        elif num_axes==3:
+            return (0,0)
+        else:
+            raise SystemError,"Cannot generate ids for %dd data" % num_axes
+
+    def get_id_max(self):
+        num_axes=len(self.axes)
+        if num_axes==1:
+            return 0
+        elif num_axes==2:
+            if self.axes[0]==self.variable:
+                return len(self.axis[1])
+            else:
+                return len(self.axis[0])
+        elif num_axes==3:
+            label_axes=[]
+            for axis in self.axes:
+                if axis!=self.variable:
+                    label_axes.append(axis)
+            return (len(label_axes[0]),len(label_axes[1]))
+        else:
+            raise SystemError,"Cannot generate ids for %dd data" % num_axes
+
 
     def has_axis(self,axis):
         for my_axis in self.axes:

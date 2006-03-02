@@ -23,6 +23,6 @@ if __name__=="__main__":
         print "   x  ",so.x
         print "   y  ",so.y
         print "   var",so.var_y
-    som=dst.getSOM(som_list[0],x_axis)
+    som=dst.getSOM(som_list[0],x_axis,end_id=(0,20))
 #    print som
     print som.attr_list
