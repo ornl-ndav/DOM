@@ -175,26 +175,27 @@ class NeXusFile:
         if(result!=self.STATUS.OK):
             raise NeXusError,"opensourcegroup() FAILED[%d]"
 
-    def getinfo(self):
-        # getinfo
-        info=nxpython.nx_getinfo(self.__HANDLE__)
+    def getdims(self):
+        # getinfo returns the dimensions
+        c_dims=nxpython.nx_getinfo(self.__HANDLE__)
         # create exception if this doesn't make sense
-        if(info==None):
-            raise NeXusError,"getinfo() FAILED"
-        # get the type
-        type=get_sds_type(info)
+        if(c_dims==None):
+            raise NeXusError,"getdims() FAILED"
+
+        # get the type of the dimensions
+        type=get_sds_type(c_dims)
         type=self.SDS_TYPES.val(type)
 
         # get the dimensions
-        rank=get_sds_rank(info)
-        rank=(get_sds_dim(rank,info))[0]
+        rank=get_sds_rank(c_dims)
+        rank=(get_sds_dim(rank,c_dims))[0]
         dims=[]
         for i in range(rank):
-            dims.append(get_sds_value(info,self.SDS_TYPES.INT32,i))
+            dims.append(get_sds_value(c_dims,type,i))
         dims=dims[2:]
 
         # return the result
-        return (type,dims)
+        return dims
 
     def getnextentry(self):
         SEPARATOR=":"
@@ -297,6 +298,10 @@ def get_sds_value(c_ptr,type,index):
     except TypeError:
         args.append(index)
     value=apply(nxpython.get_nxds_value,args)
+    try: # hack to deal with terrible enum class
+        type=NeXusFile.SDS_TYPES.val(type)
+    except KeyError:
+        pass # is already an integer
     if(type==NeXusFile.SDS_TYPES.FLOAT32 or type==NeXusFile.SDS_TYPES.FLOAT64):
         return value
     else:

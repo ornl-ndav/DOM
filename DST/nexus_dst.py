@@ -126,9 +126,8 @@ class NeXusDST(dst_base.DST_BASE):
     def __get_val_as_str(self,path):
         self.__nexus.openpath(path)
         c_ptr=self.__nexus.getdata()
-        info=self.__nexus.getinfo()
-        i_type=info[0]
-        length=info[1][0]
+        dims=self.__nexus.getdims()
+        type=nexus_file.get_sds_type(c_ptr)
 
 #        print "INFO",info
 #        print "TYPE",path,i_type
@@ -137,7 +136,8 @@ class NeXusDST(dst_base.DST_BASE):
         result=nexus_file.get_sds_text(c_ptr)
         # if it didn't work try to convert to a NessiVector
         if result=="NO type problem":
-            result=__conv_1d_c2nessi__(c_ptr,i_type,length)
+            print "PATH:",path
+            result=__conv_1d_c2nessi__(c_ptr,type,dims[0],True)
             if len(result)==1: # convert to a scalar
                 result=result[0]
 
@@ -320,9 +320,9 @@ class NeXusData:
 
         if num_axes==2:
             if self.axes[0]==self.variable:
-                return [0,self.axes[1].value.index(so_id)]
+                return [0,so_id]
             else:
-                return [self.axes[1].value.index(so_id),0]
+                return [so_id,0]
         elif num_axes==3:
             var_index=self.axes.index(self.variable)
             index=0
@@ -331,7 +331,7 @@ class NeXusData:
                 if i==var_index:
                     result.append(0)
                 else:
-                    result.append(self.axes[i].value.index(so_id[index]))
+                    result.append(so_id[index])
                     index=index+1
             return result
 
@@ -343,8 +343,9 @@ class NeXusData:
         if start_dim==None: # assume that it is 1d
             #print "---------> 1d"
             c_ptr=self.__nexus.getdata()
-            info=self.__nexus.getinfo()
-            result=__conv_1d_c2nessi__(c_ptr,info[0],info[1][0])
+            dims=self.__nexus.getdims()
+            type=nexus_file.get_sds_type(c_ptr)
+            result=__conv_1d_c2nessi__(c_ptr,type,dims[0])
             nexus_file.delete_sds(c_ptr)
             return result
             
@@ -371,9 +372,8 @@ class NeXusData:
         if(self.__data_cptr==None):
             self.__nexus.openpath(self.__data)
             self.__data_cptr=self.__nexus.getdata()
-            info=self.__nexus.getinfo()
-            self.__data_cptr_type=info[0]
-            self.__data_dims=info[1]
+            self.__data_cptr_type=nexus_file.get_sds_type(self.__data_cptr)
+            self.__data_dims=self.__nexus.getdims()
 
         # set up the indexing scheme
         index=[]
@@ -430,28 +430,23 @@ class NeXusData:
             return [0]
         elif num_axes==2:
             if self.axes[0]==var_axis:
-                return self.axes[1].value
+                return range(len(self.axes[1]))
             else:
-                return self.axes[0].value
+                return range(len(self.axes[0]))
         elif num_axes==3:
             label_axes=[]
             for axis in self.axes:
                 if axis!=var_axis:
                     label_axes.append(axis)
-            for axis in label_axes:
-                print axis,
-                for i in range(10):
-                    print axis.value[i],
-                print
+#            for axis in label_axes:
+#                print axis,
+#                for i in range(10):
+#                    print axis.value[i],
+#                print
             id_list=[]
-            counter=0
             for i in range(len(label_axes[0].value)):
                 for j in range(len(label_axes[1].value)):
-                    so_id=(label_axes[0].value[i],
-                           label_axes[1].value[j])
-                    if counter<20:
-                        print so_id,"",
-                        counter=counter+1
+                    so_id=(i,j)
                     id_list.append(so_id)
             print
             print len(id_list)
@@ -505,8 +500,9 @@ class NeXusAxis:
         # get the value
         filehandle.openpath(path)
         c_axis=filehandle.getdata()
-        axis_info=filehandle.getinfo()
-        self.value=__conv_1d_c2nessi__(c_axis,axis_info[0],axis_info[1][0])
+        axis_dims=filehandle.getdims()
+        axis_type=nexus_file.get_sds_type(c_axis)
+        self.value=__conv_1d_c2nessi__(c_axis,axis_type,axis_dims[0])
         nexus_file.delete_sds(c_axis)
 
         # get the list of attributes to set the label and units
@@ -528,10 +524,28 @@ class NeXusAxis:
     def __len__(self):
         return len(self.value)
 
-def __conv_1d_c2nessi__(c_ptr,type,length):
-    result=nessi_vector.NessiVector()
+def __conv_1d_c2nessi__(c_ptr,type,length,keep_type=False):
+    if(keep_type):
+        my_type=nexus_file.NeXusFile.SDS_TYPES.val(type)
+        if(my_type==nexus_file.NeXusFile.SDS_TYPES.FLOAT32):
+            result=nessi_vector.NessiVector(0,"float")
+        elif(my_type==nexus_file.NeXusFile.SDS_TYPES.FLOAT64):
+            result=nessi_vector.NessiVector(0,"double")
+        elif(my_type==nexus_file.NeXusFile.SDS_TYPES.INT8 \
+             or my_type==nexus_file.NeXusFile.SDS_TYPES.INT16 \
+             or my_type==nexus_file.NeXusFile.SDS_TYPES.INT32):
+            result=nessi_vector.NessiVector(0,"int")
+        elif(my_type==nexus_file.NeXusFile.SDS_TYPES.UINT8 \
+             or my_type==nexus_file.NeXusFile.SDS_TYPES.UINT16 \
+             or my_type==nexus_file.NeXusFile.SDS_TYPES.UINT32):
+            result=nessi_vector.NessiVector(0,"uint")
+        else:
+            raise RuntimeError,"Do not understand type %s" % type
+    else:
+        result=nessi_vector.NessiVector()
     for i in range(length):
         val=nexus_file.get_sds_value(c_ptr,type,i)
+        if(keep_type): print "HI THERE:",val
         result.append(val)
     return result
 
