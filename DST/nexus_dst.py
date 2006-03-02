@@ -8,8 +8,8 @@ class NeXusDST(dst_base.DST_BASE):
     MIME_TYPE="application/x-NeXus"
 
     ########## DST_BASE function
-    def __init__(self,resource,data_group_path=None,signal=1,so_axis="time_of_flight",
-                 *args,**kwargs):
+    def __init__(self,resource,data_group_path=None,signal=1,
+                 so_axis="time_of_flight",*args,**kwargs):
 
         # allocate places for everything
         self.__nexus=nexus_file.NeXusFile(resource)
@@ -49,14 +49,33 @@ class NeXusDST(dst_base.DST_BASE):
     def get_SOM_ids(self):
         return self.__avail_data.keys()
 
-    def getSO(self,som_id,so_id):
-        return self.__avail_data[som_id].get_so(so_id)
+    def getSO(self,som_id,so_id,so_axis=None):
+        if so_axis==None:
+            return self.__avail_data[som_id].get_so(so_id)
 
-    def getSOM(self,som_id=None):
+        data=self.__avail_data[som_id]
+        orig_axis=data.variable
+
+        if orig_axis.label==so_axis or orig_axis.location==so_axis:
+            return data.get_so(so_id)
+        data.set_so_axis(so_axis)
+        result=data.get_so(so_id)
+        data.set_so_axis(orig_axis.label)
+        return result
+        
+
+    def getSOM(self,som_id=None,so_axis=None):
         if(som_id!=None):
             data=self.__avail_data[som_id]
         else:
             data=self.__avail_data[(self.__data_group,self.__signal)]
+
+        orig_axis=data.variable
+        if orig_axis.label==so_axis or orig_axis.location==so_axis:
+            orig_axis=None
+
+        if orig_axis!=None and so_axis!=None and data.has_axis(so_axis):
+            data.set_so_axis(so_axis)
 
         result=som.SOM()
         result.attr_list[result.TITLE]="" # should put something here
@@ -64,6 +83,16 @@ class NeXusDST(dst_base.DST_BASE):
         result.attr_list[result.X_UNITS]=data.variable.units
         result.attr_list[result.Y_LABEL]=data.data_label
         result.attr_list[result.Y_UNITS]=data.data_units
+
+        ids=self.get_SO_ids()
+        for i in range(len(ids)):
+#        for item in ids: # change if NessiVector does itterators
+#            so=data.get_so(item)
+            so=data.get_so(ids[i])
+            result.append(so)
+
+        if orig_axis!=None:
+            data.set_so_axis(orig_axis.location)
 
         return result
 
@@ -218,6 +247,17 @@ class NeXusData:
             self.axes.append(axes[i+1])
         self.variable=self.axes[0]
 
+    def set_so_axis(self,axis):
+        for my_axis in self.axes:
+            if my_axis.label==axis:
+                self.variable=my_axis
+                return
+            if my_axis.location==axis:
+                self.variable=my_axis
+                return
+        raise RuntimeError,"Invalid axis request %s" % axis
+        
+
     def __del__(self):
         self.release_ptrs()
 
@@ -235,28 +275,49 @@ class NeXusData:
                 return [0,self.axes[1].value.index(so_id)]
             else:
                 return [self.axes[1].value.index(so_id),0]
+        elif num_axes==3:
+            var_index=self.axes.index(self.variable)
+            index=0
+            result=[]
+            for i in range(3):
+                if i==var_index:
+                    result.append(0)
+                else:
+                    result.append(self.axes[i].value.index(so_id[index]))
+                    index=index+1
+            return result
+
+        raise RuntimeError,"Do not know how to deal with %dd data" % num_axes
 
     def __get_slice(self,location,start_dim=None):
         self.__nexus.openpath(location)
 
         if start_dim==None: # assume that it is 1d
-            print "---------> 1d"
+            #print "---------> 1d"
             c_ptr=self.__nexus.getdata()
             info=self.__nexus.getinfo()
             result=__conv_1d_c2nessi__(c_ptr,info[0],info[1][0])
             nexus_file.delete_sds(c_ptr)
             return result
             
-        print "---------> %dd <-" % len(start_dim)
+        #print "---------> %dd <-" % len(start_dim)
         # the number of values in the independent axis direction
         num_points=len(self.variable)-1 # assume histogram
 
         # set up the arguments for getting the slab
-#        end_dim=[num_points]
+#        end_dim=[]
 #        for item in start_dim:
-#            end_dim.append(0)
+#            end_dim.append(item)
 #        var_index=self.axes.index(self.variable)
 #        end_dim[var_index]=end_dim[var_index]+num_points
+#
+#        # get the value
+#        self.__nexus.openpath(self.__data)
+#        c_ptr=self.__nexus.getslab(start_dim,end_dim)
+#        info=self.__nexus.getinfo()
+#        result=__conv_1d_c2nessi__(c_ptr,info[0],num_points)
+#        nexus_file.delete_sds(c_ptr)
+#        return result
 
         # cache the data
         if(self.__data_cptr==None):
@@ -281,13 +342,6 @@ class NeXusData:
             result.append(val)
         return result
 
-#        # get the value
-#        c_ptr=self.__nexus.getslab(start_dim,end_dim)
-#        info=self.__nexus.getinfo()
-#        result=__conv_1d_c2nessi__(c_ptr,info[0],num_points)
-#        nexus_file.delete_sds(c_ptr)
-#        return result
-
     def get_so(self,so_id):
         # create a spectrum object
         spectrum=so.SO()
@@ -300,7 +354,6 @@ class NeXusData:
 
         # locate the data slice
         start_dim=self.__id_to_index(so_id)
-        print "SO_ID",id,"->",start_dim
 
         # set the data
         spectrum.y=self.__get_slice(self.__data,start_dim)
@@ -346,10 +399,10 @@ class NeXusData:
     def has_axis(self,axis):
         for my_axis in self.axes:
             if my_axis.label==axis:
-                return true
-            if my_axis.path==axis:
-                return true
-        return false
+                return True
+            if my_axis.location==axis:
+                return True
+        return False
 
     def __repr__(self,verbose=False):
         result="%s:%d" % (self.location,self.signal)
