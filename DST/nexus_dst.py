@@ -130,6 +130,8 @@ class NeXusDST(dst_base.DST_BASE):
         i_type=info[0]
         length=info[1][0]
 
+#        print "INFO",info
+#        print "TYPE",path,i_type
         if i_type==24: #self.__nexus.SDS_TYPES.CHAR: #this is a hack
         #if i_type==self.__nexus.SDS_TYPES.CHAR: #this is a hack
             result=nexus_file.get_sds_text(c_ptr)
@@ -404,7 +406,9 @@ class NeXusData:
 
         # set the variance to be the data if no location is specified
         if self.__data_var==None:
-            spectrum.var_y=spectrum.y
+            spectrum.var_y=nessi_vector.NessiVector()
+            for i in range(len(spectrum.y)):
+                spectrum.var_y.append(spectrum.y[i])
         else:
             spectrum.var_y=self.__get_slice(self.__data_var,start_dim)
 
