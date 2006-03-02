@@ -33,6 +33,7 @@ class Ascii3ColDST(dst_base.DST_BASE):
 
     def writeSOM(self,som):
         self.writeHeader(som)
+        self.__counter = 1
         for so in som:
             self.writeData(so)
 
@@ -42,8 +43,19 @@ class Ascii3ColDST(dst_base.DST_BASE):
         print >> self.__file, "#F",som.attr_list["filename"]
         print >> self.__file, "#E",som.attr_list["epoch"]
         print >> self.__file, "#D",som.attr_list["timestamp"]
+        if som.attr_list.has_key("run_number"):
+            print >> self.__file, "#C Run Number:",som.attr_list["run_number"]
         print >> self.__file, "#C Title:",som.attr_list["title"]
-        print >> self.__file, "#C User:",som.attr_list["username"]
+        if som.attr_list.has_key("username"):
+            print >> self.__file, "#C User:",som.attr_list["username"]
+        if som.attr_list.has_key("operations"):
+            for op in som.attr_list["operations"]:
+                print >> self.__file, "#C Operation",op
+        if som.attr_list.has_key("parents"):
+            print >> self.__file, "#C Parent Files"
+            pdict = som.attr_list["parents"]
+            for key in pdict:
+                print >> self.__file, "#C %s: %s" % (key, pdict[key]) 
 
         self.__axes_and_units = "#L %s(%s) %s(%s) Sigma(%s)" \
         % (som.attr_list["x_label"], som.attr_list["x_units"],
@@ -52,7 +64,7 @@ class Ascii3ColDST(dst_base.DST_BASE):
 
     def writeData(self,so):
         print >> self.__file, self.EMPTY
-        print >> self.__file, "#S",so.id+1,"Pixel",so.id
+        print >> self.__file, "#S",self.__counter,"Spectrum ID",so.id
         print >> self.__file, "#N", self.COLUMNS
         print >> self.__file, self.__axes_and_units
         for i in range(len(so)+1):
@@ -63,3 +75,4 @@ class Ascii3ColDST(dst_base.DST_BASE):
             else:
                 print >> self.__file, self.EMPTY
 
+        self.__counter += 1
