@@ -317,7 +317,7 @@ def dims_to_cdims(dims):
     """The result of this needs to be freed using delete_sds(c_ptr)"""
     # convert the information to c-natives
     rank=len(dims)
-    c_dims=create_sds(NeXusFile.SDS_TYPES.INT8,rank)
+    c_dims=create_sds(NeXusFile.SDS_TYPES.INT32,rank)
     for (it,pos) in map(None,dims,range(rank)):
         put_sds_value(c_dims,it,pos)
     # return the void pointer
