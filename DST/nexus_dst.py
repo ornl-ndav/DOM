@@ -428,7 +428,7 @@ class NeXusData:
         return result
 
     def get_so(self,so_id):
-        print "retrieving",so_id # remove
+        #print "retrieving",so_id # remove
         # create a spectrum object
         spectrum=so.SO()
 
