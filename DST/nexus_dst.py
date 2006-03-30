@@ -1,6 +1,6 @@
 import dst_base
 import nexus_file
-import nessi_vector
+import nessi_list
 import so
 import som
 
@@ -171,7 +171,7 @@ class NeXusDST(dst_base.DST_BASE):
 
         # try to convert to a string
         result=nexus_file.get_sds_text(c_ptr)
-        # if it didn't work try to convert to a NessiVector
+        # if it didn't work try to convert to a NessiList
         if result=="NO type problem":
             print "PATH:",path
             result=__conv_1d_c2nessi__(c_ptr,type,dims[0],True)
@@ -419,7 +419,7 @@ class NeXusData:
             index.append(item)
 
         # get and return the slice
-        result=nessi_vector.NessiVector()
+        result=nessi_list.NessiList()
         for i in range(num_points):
             index[var_index]=index[var_index]+1
             val=nexus_file.get_sds_value(self.__data_cptr,
@@ -446,7 +446,7 @@ class NeXusData:
 
         # set the variance to be the data if no location is specified
         if self.__data_var==None:
-            spectrum.var_y=nessi_vector.NessiVector()
+            spectrum.var_y=nessi_list.NessiList()
             for i in range(len(spectrum.y)):
                 spectrum.var_y.append(spectrum.y[i])
         else:
@@ -594,22 +594,20 @@ class NeXusAxis:
 def __conv_1d_c2nessi__(c_ptr,type,length,keep_type=False):
     if(keep_type):
         my_type=nexus_file.NeXusFile.SDS_TYPES.val(type)
-        if(my_type==nexus_file.NeXusFile.SDS_TYPES.FLOAT32):
-            result=nessi_vector.NessiVector(0,"float")
-        elif(my_type==nexus_file.NeXusFile.SDS_TYPES.FLOAT64):
-            result=nessi_vector.NessiVector(0,"double")
+        if(my_type==nexus_file.NeXusFile.SDS_TYPES.FLOAT32\
+           or my_type==nexus_file.NeXusFile.SDS_TYPES.FLOAT64):
+            result=nessi_list.NessiList()
         elif(my_type==nexus_file.NeXusFile.SDS_TYPES.INT8 \
              or my_type==nexus_file.NeXusFile.SDS_TYPES.INT16 \
-             or my_type==nexus_file.NeXusFile.SDS_TYPES.INT32):
-            result=nessi_vector.NessiVector(0,"int")
-        elif(my_type==nexus_file.NeXusFile.SDS_TYPES.UINT8 \
+             or my_type==nexus_file.NeXusFile.SDS_TYPES.INT32\
+             or my_type==nexus_file.NeXusFile.SDS_TYPES.UINT8 \
              or my_type==nexus_file.NeXusFile.SDS_TYPES.UINT16 \
              or my_type==nexus_file.NeXusFile.SDS_TYPES.UINT32):
-            result=nessi_vector.NessiVector(0,"uint")
+            result=nessi_list.NessiList(0,type=nessi_list.NessiList.INT)
         else:
             raise RuntimeError,"Do not understand type %s" % type
     else:
-        result=nessi_vector.NessiVector()
+        result=nessi_list.NessiList()
     for i in range(length):
         val=nexus_file.get_sds_value(c_ptr,type,i)
         if(keep_type): print "HI THERE:",val
