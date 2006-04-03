@@ -163,24 +163,25 @@ class NeXusDST(dst_base.DST_BASE):
     def __get_val_as_str(self,path):
         self.__nexus.openpath(path)
         c_ptr=self.__nexus.getdata()
-        dims=self.__nexus.getdims()
-        type=nexus_file.get_sds_type(c_ptr)
+        dims,type=self.__nexus.getdims()
+        #type=nexus_file.get_sds_type(c_ptr)
 
 #        print "INFO",info
 #        print "TYPE",path,i_type
 
         # try to convert to a string
-        result=nexus_file.get_sds_text(c_ptr)
+        #result=nexus_file.get_sds_text(c_ptr)
         # if it didn't work try to convert to a NessiList
-        if result=="NO type problem":
-            print "PATH:",path
-            result=__conv_1d_c2nessi__(c_ptr,type,dims[0],True)
-            if len(result)==1: # convert to a scalar
-                result=result[0]
+        #print "Q:",c_ptr
+        #if result=="NO type problem":
+        #    print "PATH:",path
+        #    result=__conv_1d_c2nessi__(c_ptr,type,True)
+        #    if len(result)==1: # convert to a scalar
+        #        result=result[0]
 
         # clean up memory and return result
-        nexus_file.delete_sds(c_ptr)
-        return str(result)
+        #nexus_file.delete_sds(c_ptr)
+        return str(c_ptr)
 
     def __generate_SOM_ids(self):
         path_list=self.list_type("NXdata")
@@ -380,10 +381,9 @@ class NeXusData:
         if start_dim==None: # assume that it is 1d
             #print "---------> 1d"
             c_ptr=self.__nexus.getdata()
-            dims=self.__nexus.getdims()
-            type=nexus_file.get_sds_type(c_ptr)
-            result=__conv_1d_c2nessi__(c_ptr,type,dims[0])
-            nexus_file.delete_sds(c_ptr)
+            dims,type=self.__nexus.getdims()
+            result=__conv_1d_c2nessi__(c_ptr,type)
+            #nexus_file.delete_sds(c_ptr)
             return result
             
         #print "---------> %dd <-" % len(start_dim)
@@ -391,40 +391,18 @@ class NeXusData:
         num_points=len(self.variable)-1 # assume histogram
 
         # set up the arguments for getting the slab
-#        end_dim=[]
-#        for item in start_dim:
-#            end_dim.append(item)
-#        var_index=self.axes.index(self.variable)
-#        end_dim[var_index]=end_dim[var_index]+num_points
-#
-#        # get the value
-#        self.__nexus.openpath(self.__data)
-#        c_ptr=self.__nexus.getslab(start_dim,end_dim)
-#        info=self.__nexus.getinfo()
-#        result=__conv_1d_c2nessi__(c_ptr,info[0],num_points)
-#        nexus_file.delete_sds(c_ptr)
-#        return result
-
-        # cache the data
-        if(self.__data_cptr==None):
-            self.__nexus.openpath(self.__data)
-            self.__data_cptr=self.__nexus.getdata()
-            self.__data_cptr_type=nexus_file.get_sds_type(self.__data_cptr)
-            self.__data_dims=self.__nexus.getdims()
-
-        # set up the indexing scheme
-        index=[]
-        var_index=self.axes.index(self.variable)
+        end_dim=[]
         for item in start_dim:
-            index.append(item)
+            end_dim.append(item)
+        var_index=self.axes.index(self.variable)
+        end_dim[var_index]=end_dim[var_index]+num_points
 
-        # get and return the slice
-        result=nessi_list.NessiList()
-        for i in range(num_points):
-            index[var_index]=index[var_index]+1
-            val=nexus_file.get_sds_value(self.__data_cptr,
-                                         self.__data_cptr_type,index)
-            result.append(val)
+        # get the value
+        self.__nexus.openpath(self.__data)
+        c_ptr=self.__nexus.getslab(start_dim,end_dim)
+        dims,type=self.__nexus.getdims()
+        result=__conv_1d_c2nessi__(c_ptr,type)
+        #nexus_file.delete_sds(c_ptr)
         return result
 
     def get_so(self,so_id):
@@ -567,10 +545,10 @@ class NeXusAxis:
         # get the value
         filehandle.openpath(path)
         c_axis=filehandle.getdata()
-        axis_dims=filehandle.getdims()
-        axis_type=nexus_file.get_sds_type(c_axis)
-        self.value=__conv_1d_c2nessi__(c_axis,axis_type,axis_dims[0])
-        nexus_file.delete_sds(c_axis)
+        axis_dims,axis_type=filehandle.getdims()
+        print "X:",axis_dims,axis_type
+        self.value=__conv_1d_c2nessi__(c_axis,axis_type)
+        #nexus_file.delete_sds(c_axis)
 
         # get the list of attributes to set the label and units
         attrs=__get_sds_attr__(filehandle,path)
@@ -591,7 +569,8 @@ class NeXusAxis:
     def __len__(self):
         return len(self.value)
 
-def __conv_1d_c2nessi__(c_ptr,type,length,keep_type=False):
+def __conv_1d_c2nessi__(c_ptr,type,keep_type=False):
+    print "W:",type
     if(keep_type):
         my_type=nexus_file.NeXusFile.SDS_TYPES.val(type)
         if(my_type==nexus_file.NeXusFile.SDS_TYPES.FLOAT32\
@@ -608,11 +587,19 @@ def __conv_1d_c2nessi__(c_ptr,type,length,keep_type=False):
             raise RuntimeError,"Do not understand type %s" % type
     else:
         result=nessi_list.NessiList()
-    for i in range(length):
-        val=nexus_file.get_sds_value(c_ptr,type,i)
-        if(keep_type): print "HI THERE:",val
-        result.append(val)
+
+    try:
+        result.extend(c_ptr)
+    except TypeError:
+        print "AA:",c_ptr
+        
     return result
+
+#    for i in range(length):
+#        val=nexus_file.get_sds_value(c_ptr,type,i)
+#        if(keep_type): print "HI THERE:",val
+#        result.append(val)
+
 
 
 def __get_sds_attr__(filehandle,path):
