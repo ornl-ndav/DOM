@@ -234,18 +234,128 @@ static PyObject *NeXusFile_closedata(PyObject *, PyObject *args)
   return Py_None;
 }
 
-//NXgetdata(handle,data) // NEEDS IMPLEMENTATION
+//NXgetdata(handle,data)
 static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
 {
-  Py_INCREF(Py_None);
-  return Py_None;
+  // get the arguments
+  PyObject *pyhandle;
+  if(!PyArg_ParseTuple(args,"O",&pyhandle))
+    return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+
+  // find out about the data we are about to read
+  int rank=0;
+  int type=0;
+  int dims[NX_MAXRANK];
+  if(NXgetinfo(handle,&rank,dims,&type)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"In getdata: getinfo failed");
+    return NULL;
+  }
+
+  //allocate memory for the data
+  void *data;
+  if(NXmalloc(&data,rank,dims,type)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"In getdata: malloc failed");
+    return NULL;
+  }
+
+  // get the data
+  if(NXgetdata(handle,data)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"In getdata: getdata failed");
+    return NULL;
+  }
+
+  // calculate the total length of the data as a 1D array
+  int tot_len=0;
+  for( int i=0 ; i<rank ; i++ ){
+    tot_len+=dims[i];
+  }
+  
+  // convert the data into a list
+  PyObject *result=NeXusFile_convertobj(data,type,tot_len);
+
+  // free up the allocated memory
+  if(NXfree(&data)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"In getdata: free failed");
+    return NULL;
+  }
+
+  // return the result
+  return result;
 }
 
-//NXgetslab(handle,data,start[],size[]) // NEEDS IMPLEMENTATION
+static bool PyObject_to_intarray(PyObject *pyobj, int *array)
+{
+  int size=PySequence_Size(pyobj);
+  for( int i=0 ; i<size ; i++ ){
+    PyObject *item=PySequence_GetItem(pyobj,i);
+    if(item==NULL){
+      PyErr_SetString(PyExc_RuntimeError,
+                  "conversion to array failed");
+      return false;
+    }
+    array[i]=static_cast<int>(PyInt_AsLong(item));
+  }
+
+  return true;
+}
+
+//NXgetslab(handle,data,start[],size[])
 static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
 {
-  Py_INCREF(Py_None);
-  return Py_None;
+  // get the arguments
+  PyObject *pyhandle;
+  PyObject *pystart;
+  PyObject *pysize;
+  if(!PyArg_ParseTuple(args,"OOO",&pyhandle,&pystart,&pysize))
+    return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+  int start[NX_MAXRANK];
+  int size[NX_MAXRANK];
+  if(!PyObject_to_intarray(pystart,start))
+    return NULL;
+  if(!PyObject_to_intarray(pysize,size))
+    return NULL;
+
+  // find out about the data we are about to read
+  int rank=0;
+  int type=0;
+  int dims[NX_MAXRANK];
+  if(NXgetinfo(handle,&rank,dims,&type)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"In getslab: getinfo failed");
+    return NULL;
+  }
+
+  //allocate memory for the data
+  void *data;
+  if(NXmalloc(&data,rank,size,type)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"In getslab: malloc failed");
+    return NULL;
+  }
+
+  // get the data
+  if(NXgetslab(handle,data,start,size)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"In getslab: getslab failed");
+    return NULL;
+  }
+
+  // calculate the total length of the data as a 1D array
+  int tot_len=0;
+  for( int i=0 ; i<rank ; i++ ){
+    tot_len+=size[i];
+  }
+  
+  // convert the data into a list
+  PyObject *result=NeXusFile_convertobj(data,type,tot_len);
+
+  // free up the allocated memory
+  if(NXfree(&data)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"In getslab: free failed");
+    return NULL;
+  }
+
+  // return the result
+  return result;
 }
 
 //NXgetattr(handle,name,value,length,type)
@@ -332,9 +442,21 @@ static PyObject *NeXusFile_putattr(PyObject *, PyObject *args)
   return NULL;
 }
 
-//NXflush(handle) // NEEDS IMPLEMENTATION
+//NXflush(handle)
 static PyObject *NeXusFile_flush(PyObject *, PyObject *args)
 {
+  // get the arguments
+  PyObject *pyhandle;
+  if(!PyArg_ParseTuple(args,"O",&pyhandle))
+    return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+
+  // find out about the data we are about to read
+  if(NXflush(handle)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"In getdata: getinfo failed");
+    return NULL;
+  }
+
   Py_INCREF(Py_None);
   return Py_None;
 }
