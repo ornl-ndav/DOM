@@ -489,18 +489,51 @@ static PyObject *NeXusFile_getnextattr(PyObject *, PyObject *args)
   return result;
 }
 
+static void NeXusFile_destroylink(void *link)
+{
+  NXlink *napilink=static_cast<NXlink *>(link);
+  delete napilink;
+  return;
+}
+
 //NXgetgroupID(handle,link_id) // NEEDS IMPLEMENTATION
 static PyObject *NeXusFile_getgroupID(PyObject *, PyObject *args)
 {
-  Py_INCREF(Py_None);
-  return Py_None;
+  // get the arguments
+  PyObject *pyhandle;
+  if(!PyArg_ParseTuple(args,"O",&pyhandle))
+    return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+
+  // get the information about the attribute
+  NXlink *link=new NXlink;
+  if(NXgetgroupID(handle,link)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"getgroupID failed");
+    return NULL;
+  }
+
+  // convert the link to python
+  return PyCObject_FromVoidPtr(link,NeXusFile_destroylink);
 }
 
 //NXgetdataID(handle,link_id) // NEEDS IMPLEMENTATION
 static PyObject *NeXusFile_getdataID(PyObject *, PyObject *args)
 {
-  Py_INCREF(Py_None);
-  return Py_None;
+  // get the arguments
+  PyObject *pyhandle;
+  if(!PyArg_ParseTuple(args,"O",&pyhandle))
+    return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+
+  // get the information about the attribute
+  NXlink *link=new NXlink;
+  if(NXgetdataID(handle,link)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"getdataID failed");
+    return NULL;
+  }
+
+  // convert the link to python
+  return PyCObject_FromVoidPtr(link,NeXusFile_destroylink);
 }
 
 //NXmakelink(handle,link_id) // NEEDS IMPLEMENTATION
