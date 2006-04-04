@@ -665,20 +665,6 @@ static PyObject *NeXusFile_makelink(PyObject *, PyObject *args)
   return NULL;
 }
 
-//NXmalloc(data,rank,dimesinos[],type) // NEEDS IMPLEMENTATION
-static PyObject *NeXusFile_malloc(PyObject *, PyObject *args)
-{
-  PyErr_SetString(PyExc_NotImplementedError,"Should be unnecessary");
-  return NULL;
-}
-
-//NXfree(data) // NEEDS IMPLEMENTATION
-static PyObject *NeXusFile_free(PyObject *, PyObject *args)
-{
-  PyErr_SetString(PyExc_NotImplementedError,"Should be unnecessary");
-  return NULL;
-}
-
 static PyMethodDef NeXusFile_methods[]={
   {"open",         (PyCFunction)NeXusFile_open, METH_VARARGS,
    "Default access is read"},
@@ -735,10 +721,6 @@ static PyMethodDef NeXusFile_methods[]={
   {"getdataID",    (PyCFunction)NeXusFile_getdataID, METH_VARARGS,
    ""},
   {"makelink",     (PyCFunction)NeXusFile_makelink, METH_VARARGS,
-   ""},
-  {"malloc",       (PyCFunction)NeXusFile_malloc, METH_VARARGS,
-   ""},
-  {"free",         (PyCFunction)NeXusFile_free, METH_VARARGS,
    ""},
   {NULL,NULL}
 };
