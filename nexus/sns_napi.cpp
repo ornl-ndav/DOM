@@ -94,7 +94,7 @@ static PyObject *NeXusFile_makegroup(PyObject *, PyObject *args)
   return NULL;
 }
 
-//NXopengroup(handle,name,class) // NEEDS IMPLEMENTATION
+//NXopengroup(handle,name,class)
 static PyObject *NeXusFile_opengroup(PyObject *, PyObject *args)
 {
   // get the arguments
@@ -115,7 +115,7 @@ static PyObject *NeXusFile_opengroup(PyObject *, PyObject *args)
   return Py_None;
 }
 
-//NXclosegroup(handle) // NEEDS IMPLEMENTATION
+//NXclosegroup(handle)
 static PyObject *NeXusFile_closegroup(PyObject *, PyObject *args)
 {
   // get the arguments
@@ -134,7 +134,7 @@ static PyObject *NeXusFile_closegroup(PyObject *, PyObject *args)
   return Py_None;
 }
 
-//NXopenpath(handle,path) // NEEDS IMPLEMENTATION
+//NXopenpath(handle,path)
 static PyObject *NeXusFile_openpath(PyObject *, PyObject *args)
 {
   // get the arguments
@@ -154,7 +154,7 @@ static PyObject *NeXusFile_openpath(PyObject *, PyObject *args)
   return Py_None;
 }
 
-//NXopengrouppath(handle,path) // NEEDS IMPLEMENTATION
+//NXopengrouppath(handle,path) 
 static PyObject *NeXusFile_opengrouppath(PyObject *, PyObject *args)
 {
   // get the arguments
@@ -188,7 +188,7 @@ static PyObject *NeXusFile_compmakedata(PyObject *, PyObject *args)
   return NULL;
 }
 
-//NXopendata(handle,name) // NEEDS IMPLEMENTATION
+//NXopendata(handle,name)
 static PyObject *NeXusFile_opendata(PyObject *, PyObject *args)
 {
   // get the arguments
@@ -215,7 +215,7 @@ static PyObject *NeXusFile_compress(PyObject *, PyObject *args)
   return NULL;
 }
 
-//NXclosedata(handle) // NEEDS IMPLEMENTATION
+//NXclosedata(handle)
 static PyObject *NeXusFile_closedata(PyObject *, PyObject *args)
 {
   // get the arguments
@@ -248,7 +248,7 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
   return Py_None;
 }
 
-//NXgetattr(handle,name,value,length,type) // NEEDS IMPLEMENTATION
+//NXgetattr(handle,name,value,length,type)
 static PyObject *NeXusFile_getattr(PyObject *, PyObject *args)
 {
   // get the arguments
@@ -353,21 +353,53 @@ static PyObject *NeXusFile_getgroupinfo(PyObject *, PyObject *args)
   return Py_None;
 }
 
-//NXinitgroupdir(handle) // NEEDS IMPLEMENTATION
+//NXinitgroupdir(handle)
 static PyObject *NeXusFile_initgroupdir(PyObject *, PyObject *args)
 {
+  // get the arguments
+  PyObject *pyhandle;
+  if(!PyArg_ParseTuple(args,"O",&pyhandle))
+    return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+
+  // do the work
+  if(NXinitgroupdir(handle)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"initgroupdir failed");
+    return NULL;
+  }
+
   Py_INCREF(Py_None);
   return Py_None;
 }
 
-//NXgetnextentry(handle,name,class,type) // NEEDS IMPLEMENTATION
+//NXgetnextentry(handle,name,class,type)
 static PyObject *NeXusFile_getnextentry(PyObject *, PyObject *args)
 {
-  Py_INCREF(Py_None);
-  return Py_None;
+  // get the arguments
+  PyObject *pyhandle;
+  if(!PyArg_ParseTuple(args,"O",&pyhandle))
+    return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+
+  // do the work
+  char name[GROUP_STRING_LEN];
+  char nxclass[GROUP_STRING_LEN];
+  int type;
+  if(NXgetnextentry(handle,name,nxclass,&type)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"getnextentry failed");
+    return NULL;
+  }
+
+  PyObject *result=PyTuple_New(3);
+  PyTuple_SET_ITEM(result,0,PyString_FromString(name));
+  PyTuple_SET_ITEM(result,1,PyString_FromString(nxclass));
+  PyTuple_SET_ITEM(result,2,PyLong_FromLong(static_cast<long>(type)));
+
+  Py_INCREF(result);
+  return result;
 }
 
-//NXgetattrinfo(handle,num_attrs) // NEEDS IMPLEMENTATION
+//NXgetattrinfo(handle,num_attrs)
 static PyObject *NeXusFile_getattrinfo(PyObject *, PyObject *args)
 {
   // get the arguments
@@ -388,18 +420,73 @@ static PyObject *NeXusFile_getattrinfo(PyObject *, PyObject *args)
   return result;
 }
 
-//NXinitattrdir(handle) // NEEDS IMPLEMENTATION
+//NXinitattrdir(handle)
 static PyObject *NeXusFile_initattrdir(PyObject *, PyObject *args)
 {
+  // get the arguments
+  PyObject *pyhandle;
+  if(!PyArg_ParseTuple(args,"O",&pyhandle))
+    return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+
+  // do the work
+  if(NXinitattrdir(handle)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"initattrdir failed");
+    return NULL;
+  }
+
   Py_INCREF(Py_None);
   return Py_None;
 }
 
-//NXgetnextattr(handle,name,length,type) // NEEDS IMPLEMENTATION
+//NXgetnextattr(handle,name,length,type)
 static PyObject *NeXusFile_getnextattr(PyObject *, PyObject *args)
 {
-  Py_INCREF(Py_None);
-  return Py_None;
+  // get the arguments
+  PyObject *pyhandle;
+  if(!PyArg_ParseTuple(args,"O",&pyhandle))
+    return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+
+  // get the information about the attribute
+  char attr_name[GROUP_STRING_LEN];
+  int attr_type;
+  int attr_len;
+  if(NXgetnextattr(handle,attr_name,&attr_len,&attr_type)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"In getattr: getattrinfo failed");
+    return NULL;
+  }
+  PyObject *name=PyString_FromString(attr_name);
+  Py_INCREF(name);
+
+  // get the value
+  int attr_dims[1]={attr_len+1};
+  void *attr_value;
+  if(NXmalloc(&attr_value,1,attr_dims,attr_type)!=NX_OK){
+      PyErr_SetString(PyExc_IOError,"In getattr: malloc failed");
+      return NULL;
+  }
+  if(NXgetattr(handle,attr_name,attr_value,attr_dims,&attr_type)!=NX_OK){
+      PyErr_SetString(PyExc_IOError,"In getattr: getattr failed");
+      return NULL;
+  }
+  PyObject *value=NeXusFile_convertobj(attr_value,attr_type,attr_len);
+  if(NXfree(&attr_value)!=NX_OK){
+      PyErr_SetString(PyExc_IOError,"In getattr: free failed");
+      return NULL;
+  }
+  if((attr_type!=NX_CHAR)&&(attr_len==1)){
+    PyObject *my_value=PyList_GetItem(value,0);
+    Py_DECREF(value);
+    value=my_value;
+    Py_INCREF(value);
+  }
+
+  PyObject *result=PyTuple_New(2);
+  PyTuple_SET_ITEM(result,0,name);
+  PyTuple_SET_ITEM(result,1,value);
+  Py_INCREF(result);
+  return result;
 }
 
 //NXgetgroupID(handle,link_id) // NEEDS IMPLEMENTATION
