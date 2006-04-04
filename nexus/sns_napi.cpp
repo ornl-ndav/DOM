@@ -452,7 +452,7 @@ static PyObject *NeXusFile_flush(PyObject *, PyObject *args)
   NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
 
   // find out about the data we are about to read
-  if(NXflush(handle)!=NX_OK){
+  if(NXflush(&handle)!=NX_OK){
     PyErr_SetString(PyExc_IOError,"In getdata: getinfo failed");
     return NULL;
   }
