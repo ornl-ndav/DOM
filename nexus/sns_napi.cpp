@@ -1,6 +1,5 @@
 // python
 #include <Python.h>
-#include <structmember.h>
 // nexus
 #include <napi.h>
 // C++
@@ -8,17 +7,34 @@
 
 // look in dv/danse/packages/nexus/module
 
-typedef struct{
-  PyObject_HEAD
-  PyObject *handle;
-  PyObject *filename;
-}NeXusFile;
-
-static void NeXusFile_close(void *file)
+static void NeXusFile_privateclose(void *file)
 {
   NXhandle handle=static_cast<NXhandle>(file);
   NXclose(&handle);
   return;
+}
+
+static PyObject * NeXusFile_open(Pyobject *, PyObject *args)
+{
+  // set default access method
+  int access=NXACC_READ;
+
+  // get the arguments out
+  if(!PyArg_ParseTuple(args,"S|i",&(self->filename),&access))
+    return -1;
+  Py_INCREF(self->filename);
+
+  // open the file
+  NXhandle handle;
+  char *filename=PyString_AS_STRING(self->filename);
+  if(NXopen(filename,(NXaccess)access,&handle)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"Could not open file");
+    return NULL;
+  }
+
+  // convert the handle to python
+  return PyCObject_FromVoidPtr(handle,NeXusFile_privateclose);
+  
 }
 
 static int NeXusFile_init(NeXusFile *self, PyObject *args, PyObject *kwds)
