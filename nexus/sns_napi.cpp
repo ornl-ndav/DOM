@@ -370,8 +370,22 @@ static PyObject *NeXusFile_getnextentry(PyObject *, PyObject *args)
 //NXgetattrinfo(handle,num_attrs) // NEEDS IMPLEMENTATION
 static PyObject *NeXusFile_getattrinfo(PyObject *, PyObject *args)
 {
-  Py_INCREF(Py_None);
-  return Py_None;
+  // get the arguments
+  PyObject *pyhandle;
+  if(!PyArg_ParseTuple(args,"O",&pyhandle))
+    return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+
+  // do the work
+  int num_attr;
+  if(NXgetattrinfo(handle,&num_attr)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"getnumattr failed");
+    return NULL;
+  }
+
+  PyObject *result=PyInt_FromLong(num_attr);
+  Py_INCREF(result);
+  return result;
 }
 
 //NXinitattrdir(handle) // NEEDS IMPLEMENTATION
@@ -468,7 +482,7 @@ static PyMethodDef NeXusFile_methods[]={
    ""},
   {"getnextentry", (PyCFunction)NeXusFile_getnextentry, METH_VARARGS,
    ""},
-  {"getattrinfo",  (PyCFunction)NeXusFile_getattrinfo, METH_VARARGS,
+  {"getnumattr",   (PyCFunction)NeXusFile_getattrinfo, METH_VARARGS,
    ""},
   {"initattrdir",  (PyCFunction)NeXusFile_initattrdir, METH_VARARGS,
    ""},
