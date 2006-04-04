@@ -5,13 +5,64 @@
 // C++
 #include <iostream>
 
-// look in dv/danse/packages/nexus/module
+static int GROUP_STRING_LEN=80;
 
 static void NeXusFile_privateclose(void *file)
 {
   NXhandle handle=static_cast<NXhandle>(file);
   NXclose(&handle);
   return;
+}
+
+static PyObject * NeXusFile_convertscalar(void *value, int type, int index)
+{
+  PyObject * result=Py_None;
+  if(type==NX_FLOAT32){
+    result=PyFloat_FromDouble(static_cast<double>((static_cast<float*>(value))[index]));
+  }else if(type==NX_FLOAT64){
+    result=PyFloat_FromDouble(static_cast<double>((static_cast<double*>(value))[index]));
+  }else if(type==NX_INT8){
+    result=PyInt_FromLong(static_cast<long>((static_cast<unsigned char*>(value))[index]));
+  }else if(type==NX_UINT8){
+    result=PyInt_FromLong(static_cast<long>((static_cast<unsigned char*>(value))[index]));
+  }else if(type==NX_INT16){
+    result=PyInt_FromLong(static_cast<long>((static_cast<short int*>(value))[index]));
+  }else if(type==NX_UINT16){
+    result=PyInt_FromLong(static_cast<long>((static_cast<unsigned short*>(value))[index]));
+  }else if(type==NX_INT32){
+    result=PyInt_FromLong(static_cast<long>((static_cast<int*>(value))[index]));
+  }else if(type==NX_UINT32){
+    result=PyInt_FromLong(static_cast<long>((static_cast<unsigned int*>(value))[index]));
+  }else{
+    return NULL;
+  }
+  Py_INCREF(result);
+  return result;
+}
+
+static PyObject * NeXusFile_convertobj(void * value,int type, int length)
+{
+  // for character arrays return a string
+  if(type==NX_CHAR){
+    PyObject * result=Py_None;
+    result=Py_BuildValue("s",static_cast<char *>(value));
+    Py_INCREF(result);
+    return result;
+  }
+
+  // for everything else return a list
+  PyObject * result=PyList_New(length);
+  for( int i=0 ; i<length ; i++ )
+    {
+      PyObject *inner=NeXusFile_convertscalar(value,type,i);
+      if(inner==NULL){
+        PyErr_SetString(PyExc_RuntimeError,"Failure in convertscalar");
+        return NULL;
+      }
+      PyList_SET_ITEM(result,i,inner);
+    }
+  Py_INCREF(result);
+  return result;
 }
 
 //NXopen(filename,access)
@@ -106,6 +157,19 @@ static PyObject *NeXusFile_openpath(PyObject *, PyObject *args)
 //NXopengrouppath(handle,path) // NEEDS IMPLEMENTATION
 static PyObject *NeXusFile_opengrouppath(PyObject *, PyObject *args)
 {
+  // get the arguments
+  char *path;
+  PyObject *pyhandle;
+  if(!PyArg_ParseTuple(args,"Os",&pyhandle,&path))
+    return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+
+  // do the work
+  if(NXopengrouppath(handle,path)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"opengrouppath failed");
+    return NULL;
+  }
+
   Py_INCREF(Py_None);
   return Py_None;
 }
@@ -127,6 +191,19 @@ static PyObject *NeXusFile_compmakedata(PyObject *, PyObject *args)
 //NXopendata(handle,name) // NEEDS IMPLEMENTATION
 static PyObject *NeXusFile_opendata(PyObject *, PyObject *args)
 {
+  // get the arguments
+  char *name;
+  PyObject *pyhandle;
+  if(!PyArg_ParseTuple(args,"Os",&pyhandle,&name))
+    return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+
+  // do the work
+  if(NXopendata(handle,name)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"opendata failed");
+    return NULL;
+  }
+
   Py_INCREF(Py_None);
   return Py_None;
 }
@@ -141,6 +218,18 @@ static PyObject *NeXusFile_compress(PyObject *, PyObject *args)
 //NXclosedata(handle) // NEEDS IMPLEMENTATION
 static PyObject *NeXusFile_closedata(PyObject *, PyObject *args)
 {
+  // get the arguments
+  PyObject *pyhandle;
+  if(!PyArg_ParseTuple(args,"O",&pyhandle))
+    return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+
+  // do the work
+  if(NXclosedata(handle)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"opendata failed");
+    return NULL;
+  }
+
   Py_INCREF(Py_None);
   return Py_None;
 }
@@ -162,8 +251,64 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
 //NXgetattr(handle,name,value,length,type) // NEEDS IMPLEMENTATION
 static PyObject *NeXusFile_getattr(PyObject *, PyObject *args)
 {
-  Py_INCREF(Py_None);
-  return Py_None;
+  // get the arguments
+  char *name;
+  PyObject *pyhandle;
+  if(!PyArg_ParseTuple(args,"Os",&pyhandle,&name))
+    return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+
+  // get ready to look for the attribute
+  if(NXinitattrdir(handle)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"In getattr: initattrdir failed");
+    return NULL;
+  }
+  int num_attr;
+  if(NXgetattrinfo(handle,&num_attr)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"In getattr: getattrinfo failed");
+    return NULL;
+  }
+  char attr_name[GROUP_STRING_LEN];
+  int attr_type;
+  int attr_len;
+
+  // look for the attribute
+  bool found=false;
+  for( int i=0 ; i<num_attr ; i++ ){
+    if(NXgetnextattr(handle,attr_name,&attr_len,&attr_type)!=NX_OK){
+      PyErr_SetString(PyExc_IOError,"In getattr: getattrinfo failed");
+      return NULL;
+    }
+    if(strcmp(name,attr_name)==0){
+      found=true;
+      break;
+    }
+  }
+
+  // get the value
+  int attr_dims[1]={attr_len+1};
+  void *attr_value;
+  if(NXmalloc(&attr_value,1,attr_dims,attr_type)!=NX_OK){
+      PyErr_SetString(PyExc_IOError,"In getattr: malloc failed");
+      return NULL;
+  }
+  if(NXgetattr(handle,attr_name,attr_value,attr_dims,&attr_type)!=NX_OK){
+      PyErr_SetString(PyExc_IOError,"In getattr: getattr failed");
+      return NULL;
+  }
+  PyObject *result=NeXusFile_convertobj(attr_value,attr_type,attr_len);
+  if(NXfree(&attr_value)!=NX_OK){
+      PyErr_SetString(PyExc_IOError,"In getattr: free failed");
+      return NULL;
+  }
+  if((attr_type!=NX_CHAR)&&(attr_len==1)){
+    PyObject *my_result=PyList_GetItem(result,0);
+    Py_DECREF(result);
+    result=my_result;
+    Py_INCREF(result);
+  }
+
+  return result;
 }
 
 //NXputdata(handle,data) // NEEDS IMPLEMENTATION
