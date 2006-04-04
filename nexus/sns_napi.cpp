@@ -14,19 +14,20 @@ static void NeXusFile_privateclose(void *file)
   return;
 }
 
-static PyObject * NeXusFile_open(Pyobject *, PyObject *args)
+static PyObject * NeXusFile_open(PyObject *, PyObject *args)
 {
   // set default access method
   int access=NXACC_READ;
+  char *filename;
 
   // get the arguments out
-  if(!PyArg_ParseTuple(args,"S|i",&(self->filename),&access))
-    return -1;
-  Py_INCREF(self->filename);
+  if(!PyArg_ParseTuple(args,"s|i",&filename,&access))
+    return NULL;
+
+  std::cout << "open(" << filename << "," << access << ")" << std::endl;
 
   // open the file
   NXhandle handle;
-  char *filename=PyString_AS_STRING(self->filename);
   if(NXopen(filename,(NXaccess)access,&handle)!=NX_OK){
     PyErr_SetString(PyExc_IOError,"Could not open file");
     return NULL;
@@ -34,59 +35,48 @@ static PyObject * NeXusFile_open(Pyobject *, PyObject *args)
 
   // convert the handle to python
   return PyCObject_FromVoidPtr(handle,NeXusFile_privateclose);
-  
 }
-
-static int NeXusFile_init(NeXusFile *self, PyObject *args, PyObject *kwds)
-{
-  // set default access method
-  int access=NXACC_READ;
-
-  // get the arguments out
-  if(!PyArg_ParseTuple(args,"S|i",&(self->filename),&access))
-    return -1;
-  Py_INCREF(self->filename);
-
-  // open the file
-  NXhandle handle;
-  char *filename=PyString_AS_STRING(self->filename);
-  if(NXopen(filename,(NXaccess)access,&handle)!=NX_OK){
-    PyErr_SetString(PyExc_IOError,"Could not open file");
-    return -1;
-  }
-  self->handle=PyCObject_FromVoidPtr(handle,NeXusFile_close);
-
-  // return that things went well
-  return 0;
-}
-
 //NXmakegroup(handle,name,class) // NEEDS IMPLEMENTATION
 
 //NXopengroup(handle,name,class) // NEEDS IMPLEMENTATION
-static PyObject *NeXusFile_opengroup(NeXusFile *self, PyObject *args)
+static PyObject *NeXusFile_opengroup(PyObject *, PyObject *args)
 {
   // get the arguments
   char *name;
   char *nxclass;
-  if(!PyArg_ParseTuple(args,"ss",&name,&nxclass))
+  PyObject *pyhandle;
+  if(!PyArg_ParseTuple(args,"Oss",&pyhandle,&name,&nxclass))
     return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
 
-  std::cout << "***** " << name << " " << nxclass << " " << self->handle << std::endl;
-
-  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(self->handle));
-
-  if(NXopengroup(&handle,name,nxclass)!=NX_OK){
-    std::cout << "bye there" << std::endl;
+  // do the work
+  if(NXopengroup(handle,name,nxclass)!=NX_OK){
     PyErr_SetString(PyExc_IOError,"opengroup failed");
     return NULL;
   }
-  std::cout << "hi there" << std::endl;
 
   Py_INCREF(Py_None);
   return Py_None;
 }
 
 //NXclosegroup(handle) // NEEDS IMPLEMENTATION
+static PyObject *NeXusFile_closegroup(PyObject *, PyObject *args)
+{
+  // get the arguments
+  PyObject *pyhandle;
+  if(!PyArg_ParseTuple(args,"O",&pyhandle))
+    return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+
+  // do the work
+  if(NXclosegroup(handle)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"closegroup failed");
+    return NULL;
+  }
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
 
 //NXopenpath(handle,path) // NEEDS IMPLEMENTATION
 
@@ -140,76 +130,23 @@ static PyObject *NeXusFile_opengroup(NeXusFile *self, PyObject *args)
 
 //NXfree(data) // NEEDS IMPLEMENTATION
 
-static PyMemberDef NeXusFile_members[]={
-  {"filename",T_OBJECT_EX,offsetof(NeXusFile,filename),0,"filename"},
-  {NULL,NULL},
-};
-
 static PyMethodDef NeXusFile_methods[]={
+  {"open",      (PyCFunction)NeXusFile_open, METH_VARARGS,
+   "Open the file"},
   {"opengroup", (PyCFunction)NeXusFile_opengroup, METH_VARARGS,
    "Open the group specified by the name and class"},
+  {"closegroup",(PyCFunction)NeXusFile_closegroup,METH_VARARGS,
+   "Close the currently open group"},
   {NULL,NULL}
-};
-
-static char NeXusFile_doc[] = "hi there.";
-
-static PyTypeObject NeXusFileType={
-  PyObject_HEAD_INIT(NULL)
-  0,				/* ob_size        */
-  "sns_napi.NeXusFile",		/* tp_name        */
-  sizeof(NeXusFile),		/* tp_basicsize   */
-  0,				/* tp_itemsize    */
-  0,                            /* tp_dealloc     */
-  0,				/* tp_print       */
-  0,				/* tp_getattr     */
-  0,				/* tp_setattr     */
-  0,				/* tp_compare     */
-  0,				/* tp_repr        */
-  0,				/* tp_as_number   */
-  0,				/* tp_as_sequence */
-  0,				/* tp_as_mapping  */
-  0,				/* tp_hash        */
-  0,				/* tp_call        */
-  0,				/* tp_str         */
-  0,				/* tp_getattro    */
-  0,				/* tp_setattro    */
-  0,				/* tp_as_buffer   */
-  Py_TPFLAGS_DEFAULT,		/* tp_flags       */
-  NeXusFile_doc,                /* tp_doc         */
-  0,				/* tp_traverse       */
-  0,				/* tp_clear          */
-  0,				/* tp_richcompare    */
-  0,				/* tp_weaklistoffset */
-  0,				/* tp_iter           */
-  0,				/* tp_iternext       */
-  NeXusFile_methods,   		/* tp_methods        */
-  NeXusFile_members,	        /* tp_members        */
-  0,				/* tp_getset         */
-  0,				/* tp_base           */
-  0,				/* tp_dict           */
-  0,				/* tp_descr_get      */
-  0,				/* tp_descr_set      */
-  0,				/* tp_dictoffset     */
-  (initproc)NeXusFile_init,	/* tp_init           */
-  0,                            /* tp_alloc          */
-  0,                            /* tp_new            */
 };
 
 PyMODINIT_FUNC initsns_napi(void)
 {
   // reference to the module
   PyObject *m;
-
-  NeXusFileType.tp_new = PyType_GenericNew;
-  if(PyType_Ready(&NeXusFileType)<0)
-    return;
-
-  m=Py_InitModule3("sns_napi",NULL,"sns_napi, hacked in a couple of days");
+  m=Py_InitModule3("sns_napi",NeXusFile_methods,"sns_napi, hacked in a couple of days");
   if(m==NULL)
     return;
-
-  Py_INCREF(&NeXusFileType);
-  PyModule_AddObject(m,"NeXusFile",(PyObject *)&NeXusFileType);
 
   // get module dictionary for adding constants
   PyObject *d;
