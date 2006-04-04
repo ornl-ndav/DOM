@@ -18,18 +18,18 @@ lib_list_all = [nexus_lib]
 if os.uname()[0] == 'Linux':
     lib_list_all.append('stdc++')
 
-setup( name = "nxpython",
+setup( name = "sns_napi",
        version = "0.1",
        description = "Nexus extension module for Python",
        author = "Hartmut Gilde",
        author_email = "hartmut.gilde@frm2.tum.de",
        url = "http://www.frm2.tum.de",
-       ext_modules = [Extension( "_nexus", ["napi_swig.i"] ,
+       ext_modules = [Extension( "sns_napi", ["sns_napi.cpp"] ,
                                  include_dirs = incdir_list,
                                  library_dirs = libdir_list,
                                  libraries = lib_list_all)],
        ) 
-
+"""
 setup( name = "nxpython",
        version = "0.1",
        description = "Nexus extension module for Python",
@@ -39,3 +39,4 @@ setup( name = "nxpython",
 		 py_modules = ['nexus']
        ) 
 
+"""
