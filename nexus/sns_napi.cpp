@@ -6,11 +6,20 @@
 // C++
 #include <iostream>
 
+// look in dv/danse/packages/nexus/module
+
 typedef struct{
   PyObject_HEAD
-  NXhandle *handle;
+  PyObject *handle;
   PyObject *filename;
 }NeXusFile;
+
+static void NeXusFile_close(void *file)
+{
+  NXhandle handle=static_cast<NXhandle>(file);
+  NXclose(&handle);
+  return;
+}
 
 static int NeXusFile_init(NeXusFile *self, PyObject *args, PyObject *kwds)
 {
@@ -23,36 +32,16 @@ static int NeXusFile_init(NeXusFile *self, PyObject *args, PyObject *kwds)
   Py_INCREF(self->filename);
 
   // open the file
-  self->handle=new NXhandle;
+  NXhandle handle;
   char *filename=PyString_AS_STRING(self->filename);
-  if(NXopen(filename,(NXaccess)access,(self->handle))!=NX_OK){
+  if(NXopen(filename,(NXaccess)access,&handle)!=NX_OK){
     PyErr_SetString(PyExc_IOError,"Could not open file");
-    delete (self->handle);
-    Py_XDECREF(self->filename);
     return -1;
   }
+  self->handle=PyCObject_FromVoidPtr(handle,NeXusFile_close);
 
   // return that things went well
   return 0;
-}
-
-static int NeXusFile_dealloc(NeXusFile *self)
-{
-  std::cerr << "deallocate" << std::endl;
-  // assume this will work
-  int result=0;
-
-  // try to close the file
-  if(NXclose((self->handle))!=NX_OK){
-    PyErr_SetString(PyExc_IOError,"Could not close file");
-    result=-1;
-  }
-
-  // delete the file handle and decrement the reference count of filename
-  delete (self->handle);
-  Py_XDECREF(self->filename);
-
-  return result;
 }
 
 //NXmakegroup(handle,name,class) // NEEDS IMPLEMENTATION
@@ -68,7 +57,9 @@ static PyObject *NeXusFile_opengroup(NeXusFile *self, PyObject *args)
 
   std::cout << "***** " << name << " " << nxclass << " " << self->handle << std::endl;
 
-  if(NXopengroup(&(self->handle),name,nxclass)!=NX_OK){
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(self->handle));
+
+  if(NXopengroup(&handle,name,nxclass)!=NX_OK){
     std::cout << "bye there" << std::endl;
     PyErr_SetString(PyExc_IOError,"opengroup failed");
     return NULL;
@@ -152,7 +143,7 @@ static PyTypeObject NeXusFileType={
   "sns_napi.NeXusFile",		/* tp_name        */
   sizeof(NeXusFile),		/* tp_basicsize   */
   0,				/* tp_itemsize    */
-  (destructor)NeXusFile_dealloc,/* tp_dealloc     */
+  0,                            /* tp_dealloc     */
   0,				/* tp_print       */
   0,				/* tp_getattr     */
   0,				/* tp_setattr     */
