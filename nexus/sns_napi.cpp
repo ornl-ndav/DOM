@@ -626,8 +626,7 @@ static PyObject *NeXusFile_getnextentry(PyObject *, PyObject *args)
   char nxclass[GROUP_STRING_LEN];
   int type;
   if(NXgetnextentry(handle,name,nxclass,&type)!=NX_OK){
-    PyErr_SetString(PyExc_IOError,"getnextentry failed");
-    return NULL;
+    return Py_BuildValue("(OOi)",Py_None,Py_None,-1);
   }
 
   PyObject *result=PyTuple_New(3);
@@ -693,8 +692,7 @@ static PyObject *NeXusFile_getnextattr(PyObject *, PyObject *args)
   int attr_type;
   int attr_len;
   if(NXgetnextattr(handle,attr_name,&attr_len,&attr_type)!=NX_OK){
-    PyErr_SetString(PyExc_IOError,"In getattr: getattrinfo failed");
-    return NULL;
+    return Py_BuildValue("(OO)",Py_None,Py_None);
   }
   PyObject *name=PyString_FromString(attr_name);
   Py_INCREF(name);

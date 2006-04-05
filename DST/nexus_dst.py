@@ -35,9 +35,6 @@ class NeXusDST(dst_base.DST_BASE):
         # set the so axis
         self.__so_axis=so_axis
 
-    def release_resource(self):
-        self.__nexus.close()
-
     def get_SO_ids(self,SOM_id=None,so_axis=None):
         if(SOM_id!=None):
             data=self.__avail_data[SOM_id]
@@ -343,16 +340,6 @@ class NeXusData:
                 return
         raise RuntimeError,"Invalid axis request %s" % axis
         
-
-    def __del__(self):
-        self.release_ptrs()
-
-    def release_ptrs(self):
-        if(self.__data_cptr==None):
-            return
-        nexus_file.delete_sds(self.__data_cptr)
-        self.__data_cptr=None
-
     def __id_to_index(self,so_id):
         num_axes=len(self.axes)
 
