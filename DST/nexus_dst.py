@@ -159,26 +159,7 @@ class NeXusDST(dst_base.DST_BASE):
 
     def __get_val_as_str(self,path):
         self.__nexus.openpath(path)
-        c_ptr=self.__nexus.getdata()
-        dims,type=self.__nexus.getdims()
-        #type=nexus_file.get_sds_type(c_ptr)
-
-#        print "INFO",info
-#        print "TYPE",path,i_type
-
-        # try to convert to a string
-        #result=nexus_file.get_sds_text(c_ptr)
-        # if it didn't work try to convert to a NessiList
-        #print "Q:",c_ptr
-        #if result=="NO type problem":
-        #    print "PATH:",path
-        #    result=__conv_1d_c2nessi__(c_ptr,type,True)
-        #    if len(result)==1: # convert to a scalar
-        #        result=result[0]
-
-        # clean up memory and return result
-        #nexus_file.delete_sds(c_ptr)
-        return str(c_ptr)
+        return str(self.__nexus.getdata())
 
     def __generate_SOM_ids(self):
         path_list=self.list_type("NXdata")
@@ -367,11 +348,7 @@ class NeXusData:
 
         if start_dim==None: # assume that it is 1d
             #print "---------> 1d"
-            c_ptr=self.__nexus.getdata()
-            dims,type=self.__nexus.getdims()
-            result=__conv_1d_c2nessi__(c_ptr,type)
-            #nexus_file.delete_sds(c_ptr)
-            return result
+            return self.__nexus.getdata()
             
         #print "---------> %dd <-" % len(start_dim)
         # the number of values in the independent axis direction
@@ -385,12 +362,7 @@ class NeXusData:
         end_dim[var_index]=end_dim[var_index]+num_points
 
         # get the value
-        self.__nexus.openpath(self.__data)
-        c_ptr=self.__nexus.getslab(start_dim,end_dim)
-        dims,type=self.__nexus.getdims()
-        result=__conv_1d_c2nessi__(c_ptr,type)
-        #nexus_file.delete_sds(c_ptr)
-        return result
+        return self.__nexus.getslab(start_dim,end_dim)
 
     def get_so(self,so_id):
         #print "retrieving",so_id # remove
@@ -411,9 +383,7 @@ class NeXusData:
 
         # set the variance to be the data if no location is specified
         if self.__data_var==None:
-            spectrum.var_y=nessi_list.NessiList()
-            for i in range(len(spectrum.y)):
-                spectrum.var_y.append(spectrum.y[i])
+            spectrum.var_y=self.__get_slice(self.__data,start_dim)
         else:
             spectrum.var_y=self.__get_slice(self.__data_var,start_dim)
 
@@ -531,11 +501,7 @@ class NeXusAxis:
 
         # get the value
         filehandle.openpath(path)
-        c_axis=filehandle.getdata()
-        axis_dims,axis_type=filehandle.getdims()
-        print "X:",axis_dims,axis_type
-        self.value=__conv_1d_c2nessi__(c_axis,axis_type)
-        #nexus_file.delete_sds(c_axis)
+        self.value=filehandle.getdata()
 
         # get the list of attributes to set the label and units
         attrs=__get_sds_attr__(filehandle,path)
@@ -555,39 +521,6 @@ class NeXusAxis:
 
     def __len__(self):
         return len(self.value)
-
-def __conv_1d_c2nessi__(c_ptr,type,keep_type=False):
-    print "W:",type
-    if(keep_type):
-        my_type=nexus_file.NeXusFile.SDS_TYPES.val(type)
-        if(my_type==nexus_file.NeXusFile.SDS_TYPES.FLOAT32\
-           or my_type==nexus_file.NeXusFile.SDS_TYPES.FLOAT64):
-            result=nessi_list.NessiList()
-        elif(my_type==nexus_file.NeXusFile.SDS_TYPES.INT8 \
-             or my_type==nexus_file.NeXusFile.SDS_TYPES.INT16 \
-             or my_type==nexus_file.NeXusFile.SDS_TYPES.INT32\
-             or my_type==nexus_file.NeXusFile.SDS_TYPES.UINT8 \
-             or my_type==nexus_file.NeXusFile.SDS_TYPES.UINT16 \
-             or my_type==nexus_file.NeXusFile.SDS_TYPES.UINT32):
-            result=nessi_list.NessiList(0,type=nessi_list.NessiList.INT)
-        else:
-            raise RuntimeError,"Do not understand type %s" % type
-    else:
-        result=nessi_list.NessiList()
-
-    try:
-        result.extend(c_ptr)
-    except TypeError:
-        print "AA:",c_ptr
-        
-    return result
-
-#    for i in range(length):
-#        val=nexus_file.get_sds_value(c_ptr,type,i)
-#        if(keep_type): print "HI THERE:",val
-#        result.append(val)
-
-
 
 def __get_sds_attr__(filehandle,path):
     attrs={}

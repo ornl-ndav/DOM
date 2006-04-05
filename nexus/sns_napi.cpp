@@ -406,6 +406,7 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
     return NULL;
   if(!PyObject_to_intarray(pysize,size))
     return NULL;
+  Py_INCREF(pydata);
 
   // find out about the data we are about to read
   int rank=0;

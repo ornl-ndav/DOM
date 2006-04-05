@@ -1,4 +1,5 @@
 import sns_napi
+import nessi_list
 import enum
 
 class NeXusError(SystemError):
@@ -65,11 +66,13 @@ class NeXusFile:
     def putslab(self,c_ptr,dims):
         return sns_napi.putslab(self.__HANDLE__,c_ptr,dims)
 
-    def getdata(self):
-        return sns_napi.getdata(self.__HANDLE__)
+    def getdata(self,type=nessi_list.NessiList.DOUBLE):
+        data=nessi_list.NessiList(type=type)
+        return sns_napi.getdata(self.__HANDLE__,data)
 
-    def getslab(self,start,size):
-        return sns_napi.getslab(self.__HANDLE__,start,size)
+    def getslab(self,start,size,type=nessi_list.NessiList.DOUBLE):
+        data=nessi_list.NessiList(type=type)
+        return sns_napi.getslab(self.__HANDLE__,start,size,data)
 
     def putattr(self,name,c_ptr,type):
         return sns_napi.putattr(self.__HANDLE__,name,c_ptr,type)
