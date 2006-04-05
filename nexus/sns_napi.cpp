@@ -392,7 +392,8 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
   PyObject *pyhandle;
   PyObject *pystart;
   PyObject *pysize;
-  if(!PyArg_ParseTuple(args,"OOO",&pyhandle,&pystart,&pysize))
+  PyObject *pydata=Py_None;
+  if(!PyArg_ParseTuple(args,"OOO|O",&pyhandle,&pystart,&pysize,&pydata))
     return NULL;
   NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
   int start[NX_MAXRANK];
@@ -434,7 +435,7 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
   }
   
   // convert the data into a list
-  PyObject *result=NeXusFile_convertobj(data,type,tot_len);
+  PyObject *result=NeXusFile_convertobj(data,type,tot_len,pydata);
 
   // free up the allocated memory
   if(NXfree(&data)!=NX_OK){
