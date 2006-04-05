@@ -6,7 +6,7 @@
 #include <iostream>
 
 static int GROUP_STRING_LEN=80;
-
+static PyObject *module;
 static void NeXusFile_privateclose(void *file)
 {
   NXhandle handle=static_cast<NXhandle>(file);
@@ -14,7 +14,55 @@ static void NeXusFile_privateclose(void *file)
   return;
 }
 
-static PyObject * NeXusFile_convertscalar(void *value, int type, int index)
+static PyObject * NeXusFile_copysequence(PyObject *, PyObject *args)
+{
+  PyObject *source;
+  PyObject *target;
+
+  // Parse the objects
+  if(!PyArg_ParseTuple(args,"OO",&source,&target))
+    return NULL;
+
+  // copy the values
+  PyObject *item;
+  int size=PySequence_Size(source);
+  for( long i=0 ; i<size ; i++ ){
+    item=PySequence_GetItem(source,i);
+    PySequence_SetItem(target,i,item);
+  }
+
+  // return target
+  Py_INCREF(target);
+  return target;
+}
+
+static PyObject * NeXusFile_type_to_string(int type)
+{
+  if(type==NX_CHAR){
+    return PyString_FromString("CHAR");
+  }else if(type==NX_FLOAT32){
+    return PyString_FromString("FLOAT32");
+  }else if(type==NX_FLOAT64){
+    return PyString_FromString("FLOAT64");
+  }else if(type==NX_INT8){
+    return PyString_FromString("INT8");
+  }else if(type==NX_UINT8){
+    return PyString_FromString("UINT8");
+  }else if(type==NX_INT16){
+    return PyString_FromString("INT16");
+  }else if(type==NX_UINT16){
+    return PyString_FromString("UINT16");
+  }else if(type==NX_INT32){
+    return PyString_FromString("INT32");
+  }else if(type==NX_UINT8){
+    return PyString_FromString("UINT32");
+  }else{
+    Py_INCREF(Py_None);
+    return Py_None;
+  }
+}
+
+static PyObject * NeXusFile_convertscalar(void *value, int type, long index)
 {
   PyObject * result=Py_None;
   if(type==NX_FLOAT32){
@@ -36,11 +84,10 @@ static PyObject * NeXusFile_convertscalar(void *value, int type, int index)
   }else{
     return NULL;
   }
-  Py_INCREF(result);
   return result;
 }
 
-static PyObject * NeXusFile_convertobj(void * value,int type, int length)
+static PyObject * NeXusFile_convertobj(void * value,int type, long length,PyObject *result=Py_None)
 {
   // for character arrays return a string
   if(type==NX_CHAR){
@@ -50,18 +97,53 @@ static PyObject * NeXusFile_convertobj(void * value,int type, int length)
     return result;
   }
 
-  // for everything else return a list
-  PyObject * result=PyList_New(length);
-  for( int i=0 ; i<length ; i++ )
+  bool use_abstract=true;
+  if(result==Py_None){
+    Py_DECREF(result);
+    result=PyList_New(0);//length);
+    use_abstract=false;
+  }
+
+  /*
+  // import nessi_list
+  std::cout << "01:" << std::endl;
+  PyObject *nessi_list_module;
+  nessi_list_module=PyImport_AddModule("nessi_list");
+  std::cout << "02:" << nessi_list_module << std::endl;
+  if((nessi_list_module==NULL)||(nessi_list_module==Py_None))
+    nessi_list_module=PyImport_ImportModule("nessi_list");
+  std::cout << "03:" << nessi_list_module << std::endl;
+  //  std::cout << "02: " << PyString_AsString(nessi_list_module) << std::endl;
+
+  // get the NessiList object
+  PyObject *nessi_list_obj;
+  */
+
+  /*
+  //Instance objects
+  /PyObject * PyInstance_New(PyObject *class, PyObject *arg, PyObject *kw);
+  */
+  std::cout << "[" << length << "]USE_ABSTRACT=" << use_abstract << std::endl;
+
+  // fill the result
+  PyObject *inner;
+  for( long i=0 ; i<length ; i++ )
     {
       PyObject *inner=NeXusFile_convertscalar(value,type,i);
       if(inner==NULL){
         PyErr_SetString(PyExc_RuntimeError,"Failure in convertscalar");
+        Py_DECREF(result);
         return NULL;
       }
-      PyList_SET_ITEM(result,i,inner);
+      if(use_abstract){
+        PyObject *status=PyObject_CallMethod(result,"append","O",inner);
+        Py_DECREF(status);
+        Py_DECREF(inner);
+      }else{
+        PyList_Append(result,inner);
+        Py_DECREF(inner);
+      }
     }
-  Py_INCREF(result);
   return result;
 }
 
@@ -239,9 +321,11 @@ static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
 {
   // get the arguments
   PyObject *pyhandle;
-  if(!PyArg_ParseTuple(args,"O",&pyhandle))
+  PyObject *pydata=Py_None;
+  if(!PyArg_ParseTuple(args,"O|O",&pyhandle,&pydata))
     return NULL;
   NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+  Py_INCREF(pydata);
 
   // find out about the data we are about to read
   int rank=0;
@@ -266,13 +350,14 @@ static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
   }
 
   // calculate the total length of the data as a 1D array
-  int tot_len=0;
+  long tot_len=1;
   for( int i=0 ; i<rank ; i++ ){
-    tot_len+=dims[i];
+    if(dims[i]>0)
+      tot_len*=dims[i];
   }
   
   // convert the data into a list
-  PyObject *result=NeXusFile_convertobj(data,type,tot_len);
+  PyObject *result=NeXusFile_convertobj(data,type,tot_len,pydata);
 
   // free up the allocated memory
   if(NXfree(&data)!=NX_OK){
@@ -325,9 +410,9 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
     PyErr_SetString(PyExc_IOError,"In getslab: getinfo failed");
     return NULL;
   }
-  for( int i=0 ; i<rank ; i++)
+  for( int i=0 ; i<rank ; i++){
     dims[i]=size[i]-start[i];
-
+  }
   //allocate memory for the data
   void *data;
   if(NXmalloc(&data,rank,dims,type)!=NX_OK){
@@ -342,9 +427,10 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
   }
 
   // calculate the total length of the data as a 1D array
-  int tot_len=0;
+  long tot_len=1;
   for( int i=0 ; i<rank ; i++ ){
-    tot_len+=dims[i];
+    if(dims[i]>0)
+      tot_len*=dims[i];
   }
   
   // convert the data into a list
@@ -455,7 +541,7 @@ static PyObject *NeXusFile_flush(PyObject *, PyObject *args)
 
   // find out about the data we are about to read
   if(NXflush(&handle)!=NX_OK){
-    PyErr_SetString(PyExc_IOError,"In getdata: getinfo failed");
+    PyErr_SetString(PyExc_IOError,"flush failed");
     return NULL;
   }
 
@@ -466,8 +552,33 @@ static PyObject *NeXusFile_flush(PyObject *, PyObject *args)
 //NXgetinfo(handle,rank,dimension[],type) // NEEDS IMPLEMENTATION
 static PyObject *NeXusFile_getinfo(PyObject *, PyObject *args)
 {
-  Py_INCREF(Py_None);
-  return Py_None;
+  // get the arguments
+  PyObject *pyhandle;
+  if(!PyArg_ParseTuple(args,"O",&pyhandle))
+    return NULL;
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+
+  // find out about the data we are about to read
+  int rank;
+  int dims[NX_MAXRANK];
+  int type;
+  if(NXgetinfo(handle,&rank,dims,&type)!=NX_OK){
+    PyErr_SetString(PyExc_IOError,"getinfo failed");
+    return NULL;
+  }
+
+  // convert the dimensions to a tuple
+  PyObject * pydims=PyTuple_New(rank);
+  for( int i=0 ; i<rank ; i++ )
+    PyTuple_SetItem(pydims,i,PyInt_FromLong(static_cast<long>(dims[i])));
+
+  // convert the type to a string
+  PyObject * pytype=NeXusFile_type_to_string(type);
+
+  // return the result
+  PyObject *result=Py_BuildValue("OO",pydims,pytype);
+  Py_INCREF(result);
+  return result;
 }
 
 //NXgetgroupinfo(handle,item_number,name,class) // NEEDS IMPLEMENTATION
@@ -724,20 +835,22 @@ static PyMethodDef NeXusFile_methods[]={
    ""},
   {"makelink",     (PyCFunction)NeXusFile_makelink, METH_VARARGS,
    ""},
+  {"copysequence", (PyCFunction)NeXusFile_copysequence, METH_VARARGS,
+   "copysequence(source,target) - the target must already be sized properly"},
   {NULL,NULL}
 };
 
 PyMODINIT_FUNC initsns_napi(void)
 {
   // reference to the module
-  PyObject *m;
-  m=Py_InitModule3("sns_napi",NeXusFile_methods,"sns_napi, hacked in a couple of days");
-  if(m==NULL)
+  module=Py_InitModule3("sns_napi",NeXusFile_methods,
+                        "sns_napi, hacked in a couple of days");
+  if(module==NULL)
     return;
 
   // get module dictionary for adding constants
   PyObject *d;
-  d=PyModule_GetDict(m);
+  d=PyModule_GetDict(module);
 
   // temporary variable for building constants
   PyObject *tmp;
