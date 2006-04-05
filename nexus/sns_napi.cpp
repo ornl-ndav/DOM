@@ -113,17 +113,21 @@ static PyObject * NeXusFile_convertobj(void * value,int type, long length,PyObje
   if((nessi_list_module==NULL)||(nessi_list_module==Py_None))
     nessi_list_module=PyImport_ImportModule("nessi_list");
   std::cout << "03:" << nessi_list_module << std::endl;
-  //  std::cout << "02: " << PyString_AsString(nessi_list_module) << std::endl;
 
   // get the NessiList object
-  PyObject *nessi_list_obj;
+  PyObject *nessi_list_class=PyObject_GetAttrString(nessi_list_module,
+                                                  "NessiList");
+  std::cout << "04:" << nessi_list_module << std::endl;
+  // create a new instance
+  PyObject *nessi_list_inst=PyInstance_New(nessi_list_class, Py_None, Py_None);
+  Py_DECREF(nessi_list_inst);
+  std::cout << "05:" << nessi_list_module << std::endl;
   */
 
   /*
   //Instance objects
   /PyObject * PyInstance_New(PyObject *class, PyObject *arg, PyObject *kw);
   */
-  std::cout << "[" << length << "]USE_ABSTRACT=" << use_abstract << std::endl;
 
   // fill the result
   PyObject *inner;
@@ -136,7 +140,7 @@ static PyObject * NeXusFile_convertobj(void * value,int type, long length,PyObje
         return NULL;
       }
       if(use_abstract){
-        PyObject *status=PyObject_CallMethod(result,"append","O",inner);
+        PyObject *status=PyObject_CallMethod(result,"append","(O)",inner);
         Py_DECREF(status);
         Py_DECREF(inner);
       }else{
