@@ -71,7 +71,10 @@ class Ascii3ColDST(dst_base.DST_BASE):
             print >> self.__file, so.x[i]," ",
             if i < len(so.y):
                 print >> self.__file, so.y[i]," ",
-                print >> self.__file, math.sqrt(so.var_y[i])
+                if(so.var_y[i] < 0.0):
+                    print >> self.__file, -1.0
+                else:
+                    print >> self.__file, math.sqrt(so.var_y[i])
             else:
                 print >> self.__file, self.EMPTY
 
