@@ -357,9 +357,9 @@ class NeXusData:
         # set up the arguments for getting the slab
         end_dim=[]
         for item in start_dim:
-            end_dim.append(item)
+            end_dim.append(1)
         var_index=self.axes.index(self.variable)
-        end_dim[var_index]=end_dim[var_index]+num_points
+        end_dim[var_index]=num_points
 
         # get the value
         return self.__nexus.getslab(start_dim,end_dim)
