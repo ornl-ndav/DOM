@@ -84,7 +84,7 @@ if __name__=="__main__":
     (dims,nxclass)=sns_napi.getinfo(inhandle)
     print "DIMS = ",dims
     print "TYPE = ",nxclass
-    data=getdata(inhandle,dims,True)
+    data=getdata(inhandle,dims,False)
     axis_length=dims[2]
     data_size=1
     for item in dims:
