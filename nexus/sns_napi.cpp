@@ -64,7 +64,7 @@ static PyObject * NeXusFile_type_to_string(int type)
 
 static PyObject * NeXusFile_convertscalar(void *value, int type, long index)
 {
-  PyObject * result=Py_None;
+  static PyObject * result=NULL;
   if(type==NX_FLOAT32){
     result=PyFloat_FromDouble(static_cast<double>((static_cast<float*>(value))[index]));
   }else if(type==NX_FLOAT64){
@@ -91,7 +91,7 @@ static PyObject * NeXusFile_convertobj(void * value,int type, long length,PyObje
 {
   // for character arrays return a string
   if(type==NX_CHAR){
-    PyObject * result=Py_None;
+    Py_DECREF(result);
     result=Py_BuildValue("s",static_cast<char *>(value));
     Py_INCREF(result);
     return result;
@@ -100,7 +100,7 @@ static PyObject * NeXusFile_convertobj(void * value,int type, long length,PyObje
   bool use_abstract=true;
   if(result==Py_None){
     Py_DECREF(result);
-    result=PyList_New(0);//length);
+    result=PyList_New(0); // new reference
     use_abstract=false;
   }
 
@@ -133,14 +133,15 @@ static PyObject * NeXusFile_convertobj(void * value,int type, long length,PyObje
   PyObject *inner;
   for( long i=0 ; i<length ; i++ )
     {
-      PyObject *inner=NeXusFile_convertscalar(value,type,i);
+      PyObject *inner=NeXusFile_convertscalar(value,type,i); // new reference
       if(inner==NULL){
         PyErr_SetString(PyExc_RuntimeError,"Failure in convertscalar");
         Py_DECREF(result);
+        Py_XDECREF(inner);
         return NULL;
       }
       if(use_abstract){
-        PyObject *status=PyObject_CallMethod(result,"append","(O)",inner);
+        PyObject *status=PyObject_CallMethod(result,"append","(O)",inner); // new reference
         Py_DECREF(status);
         Py_DECREF(inner);
       }else{
@@ -172,6 +173,9 @@ static PyObject * NeXusFile_open(PyObject *, PyObject *args)
   // convert the handle to python
   return PyCObject_FromVoidPtr(handle,NeXusFile_privateclose);
 }
+
+char * NeXusFile_makegroup_doc=
+  "makegroup(handle,name,class)";
 
 //NXmakegroup(handle,name,class) // NEEDS IMPLEMENTATION
 static PyObject *NeXusFile_makegroup(PyObject *, PyObject *args)
@@ -328,8 +332,11 @@ static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
   PyObject *pydata=Py_None;
   if(!PyArg_ParseTuple(args,"O|O",&pyhandle,&pydata))
     return NULL;
-  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+  Py_INCREF(pyhandle);
   Py_INCREF(pydata);
+
+  NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+  Py_DECREF(pyhandle);
 
   // find out about the data we are about to read
   int rank=0;
@@ -339,6 +346,9 @@ static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
     PyErr_SetString(PyExc_IOError,"In getdata: getinfo failed");
     return NULL;
   }
+
+  std::cout << "01:" << std::endl;
+  sleep(5);
 
   //allocate memory for the data
   void *data;
@@ -360,6 +370,9 @@ static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
       tot_len*=dims[i];
   }
   
+  std::cout << "02:" << std::endl;
+  sleep(5);
+
   // convert the data into a list
   PyObject *result=NeXusFile_convertobj(data,type,tot_len,pydata);
 
@@ -368,6 +381,9 @@ static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
     PyErr_SetString(PyExc_IOError,"In getdata: free failed");
     return NULL;
   }
+
+  std::cout << "03:" << std::endl;
+  sleep(5);
 
   // return the result
   return result;
@@ -399,14 +415,22 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
   PyObject *pydata=Py_None;
   if(!PyArg_ParseTuple(args,"OOO|O",&pyhandle,&pystart,&pysize,&pydata))
     return NULL;
+  Py_INCREF(pyhandle);
+  Py_INCREF(pystart);
+  Py_INCREF(pysize);
+  Py_INCREF(pydata);
+
+    // turn the arguments into something useful
   NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+  Py_DECREF(pyhandle);
   int start[NX_MAXRANK];
   int size[NX_MAXRANK];
   if(!PyObject_to_intarray(pystart,start))
     return NULL;
   if(!PyObject_to_intarray(pysize,size))
     return NULL;
-  Py_INCREF(pydata);
+  Py_DECREF(pystart);
+  Py_DECREF(pysize);
 
   // find out about the data we are about to read
   int rank=0;
@@ -421,12 +445,14 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
   void *data;
   if(NXmalloc(&data,rank,size,type)!=NX_OK){
     PyErr_SetString(PyExc_IOError,"In getslab: malloc failed");
+    NXfree(&data);
     return NULL;
   }
 
   // get the data
   if(NXgetslab(handle,data,start,size)!=NX_OK){
     PyErr_SetString(PyExc_IOError,"In getslab: getslab failed");
+    NXfree(&data);
     return NULL;
   }
 
@@ -443,6 +469,7 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
   // free up the allocated memory
   if(NXfree(&data)!=NX_OK){
     PyErr_SetString(PyExc_IOError,"In getslab: free failed");
+    Py_XDECREF(result);
     return NULL;
   }
 
@@ -784,7 +811,7 @@ static PyMethodDef NeXusFile_methods[]={
   {"open",         (PyCFunction)NeXusFile_open, METH_VARARGS,
    "Default access is read"},
   {"makegroup",    (PyCFunction)NeXusFile_makegroup, METH_VARARGS,
-   ""},
+   NeXusFile_makegroup_doc},
   {"opengroup",    (PyCFunction)NeXusFile_opengroup, METH_VARARGS,
    ""},
   {"closegroup",   (PyCFunction)NeXusFile_closegroup,METH_VARARGS,
