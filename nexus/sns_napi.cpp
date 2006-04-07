@@ -347,9 +347,6 @@ static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
     return NULL;
   }
 
-  std::cout << "01:" << std::endl;
-  sleep(5);
-
   //allocate memory for the data
   void *data;
   if(NXmalloc(&data,rank,dims,type)!=NX_OK){
@@ -370,9 +367,6 @@ static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
       tot_len*=dims[i];
   }
   
-  std::cout << "02:" << std::endl;
-  sleep(5);
-
   // convert the data into a list
   PyObject *result=NeXusFile_convertobj(data,type,tot_len,pydata);
 
@@ -381,9 +375,6 @@ static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
     PyErr_SetString(PyExc_IOError,"In getdata: free failed");
     return NULL;
   }
-
-  std::cout << "03:" << std::endl;
-  sleep(5);
 
   // return the result
   return result;
