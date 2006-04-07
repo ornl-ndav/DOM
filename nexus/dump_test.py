@@ -36,12 +36,31 @@ def writeaxis(handle,data,index):
         start+=line_length
 
 def writefile(handle,data,datasize):
-    handle.write("File : %s, DataSet: data\n" % infile)
-    handle.write("%5d%5d%5d\n" % (dims[0],dims[1],dims[2]))
+    handle.write("File : %s, DataSet: data \n" % infile)
+    handle.write(" %d  %d  %d \n" % (dims[0],dims[1],dims[2]))
     index=0
     while index<datasize:
         writeaxis(handle,data,index)
-        index+=167
+        index+=axis_length
+
+def getdata(handle,dims,use_slabs=False):
+    if not use_slabs:
+        data=nessi_list.NessiList(type="double")
+        return sns_napi.getdata(handle,data)
+
+    data=nessi_list.NessiList(type="double")
+    for x in range(dims[0]):
+        for y in range(dims[1]):
+            slab=nessi_list.NessiList(type="double")
+            start=(x,y,0)
+            stop=(1,1,dims[2])#x,y,dims[2])
+            print start,stop,
+            slab=sns_napi.getslab(handle,start,stop)
+            print slab
+            data.extend(slab)
+    print len(data),data
+    return data
+    
 
 if __name__=="__main__":
     # deal with the command line
@@ -65,8 +84,7 @@ if __name__=="__main__":
     (dims,nxclass)=sns_napi.getinfo(inhandle)
     print "DIMS = ",dims
     print "TYPE = ",nxclass
-    data=nessi_list.NessiList(type="double")
-    data=sns_napi.getdata(inhandle,data)
+    data=getdata(inhandle,dims,True)
     axis_length=dims[2]
     data_size=1
     for item in dims:
