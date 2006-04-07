@@ -416,12 +416,10 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
     PyErr_SetString(PyExc_IOError,"In getslab: getinfo failed");
     return NULL;
   }
-  for( int i=0 ; i<rank ; i++){
-    dims[i]=size[i]-start[i];
-  }
+
   //allocate memory for the data
   void *data;
-  if(NXmalloc(&data,rank,dims,type)!=NX_OK){
+  if(NXmalloc(&data,rank,size,type)!=NX_OK){
     PyErr_SetString(PyExc_IOError,"In getslab: malloc failed");
     return NULL;
   }
@@ -435,8 +433,8 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
   // calculate the total length of the data as a 1D array
   long tot_len=1;
   for( int i=0 ; i<rank ; i++ ){
-    if(dims[i]>0)
-      tot_len*=dims[i];
+    if(size[i]>0)
+      tot_len*=size[i];
   }
   
   // convert the data into a list
