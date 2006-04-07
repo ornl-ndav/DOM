@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<NXroot>
+<entry type="NXentry">
+  <definition type="NX_CHAR">TOFRAW</definition>
+  <title type="NX_CHAR">random test of sns nexus stuff</title>
+  <start_time type="NX_CHAR">???</start_time>
+  <end_time type="NX_CHAR">???</end_time>
+  <duration units="second" type="NX_FLOAT64">-1</duration>
+  <experiment_identifier type="NX_INT32">-1</experiment_identifier>
+  <run_number type="NX_INT32">-1</run_number>
+  <user1 type="NXuser">
+    <name>Bob McKenzie</name>
+    <role>Principle Investigator</role>
+    <facility_user_id>???</facility_user_id>
+  </user1>
+  <sample type="NXsample">
+    <name type="NX_CHAR">???</name>
+    <identifier type="NX_CHAR">???</identifier>
+    <nature type="NX_CHAR">???</nature>
+  </sample>
+  <instrument type="NXinstrument">
+    <name short_name="???">???</name>
+    <beamline type="NX_CHAR">???</beamline>
+    <detector type="NXdetector">
+      <data signal="NX_INT16:1" type="NX_INT32[2,3,4]">
+            [[ 1, 2],[ 3, 4],[ 5, 6],
+             [ 7, 8],[ 9,10],[11,12],
+             [13,14],[15,16],[17,18],
+             [19,20],[21,22],[23,24]]
+      </data>
+      <x_pixel_offset axis="NX_INT16:1" type="NX_FLOAT32[2]" units="centimeters">31,32</x_pixel_offset>
+      <y_pixel_offset axis="NX_INT16:2" type="NX_FLOAT32[3]" units="centimeters">33,34,35</y_pixel_offset>
+      <time_of_flight axis="NX_INT16:3" type="NX_FLOAT32[4]" units="microsecond">36,37,38,39</time_of_flight>
+    </detector>
+    <moderator type="NXmoderator">
+      <distance type="NX_FLOAT32" units="???">-1</distance>
+      <type type="NX_CHAR">???</type>
+    </moderator>
+    <SNS type="NXsource">
+      <name type="NX_CHAR">Spallation Neutron Source</name>
+      <type type="NX_CHAR">Spallation Source</type>
+      <probe type="NX_CHAR">neutrons</probe>
+      <frequency type="NX_FLOAT32" units="Hertz">60</frequency>
+    </SNS>
+  </instrument>
+  <monitor type="NXmonitor">
+    <time_of_flight type="NX_FLOAT32[1]" units="???">-1</time_of_flight>
+    <data type="NX_FLOAT32[1]" signal="1" axes="time_of_flight" units="???">-1</data>
+  </monitor>
+  <data type="NXdata">
+    <NAPIlink target="/entry/instrument/detector/data"/>
+    <NAPIlink target="/entry/instrument/detector/x_pixel_offset"/>
+    <NAPIlink target="/entry/instrument/detector/y_pixel_offset"/>
+    <NAPIlink target="/entry/instrument/detector/time_of_flight"/>
+  </data>
+</entry>
+</NXroot>
