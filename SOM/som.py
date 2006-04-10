@@ -4,74 +4,84 @@ class SOM(list):
     EMPTY   = ""
 
     def __init__(self):
-        self.title = SOM.EMPTY
-        self.axis_labels = []
-        self.axis_units = []
-        self.y_label = SOM.EMPTY
-        self.y_units = SOM.EMPTY
+        self.__title__ = SOM.EMPTY
+        self.__axis_labels__ = []
+        self.__axis_units__ = []
+        self.__y_label__ = SOM.EMPTY
+        self.__y_units__ = SOM.EMPTY
         
         self.attr_list = attribute.AttributeList()
         self.dst = None
 
+    """
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return str(list)
+        #return \"Title: \"+self.__title__+'\n'+str(list)
+    """
+
+    def copyAttributes(self,other):
+        self.setTitle(other.getTitle())
+        self.setAllAxisLabels(other.getAllAxisLabels())
+        self.setAllAxisUnits(other.getAllAxisUnits())
+        self.setYLabel(other.getYLabel())
+        self.setYUnits(other.getYUnits())
+        self.attr_list = other.attr_list
+    
     def getAllAxisLabels(self):
         import copy
-        return copy.copy(self.axis_labels)
+        return copy.copy(self.__axis_labels__)
 
     def getAllAxisUnits(self):
         import copy
-        return copy.copy(self.axis_units)
+        return copy.copy(self.__axis_units__)
 
     def getAxisLabel(self,dim=0):
         return self.axis_label[dim]
     
     def getAxisUnits(self,dim=0):
-        return self.axis_units[dim]
+        return self.__axis_units__[dim]
 
     def getTitle(self):
-        return self.title
+        return self.__title__
 
     def getYLabel(self):
-        return self.y_label
+        return self.__y_label__
 
     def getYUnits(self):
-        return self.y_units
+        return self.__y_units__
 
     def setAllAxisLabels(self,labels):
-        if len(self.axis_labels):
-            self.axis_labels = []
-
-        for label in labels:
-            self.axis_labels.append(label)
+        self.__axis_labels__ = labels
 
     def setAllAxisUnits(self,units):
-        if len(self.axis_units):
-            self.axis_units = []
-
-        for unit in units:
-            self.axis_units.append(unit)
+        self.__axis_units__ = units
 
     def setAxisLabel(self,dim,label):
         self.axis_label[dim] = label
     
     def setAxisUnits(self,dim,units):
-        self.axis_units[dim] = units
+        self.__axis_units__[dim] = units
 
     def setTitle(self,title):
-        self.title = title
+        self.__title__ = title
 
     def setYLabel(self,label):
-        self.y_label = label
+        self.__y_label__ = label
 
     def setYUnits(self,units):
-        self.y_units = units
+        self.__y_units__ = units
+
 
         
 if __name__ == "__main__":
-    import so_base
+    import so
     som = SOM()
     som.setTitle("Test SOM")
     
-    so1 = so_base.SO(withVar=True)
+    so1 = so.SO(withVar=True)
     so1.axis[0].val.extend([1.0,2.0,3.0])
     so1.axis[0].var.extend([1.0,2.0,3.0])
     so1.y.extend([40.0,55.0])
@@ -87,5 +97,6 @@ if __name__ == "__main__":
     som.setYUnits("a.u.")
     som.append(so1)
 
-    print "SOM: ",som
+    print "SOM:",som
+    print "Title:",som.getTitle()
     print "Primary Axes:",som.getAllAxisLabels(),som.getAllAxisUnits()
