@@ -25,7 +25,10 @@ if sys.version_info < (PYTHON_MAJOR, PYTHON_MINOR):
 					 PACKAGE, VERSION)
 	sys.exit(3)
 
-nexus_libdir = '/usr/lib/'
+nexus_incdir = '/usr/local/include'
+incdir_list = [nexus_incdir]
+
+nexus_libdir = '/usr/local/lib/'
 libdir_list = [nexus_libdir]
 
 nexus_lib = "NeXus"
@@ -41,6 +44,7 @@ def main():
           package_dir={"": "."},
           packages=["DST", "SOM"],
           ext_modules = [Extension( "sns_napi", ["nexus/sns_napi.cpp"] ,
+                                    include_dirs = incdir_list,
                                     library_dirs = libdir_list,
                                     libraries = lib_list_all)],
           )
