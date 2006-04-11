@@ -20,8 +20,12 @@ class Ascii3ColDST(dst_base.DST_BASE):
     ########## DST_BASE functions
 
     def __init__(self, resource, *args, **kwargs):
+        import time
+        
         self.__file = resource
-
+        self.__epoch = time.time()
+        self.__timestamp = time.strftime("%Y-%m-%d %T", \
+                                         time.localtime(self.__epoch))
 
     def release_resource(self):
         self.__file.close()
@@ -39,13 +43,41 @@ class Ascii3ColDST(dst_base.DST_BASE):
 
     ########## Special functions
 
+    def __formatDataInfo(self,som):
+        # Need SO for primary axis information
+        so = som[0]
+        dim = som.getDimension()
+
+        if dim != so.dim():
+            raise RuntimeError, "SOM and attending SOs do not have the same"\
+                  +" dimensions"
+
+        names = []
+        result = "#L ";
+        # Add primary axis format positions
+        for i in range(dim):
+            result += "%s(%s) "
+            names.append(som.getAxisLabel(i))
+            names.append(som.getAxisUnits(i))
+            if so.axis[i].var != None:
+                result += "Sigma(%s) "
+                names.append(som.getAxisUnits(i))
+
+        # Add y and var_y axis format positions
+        result += "%s(%s) Sigma(%s)"
+        names.append(som.getYLabel())
+        names.append(som.getYUnits())
+        names.append(som.getYUnits())
+
+        return result, tuple(names)
+
     def writeHeader(self,som):
         print >> self.__file, "#F",som.attr_list["filename"]
-        print >> self.__file, "#E",som.attr_list["epoch"]
-        print >> self.__file, "#D",som.attr_list["timestamp"]
+        print >> self.__file, "#E",self.__epoch
+        print >> self.__file, "#D",self.__timestamp
         if som.attr_list.has_key("run_number"):
             print >> self.__file, "#C Run Number:",som.attr_list["run_number"]
-        print >> self.__file, "#C Title:",som.attr_list["title"]
+        print >> self.__file, "#C Title:",som.getTitle()
         if som.attr_list.has_key("username"):
             print >> self.__file, "#C User:",som.attr_list["username"]
         if som.attr_list.has_key("operations"):
@@ -57,10 +89,9 @@ class Ascii3ColDST(dst_base.DST_BASE):
             for key in pdict:
                 print >> self.__file, "#C %s: %s" % (key, pdict[key]) 
 
-        self.__axes_and_units = "#L %s(%s) %s(%s) Sigma(%s)" \
-        % (som.attr_list["x_label"], som.attr_list["x_units"],
-           som.attr_list["y_label"], som.attr_list["y_units"],
-           som.attr_list["y_units"])
+        format_str, names = self.__formatDataInfo(som)
+        self.__axes_and_units =  format_str % names
+
 
     def writeData(self,so):
         print >> self.__file, self.EMPTY
@@ -68,13 +99,16 @@ class Ascii3ColDST(dst_base.DST_BASE):
         print >> self.__file, "#N", self.COLUMNS
         print >> self.__file, self.__axes_and_units
         for i in range(len(so)+1):
-            print >> self.__file, so.x[i]," ",
+            dim = so.dim()
+            for j in range(dim):
+                print >> self.__file, so.axis[j].val[i]," ",
+                if so.axis[j].var != None:
+                    print >> self.__file, \
+                          math.sqrt(math.fabs(so.axis[j].var[i]))," ",
+            
             if i < len(so.y):
                 print >> self.__file, so.y[i]," ",
-                if(so.var_y[i] < 0.0):
-                    print >> self.__file, -1.0
-                else:
-                    print >> self.__file, math.sqrt(so.var_y[i])
+                print >> self.__file, math.sqrt(math.fabs(so.var_y[i]))
             else:
                 print >> self.__file, self.EMPTY
 

@@ -87,11 +87,11 @@ class NeXusDST(dst_base.DST_BASE):
             data.set_so_axis(so_axis)
 
         result=SOM.SOM()
-        result.attr_list[result.TITLE]="" # should put something here
-        result.attr_list[result.X_LABEL]=data.variable.label
-        result.attr_list[result.X_UNITS]=data.variable.units
-        result.attr_list[result.Y_LABEL]=data.data_label
-        result.attr_list[result.Y_UNITS]=data.data_units
+        result.setTitle("") # should put something here
+        result.setAxisLabel(0,data.variable.label)
+        result.setAxisUnits(0,data.variable.units)
+        result.setYLabel(data.data_label)
+        result.setYUnits(data.data_units)
         result.attr_list["filename"]=self.__nexus.filename()
 
         attrs=self.__get_attr_list(data.location)
@@ -372,7 +372,7 @@ class NeXusData:
         spectrum.id=so_id
 
         # give it the appropriate independent variable
-        spectrum.x=self.variable.value
+        spectrum.axis[0].val=self.variable.value
 
         # locate the data slice
         start_dim=self.__id_to_index(so_id)
