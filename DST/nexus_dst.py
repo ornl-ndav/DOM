@@ -1,8 +1,7 @@
 import dst_base
 import nexus_file
 import nessi_list
-import so
-import som
+import SOM
 
 class NeXusDST(dst_base.DST_BASE):
     MIME_TYPE="application/x-NeXus"
@@ -87,7 +86,7 @@ class NeXusDST(dst_base.DST_BASE):
         if orig_axis!=None and so_axis!=None and data.has_axis(so_axis):
             data.set_so_axis(so_axis)
 
-        result=som.SOM()
+        result=SOM.SOM()
         result.attr_list[result.TITLE]="" # should put something here
         result.attr_list[result.X_LABEL]=data.variable.label
         result.attr_list[result.X_UNITS]=data.variable.units
@@ -367,7 +366,7 @@ class NeXusData:
     def get_so(self,so_id):
         #print "retrieving",so_id # remove
         # create a spectrum object
-        spectrum=so.SO()
+        spectrum=SOM.SO()
 
         # give it the id specified
         spectrum.id=so_id

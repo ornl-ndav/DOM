@@ -2,9 +2,9 @@
 
 # $Id$
 
-import ascii3col_dst
-from so import SO
-from som import SOM
+import DST
+from SOM import SOM
+from SOM import SO
 from time import localtime, strftime, time
 
 filename_SOM1 = "stuff1.dat"
@@ -33,7 +33,7 @@ for i in range(2):
 
 file = open(filename_SOM1, "w")
 
-a3c = ascii3col_dst.Ascii3ColDST(file)
+a3c = DST.Ascii3ColDST(file)
 a3c.writeSOM(SOM1)
 a3c.release_resource()
 

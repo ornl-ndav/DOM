@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import dst_base
+import DST
 import sys
 
 if __name__=="__main__":
@@ -10,7 +10,7 @@ if __name__=="__main__":
         pass # use the default name
     
     x_axis="time_of_flight"
-    dst=dst_base.getInstance("application/x-NeXus",filename)
+    dst=DST.getInstance("application/x-NeXus",filename)
     print "**********",filename
     som_list=dst.get_SOM_ids()
     for item in som_list:
