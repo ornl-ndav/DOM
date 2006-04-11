@@ -24,13 +24,15 @@ class SOM(list):
     """
 
     def copyAttributes(self,other):
+        import copy
+        
         self.setTitle(other.getTitle())
         self.setDataSetType(other.getDataSetType())
         self.setAllAxisLabels(other.getAllAxisLabels())
         self.setAllAxisUnits(other.getAllAxisUnits())
         self.setYLabel(other.getYLabel())
         self.setYUnits(other.getYUnits())
-        self.attr_list = other.attr_list
+        self.attr_list = copy.copy(other.attr_list)
     
     def getAllAxisLabels(self):
         import copy
