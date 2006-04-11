@@ -41,7 +41,7 @@ class SOM(list):
         return copy.copy(self.__axis_units__)
 
     def getAxisLabel(self,dim=0):
-        return self.axis_label[dim]
+        return self.__axis_labels__[dim]
     
     def getAxisUnits(self,dim=0):
         return self.__axis_units__[dim]
@@ -84,10 +84,16 @@ class SOM(list):
         self.__axis_units__ = units
 
     def setAxisLabel(self,dim,label):
-        self.axis_label[dim] = label
+        try:
+            self.__axis_labels__[dim] = label
+        except IndexError:
+            self.__axis_labels__.append(label)            
     
     def setAxisUnits(self,dim,units):
-        self.__axis_units__[dim] = units
+        try:
+            self.__axis_units__[dim] = units
+        except IndexError:
+            self.__axis_units__.append(units)            
 
     def setDataSetType(self,type):
         self.__data_set_type__ = type
