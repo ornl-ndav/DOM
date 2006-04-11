@@ -49,6 +49,9 @@ class SOM(list):
     def getDataSetType(self):
         return self.__data_set_type__
 
+    def getDimension(self):
+        return len(self.__axis_labels__)
+
     def getTitle(self):
         return self.__title__
 
@@ -57,6 +60,22 @@ class SOM(list):
 
     def getYUnits(self):
         return self.__y_units__
+
+    def hasAxisUnits(self,unit):
+        """
+        This function checks the array of primary axes for the requested units.
+        If there are duplicate units, it will always find the first.
+        
+        Parameters:
+        ----------
+        -> unit is the string containg the name of the units to be searched for
+        
+        Returns:
+        -------
+        <- a boolean which is True if the units exist, False if it does not
+        """
+
+        return self.__axis_units__.contains(unit)
 
     def setAllAxisLabels(self,labels):
         self.__axis_labels__ = labels
