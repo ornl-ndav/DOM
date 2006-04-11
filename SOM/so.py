@@ -12,7 +12,7 @@ class SO:
             self.axis.append(PrimaryAxis(i+1,**kwargs))
 
     def dim(self):
-        return len(axis)
+        return len(self.axis)
 
     def __len__(self):
         return len(self.y)
