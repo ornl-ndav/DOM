@@ -22,6 +22,7 @@ class NeXusFile:
         if(self.__HANDLE__==None):
             raise SystemError,"Failed to read file: %s" % filename
         self.__filename    = filename
+        self.__path        = ""
 
     def filename(self):
         return self.__filename
@@ -34,15 +35,21 @@ class NeXusFile:
         return sns_napi.makegroup(self.__HANDLE__,name,type)
 
     def opengroup(self,name,type):
+        self.__path=""
         return sns_napi.opengroup(self.__HANDLE__,name,type)
 
     def openpath(self,path):
+        if path==self.__path:
+            return None
+        self.__path=path
         return sns_napi.openpath(self.__HANDLE__,path)
         
     def opengrouppath(self,path):
+        self.__path=""
         return sns_napi.opengrouppath(self.__HANDLE__,path)
         
     def closegroup(self):
+        self.__path=""
         return sns_napi.closegroup(self.__HANDLE__)
 
     def makedata(self,name,type,dims):
@@ -55,9 +62,11 @@ class NeXusFile:
         return sns_napi.compress(self.__HANDLE__,compression)
 
     def opendata(self,name):
+        self.__path=""
         return sns_napi.opendata(self.__HANDLE__,name)
 
     def closedata(self):
+        self.__path=""
         return sns_napi.closedata(self.__HANDLE__)
 
     def putdata(self,c_ptr):
@@ -109,6 +118,7 @@ class NeXusFile:
         return sns_napi.makelink(self.__HANDLE__,link)
 
     def opensourcegroup(self):
+        self.__path=""
         return sns_napi.opensourcegroup(self.__HANDLE__)
 
     def getdims(self):
