@@ -157,6 +157,7 @@ static PyObject * NeXusFile_convertobj2(void *value,int type, long length,res_ty
 
 static PyObject * NeXusFile_convertobj(void * value,int type, long length,res_type result_type=PYTHON)
 {
+  std::cout << "conv00:" << std::endl;
   PyObject *result;
   // for character arrays return a string
   if(type==NX_CHAR){
@@ -165,18 +166,19 @@ static PyObject * NeXusFile_convertobj(void * value,int type, long length,res_ty
     return result;
   }
 
+  std::cout << "conv01:" << std::endl;
   // for scalars return python primatives
   if(length==0){
-    Py_DECREF(result);
     Py_INCREF(Py_None);
     return Py_None;
   }
+  std::cout << "conv02:" << std::endl;
   if(length==1){
-    Py_DECREF(result);
     result=NeXusFile_convertscalar(value,type,0);
     return result;
   }
 
+  std::cout << "conv03:" << std::endl;
   if(result_type==PYTHON){
     result=PyList_New(0); // new reference
 
@@ -196,38 +198,8 @@ static PyObject * NeXusFile_convertobj(void * value,int type, long length,res_ty
       }
   }
 
-  std::cout << "...later on" << std::endl;
+  std::cout << "conv04:" << std::endl;
   return NeXusFile_convertobj2(value,type,length,result_type);
-  /*
-  bool use_abstract=true;
-  if(result==Py_None){
-    Py_DECREF(result);
-    result=PyList_New(0); // new reference
-    use_abstract=false;
-  }
-
-  // fill the result
-  PyObject *inner;
-  for( long i=0 ; i<length ; i++ )
-    {
-      PyObject *inner=NeXusFile_convertscalar(value,type,i); // new reference
-      if(inner==NULL){
-        PyErr_SetString(PyExc_RuntimeError,"Failure in convertscalar");
-        Py_DECREF(result);
-        Py_XDECREF(inner);
-        return NULL;
-      }
-      if(use_abstract){
-        PyObject *status=PyObject_CallMethod(result,"append","(O)",inner); // new reference
-        Py_DECREF(status);
-        Py_DECREF(inner);
-      }else{
-        PyList_Append(result,inner);
-        Py_DECREF(inner);
-      }
-    }
-  return result;
-  */
 }
 
 //NXopen(filename,access)
@@ -406,17 +378,25 @@ static res_type get_res_type(PyObject *pytype){
   if(pytype==NULL || pytype==Py_None)
     return FLOAT;
 
+  PyObject *str_pytype=PyObject_Str(pytype);
+
+
   std::string float_type("f");
   std::string int_type("i");
   std::string python_type("p");
+  /*  PyObject *float_type=PyString_FromString("f");
+  PyObject *int_type=PyString_FromString("i");
+  PyObject *python_type=PyString_FromString("p");
+  */
 
-  std::string type(PyString_AsString(pytype));
+  char *cctype=PyString_AsString(pytype);
+  std::string ctype(cctype);
 
-  if(float_type==type)
+  if(float_type==ctype)
     return FLOAT;
-  if(int_type==type)
+  if(int_type==ctype)
     return INT;
-  if(python_type==type)
+  if(python_type==ctype)
     return PYTHON;
 
   throw std::invalid_argument("Do not understand type");
@@ -601,22 +581,35 @@ static PyObject *NeXusFile_getattr(PyObject *, PyObject *args)
     }
   }
 
+  if(!found){
+    PyErr_SetString(PyExc_RuntimeError,"Could not find attribute");
+    return NULL;
+  }
+
+  std::cout << "02:" << attr_len << "," << attr_type << std::endl;
+
   // get the value
-  int attr_dims[1]={attr_len+1};
+  int attr_dims[]={attr_len+1};
   void *attr_value;
+  std::cout << "03:" << std::endl;
   if(NXmalloc(&attr_value,1,attr_dims,attr_type)!=NX_OK){
       PyErr_SetString(PyExc_IOError,"In getattr: malloc failed");
       return NULL;
   }
+  std::cout << "04:" << std::endl;
   if(NXgetattr(handle,attr_name,attr_value,attr_dims,&attr_type)!=NX_OK){
       PyErr_SetString(PyExc_IOError,"In getattr: getattr failed");
       return NULL;
   }
+  std::cout << "05:" << std::endl;
   PyObject *result=NeXusFile_convertobj(attr_value,attr_type,attr_len);
+  std::cout << "06:" << std::endl;
   if(NXfree(&attr_value)!=NX_OK){
       PyErr_SetString(PyExc_IOError,"In getattr: free failed");
       return NULL;
   }
+
+  std::cout << "07:" << std::endl;
 
   return result;
 }
