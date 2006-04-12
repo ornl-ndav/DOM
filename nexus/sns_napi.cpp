@@ -157,7 +157,6 @@ static PyObject * NeXusFile_convertobj2(void *value,int type, long length,res_ty
 
 static PyObject * NeXusFile_convertobj(void * value,int type, long length,res_type result_type=PYTHON)
 {
-  std::cout << "conv00:" << std::endl;
   PyObject *result;
   // for character arrays return a string
   if(type==NX_CHAR){
@@ -166,19 +165,16 @@ static PyObject * NeXusFile_convertobj(void * value,int type, long length,res_ty
     return result;
   }
 
-  std::cout << "conv01:" << std::endl;
   // for scalars return python primatives
   if(length==0){
     Py_INCREF(Py_None);
     return Py_None;
   }
-  std::cout << "conv02:" << std::endl;
   if(length==1){
     result=NeXusFile_convertscalar(value,type,0);
     return result;
   }
 
-  std::cout << "conv03:" << std::endl;
   if(result_type==PYTHON){
     result=PyList_New(0); // new reference
 
@@ -198,7 +194,6 @@ static PyObject * NeXusFile_convertobj(void * value,int type, long length,res_ty
       }
   }
 
-  std::cout << "conv04:" << std::endl;
   return NeXusFile_convertobj2(value,type,length,result_type);
 }
 
@@ -408,19 +403,15 @@ char * NeXusFile_getdata_doc=
 //NXgetdata(handle,data)
 static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
 {
-  std::cout << "cgetdata00:" << std::endl;
   // get the arguments
   PyObject *pyhandle;
   PyObject *pytype=Py_None;
   if(!PyArg_ParseTuple(args,"O|O",&pyhandle,&pytype))
     return NULL;
 
-  std::cout << "cgetdata00:" << std::endl;
   NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
-  std::cout << "cgetdata00:" << std::endl;
   res_type result_type=get_res_type(pytype);
 
-  std::cout << "cgetdata00:" << std::endl;
   // find out about the data we are about to read
   int rank=0;
   int type=0;
@@ -590,30 +581,22 @@ static PyObject *NeXusFile_getattr(PyObject *, PyObject *args)
     return NULL;
   }
 
-  std::cout << "02:" << attr_len << "," << attr_type << std::endl;
-
   // get the value
   int attr_dims[]={attr_len+1};
   void *attr_value;
-  std::cout << "03:" << std::endl;
   if(NXmalloc(&attr_value,1,attr_dims,attr_type)!=NX_OK){
       PyErr_SetString(PyExc_IOError,"In getattr: malloc failed");
       return NULL;
   }
-  std::cout << "04:" << std::endl;
   if(NXgetattr(handle,attr_name,attr_value,attr_dims,&attr_type)!=NX_OK){
       PyErr_SetString(PyExc_IOError,"In getattr: getattr failed");
       return NULL;
   }
-  std::cout << "05:" << std::endl;
   PyObject *result=NeXusFile_convertobj(attr_value,attr_type,attr_len);
-  std::cout << "06:" << std::endl;
   if(NXfree(&attr_value)!=NX_OK){
       PyErr_SetString(PyExc_IOError,"In getattr: free failed");
       return NULL;
   }
-
-  std::cout << "07:" << std::endl;
 
   return result;
 }
