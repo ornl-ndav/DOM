@@ -66,13 +66,17 @@ class NeXusFile:
     def putslab(self,c_ptr,dims):
         return sns_napi.putslab(self.__HANDLE__,c_ptr,dims)
 
-    def getdata(self,type=nessi_list.NessiList.DOUBLE):
-        data=nessi_list.NessiList(type=type)
-        return sns_napi.getdata(self.__HANDLE__,data)
+    def getdata(self,type="f"):
+        data=sns_napi.getdata(handle,type)
+        data2=nessi_list.NessiList()
+        data2.__array__.__set_from_NessiVector__(data2.__array__,data)
+        return data2
 
-    def getslab(self,start,size,type=nessi_list.NessiList.DOUBLE):
-        data=nessi_list.NessiList(type=type)
-        return sns_napi.getslab(self.__HANDLE__,start,size,data)
+    def getslab(self,start,size,type="f"):
+        data=sns_napi.getslab(handle,start,size,type)
+        data2=nessi_list.NessiList()
+        data2.__array__.__set_from_NessiVector__(data2.__array__,data)
+        return data2
 
     def putattr(self,name,c_ptr,type):
         return sns_napi.putattr(self.__HANDLE__,name,c_ptr,type)
