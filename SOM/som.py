@@ -33,6 +33,9 @@ class SOM(list):
         self.setYLabel(other.getYLabel())
         self.setYUnits(other.getYUnits())
         self.attr_list = copy.copy(other.attr_list)
+
+    def axisUnitsAt(self,units):
+        return self.__axis_units__.index(units)
     
     def getAllAxisLabels(self):
         import copy
@@ -77,7 +80,7 @@ class SOM(list):
         <- a boolean which is True if the units exist, False if it does not
         """
 
-        return self.__axis_units__.contains(unit)
+        return self.__axis_units__.__contains__(unit)
 
     def setAllAxisLabels(self,labels):
         self.__axis_labels__ = labels
