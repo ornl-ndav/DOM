@@ -22,7 +22,6 @@ class NeXusFile:
         if(self.__HANDLE__==None):
             raise SystemError,"Failed to read file: %s" % filename
         self.__filename    = filename
-        print "HANDLE =",self.__HANDLE__
 
     def filename(self):
         return self.__filename
