@@ -1,7 +1,11 @@
 import nessi_list
 
 class SO:
-
+    """
+    This class is an internal structure object responsible for keep spectral
+    data together on a per pixel basis (it may be a merged set of pixels).
+    """
+    
     def __init__(self,dim=1,id=None,**kwargs):
 
         self.y     = nessi_list.NessiList()
@@ -30,12 +34,12 @@ class SO:
 
     def __eq__(self,other):
         try:
-            if len(self.y) != len(other.y):
+            if self.y != other.y:
                 return False
 
-            if len(self.var_y) != len(self.var_y):
+            if self.var_y != self.var_y:
                 return False
-
+            
             if len(self.axis) != len(other.axis):
                 return False
 
@@ -78,13 +82,13 @@ class PrimaryAxis:
 
     def __eq__(self,other):
         try:
-            if len(self.val) != len(other.val):
+            if self.val != other.val:
                 return False
 
-            if(self.var != None):
-                if len(self.var) != len(self.var):
+            if(self.var != None and other.var != None):
+                if self.var != other.var:
                    return False
-
+               
         except:
             return False
 
