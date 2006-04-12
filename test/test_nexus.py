@@ -20,7 +20,7 @@ if __name__=="__main__":
         so=dst.getSO(item,so_list[0],x_axis)
         print " SO:",so_list[0]
         print "   id ",so.id
-        print "   x  ",so.x
+        print "   x  ",so.axis[0].val
         print "   y  ",so.y
         print "   var",so.var_y
     som=dst.getSOM(som_list[0],x_axis,end_id=(0,20))
