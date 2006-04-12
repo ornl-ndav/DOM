@@ -408,15 +408,19 @@ char * NeXusFile_getdata_doc=
 //NXgetdata(handle,data)
 static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
 {
+  std::cout << "cgetdata00:" << std::endl;
   // get the arguments
   PyObject *pyhandle;
   PyObject *pytype=Py_None;
-  if(!PyArg_ParseTuple(args,"O|s",&pyhandle,&pytype))
+  if(!PyArg_ParseTuple(args,"O|O",&pyhandle,&pytype))
     return NULL;
 
+  std::cout << "cgetdata00:" << std::endl;
   NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+  std::cout << "cgetdata00:" << std::endl;
   res_type result_type=get_res_type(pytype);
 
+  std::cout << "cgetdata00:" << std::endl;
   // find out about the data we are about to read
   int rank=0;
   int type=0;
