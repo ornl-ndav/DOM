@@ -1,11 +1,24 @@
 import sns_napi
 import nessi_list
 import timing
+import time
 
 def print_mark(tag,milli):
     sec=(milli-(milli%1000))/1000
     milli=milli-sec*1000
     print "%18s :%02d.%03d" % (tag,sec,milli)
+
+def getdata(handle):
+    data=sns_napi.getdata(handle)
+    nessi_data=nessi_list.NessiList()
+    nessi_data.__array__.__set_from_NessiVector__(nessi_data.__array__,data)
+    return nessi_data
+
+def getslab(handle,start,size):
+    data=sns_napi.getslab(handle,start,size)
+    nessi_data=nessi_list.NessiList()
+    nessi_data.__array__.__set_from_NessiVector__(nessi_data.__array__,data)
+    return nessi_data
 
 print dir(sns_napi)
 #help(sns_napi)
@@ -17,34 +30,17 @@ print "getnextentry()",sns_napi.getnextentry(handle)
 print "opendata(x_pixel_offset)",sns_napi.opendata(handle,"x_pixel_offset")
 print "getattr(axis)",sns_napi.getattr(handle,"axis")
 print "getattr(units)",sns_napi.getattr(handle,"units")
-data=sns_napi.getdata(handle)
-nessi_data=nessi_list.NessiList(len(data))
-sns_napi.copysequence(data,nessi_data)
-print "getdata()",len(sns_napi.getdata(handle)),nessi_data
+print "getdata()",getdata(handle)
 print "closedata()",sns_napi.closedata(handle)
 print "opendata(data)",sns_napi.opendata(handle,"data")
 (dims,type)=sns_napi.getinfo(handle)
 print "getinfo()",(dims,type)
 print "getnextattr()",sns_napi.getnextattr(handle)
-length=1
-for item in dims:
-    length*=item
 print "getdata benchmark [:sec.milli]"
 timing.start()
-data=sns_napi.getdata(handle)
+data=getdata(handle)
 timing.finish()
-print_mark("List",timing.milli())
-data=nessi_list.NessiList(length)
-data=nessi_list.NessiList()
-timing.start()
-data=sns_napi.getdata(handle,data)
-timing.finish()
-print_mark("NessiList(unsized)",timing.milli())
-data=nessi_list.NessiList(length)
-timing.start()
-data=sns_napi.getdata(handle,data)
-timing.finish()
-print_mark("NessiList(sized)",timing.milli())
-print "getslab((0,0,0),(0,0,167))",len(sns_napi.getslab(handle,(0,0,0),(0,0,167)))
-print "getslab((1,0,0),(1,0,167))",len(sns_napi.getslab(handle,(1,0,0),(1,0,167)))
+print_mark("",timing.milli())
+print "getslab((0,0,0),(0,0,167))",getslab(handle,(0,0,0),(0,0,167))
+print "getslab((1,0,0),(1,0,167))",getslab(handle,(1,0,0),(1,0,167))
 

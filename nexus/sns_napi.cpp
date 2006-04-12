@@ -4,6 +4,11 @@
 #include <napi.h>
 // C++
 #include <iostream>
+// NessiVector
+#include <vector>
+#include <stdexcept>
+
+enum res_type {FLOAT,INT,PYTHON};
 
 static int GROUP_STRING_LEN=80;
 static PyObject *module;
@@ -14,6 +19,7 @@ static void NeXusFile_privateclose(void *file)
   return;
 }
 
+/*
 static PyObject * NeXusFile_copysequence(PyObject *, PyObject *args)
 {
   PyObject *source;
@@ -35,6 +41,7 @@ static PyObject * NeXusFile_copysequence(PyObject *, PyObject *args)
   Py_INCREF(target);
   return target;
 }
+*/
 
 static PyObject * NeXusFile_type_to_string(int type)
 {
@@ -62,6 +69,50 @@ static PyObject * NeXusFile_type_to_string(int type)
   }
 }
 
+static int NeXusFile_convertscalar2int(void *value, int type, long index)
+{
+  if(type==NX_FLOAT32){
+    return static_cast<int>((static_cast<float*>(value))[index]);
+  }else if(type==NX_FLOAT64){
+    return static_cast<int>((static_cast<double*>(value))[index]);
+  }else if(type==NX_INT8){
+    return static_cast<int>((static_cast<unsigned char*>(value))[index]);
+  }else if(type==NX_UINT8){
+    return static_cast<int>((static_cast<unsigned char*>(value))[index]);
+  }else if(type==NX_INT16){
+    return static_cast<int>((static_cast<short int*>(value))[index]);
+  }else if(type==NX_UINT16){
+    return static_cast<int>((static_cast<unsigned short*>(value))[index]);
+  }else if(type==NX_INT32){
+    return static_cast<int>((static_cast<int*>(value))[index]);
+  }else if(type==NX_UINT32){
+    return static_cast<int>((static_cast<unsigned int*>(value))[index]);
+  }
+  throw std::invalid_argument("Do not understand type");
+}
+
+static double NeXusFile_convertscalar2double(void *value, int type, long index)
+{
+  if(type==NX_FLOAT32){
+    return static_cast<double>((static_cast<float*>(value))[index]);
+  }else if(type==NX_FLOAT64){
+    return static_cast<double>((static_cast<double*>(value))[index]);
+  }else if(type==NX_INT8){
+    return static_cast<double>((static_cast<unsigned char*>(value))[index]);
+  }else if(type==NX_UINT8){
+    return static_cast<double>((static_cast<unsigned char*>(value))[index]);
+  }else if(type==NX_INT16){
+    return static_cast<double>((static_cast<short int*>(value))[index]);
+  }else if(type==NX_UINT16){
+    return static_cast<double>((static_cast<unsigned short*>(value))[index]);
+  }else if(type==NX_INT32){
+    return static_cast<double>((static_cast<int*>(value))[index]);
+  }else if(type==NX_UINT32){
+    return static_cast<double>((static_cast<unsigned int*>(value))[index]);
+  }
+  throw std::invalid_argument("Do not understand type");
+}
+
 static PyObject * NeXusFile_convertscalar(void *value, int type, long index)
 {
   static PyObject * result=NULL;
@@ -87,47 +138,72 @@ static PyObject * NeXusFile_convertscalar(void *value, int type, long index)
   return result;
 }
 
-static PyObject * NeXusFile_convertobj(void * value,int type, long length,PyObject *result=Py_None)
+static PyObject * NeXusFile_convertobj2(void *value,int type, long length,res_type result_type){
+  if(result_type==FLOAT){
+    std::vector<double> *result=new std::vector<double>();
+    for( int i=0 ; i<length ; i++ )
+      result->push_back(NeXusFile_convertscalar2double(value,type,i));
+    PyObject *pyresult=PyCObject_FromVoidPtr(result,NULL);
+    return pyresult;
+  }else{
+    std::vector<int> *result=new std::vector<int>();
+    for( int i=0 ; i<length ; i++ )
+      result->push_back(NeXusFile_convertscalar2int(value,type,i));
+    PyObject *pyresult=PyCObject_FromVoidPtr(result,NULL);
+    return pyresult;
+  }
+}
+
+static PyObject * NeXusFile_convertobj(void * value,int type, long length,res_type result_type=PYTHON)
 {
+  PyObject *result;
   // for character arrays return a string
   if(type==NX_CHAR){
-    Py_DECREF(result);
     result=Py_BuildValue("s",static_cast<char *>(value));
     Py_INCREF(result);
     return result;
   }
 
+  // for scalars return python primatives
+  if(length==0){
+    Py_DECREF(result);
+    Py_INCREF(Py_None);
+    return Py_None;
+  }
+  if(length==1){
+    Py_DECREF(result);
+    result=NeXusFile_convertscalar(value,type,0);
+    return result;
+  }
+
+  if(result_type==PYTHON){
+    result=PyList_New(0); // new reference
+
+    // fill the result
+    PyObject *inner;
+    for( long i=0 ; i<length ; i++ )
+      {
+        PyObject *inner=NeXusFile_convertscalar(value,type,i); // new reference
+        if(inner==NULL){
+          PyErr_SetString(PyExc_RuntimeError,"Failure in convertscalar");
+          Py_DECREF(result);
+          Py_XDECREF(inner);
+          return NULL;
+        }
+        PyList_Append(result,inner);
+        Py_DECREF(inner);
+      }
+  }
+
+  std::cout << "...later on" << std::endl;
+  return NeXusFile_convertobj2(value,type,length,result_type);
+  /*
   bool use_abstract=true;
   if(result==Py_None){
     Py_DECREF(result);
     result=PyList_New(0); // new reference
     use_abstract=false;
   }
-
-  /*
-  // import nessi_list
-  std::cout << "01:" << std::endl;
-  PyObject *nessi_list_module;
-  nessi_list_module=PyImport_AddModule("nessi_list");
-  std::cout << "02:" << nessi_list_module << std::endl;
-  if((nessi_list_module==NULL)||(nessi_list_module==Py_None))
-    nessi_list_module=PyImport_ImportModule("nessi_list");
-  std::cout << "03:" << nessi_list_module << std::endl;
-
-  // get the NessiList object
-  PyObject *nessi_list_class=PyObject_GetAttrString(nessi_list_module,
-                                                  "NessiList");
-  std::cout << "04:" << nessi_list_module << std::endl;
-  // create a new instance
-  PyObject *nessi_list_inst=PyInstance_New(nessi_list_class, Py_None, Py_None);
-  Py_DECREF(nessi_list_inst);
-  std::cout << "05:" << nessi_list_module << std::endl;
-  */
-
-  /*
-  //Instance objects
-  /PyObject * PyInstance_New(PyObject *class, PyObject *arg, PyObject *kw);
-  */
 
   // fill the result
   PyObject *inner;
@@ -150,6 +226,7 @@ static PyObject * NeXusFile_convertobj(void * value,int type, long length,PyObje
       }
     }
   return result;
+  */
 }
 
 //NXopen(filename,access)
@@ -327,17 +404,16 @@ static PyObject *NeXusFile_closedata(PyObject *, PyObject *args)
 //NXgetdata(handle,data)
 static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
 {
+  std::cout << "01:" << std::endl;
   // get the arguments
   PyObject *pyhandle;
-  PyObject *pydata=Py_None;
-  if(!PyArg_ParseTuple(args,"O|O",&pyhandle,&pydata))
+  if(!PyArg_ParseTuple(args,"O",&pyhandle))
     return NULL;
-  Py_INCREF(pyhandle);
-  Py_INCREF(pydata);
 
+  std::cout << "02:" << std::endl;
   NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
-  Py_DECREF(pyhandle);
 
+  std::cout << "03:" << std::endl;
   // find out about the data we are about to read
   int rank=0;
   int type=0;
@@ -347,6 +423,7 @@ static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
     return NULL;
   }
 
+  std::cout << "04:" << std::endl;
   //allocate memory for the data
   void *data;
   if(NXmalloc(&data,rank,dims,type)!=NX_OK){
@@ -354,12 +431,14 @@ static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
     return NULL;
   }
 
+  std::cout << "05:" << std::endl;
   // get the data
   if(NXgetdata(handle,data)!=NX_OK){
     PyErr_SetString(PyExc_IOError,"In getdata: getdata failed");
     return NULL;
   }
 
+  std::cout << "06:" << std::endl;
   // calculate the total length of the data as a 1D array
   long tot_len=1;
   for( int i=0 ; i<rank ; i++ ){
@@ -367,15 +446,18 @@ static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
       tot_len*=dims[i];
   }
   
+  std::cout << "07:" << std::endl;
   // convert the data into a list
-  PyObject *result=NeXusFile_convertobj(data,type,tot_len,pydata);
+  PyObject *result=NeXusFile_convertobj(data,type,tot_len,FLOAT);
 
+  std::cout << "08:" << std::endl;
   // free up the allocated memory
   if(NXfree(&data)!=NX_OK){
     PyErr_SetString(PyExc_IOError,"In getdata: free failed");
     return NULL;
   }
 
+  std::cout << "09:" << std::endl;
   // return the result
   return result;
 }
@@ -403,13 +485,11 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
   PyObject *pyhandle;
   PyObject *pystart;
   PyObject *pysize;
-  PyObject *pydata=Py_None;
-  if(!PyArg_ParseTuple(args,"OOO|O",&pyhandle,&pystart,&pysize,&pydata))
+  if(!PyArg_ParseTuple(args,"OOO",&pyhandle,&pystart,&pysize))
     return NULL;
   Py_INCREF(pyhandle);
   Py_INCREF(pystart);
   Py_INCREF(pysize);
-  Py_INCREF(pydata);
 
     // turn the arguments into something useful
   NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
@@ -455,7 +535,7 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
   }
   
   // convert the data into a list
-  PyObject *result=NeXusFile_convertobj(data,type,tot_len,pydata);
+  PyObject *result=NeXusFile_convertobj(data,type,tot_len,FLOAT);
 
   // free up the allocated memory
   if(NXfree(&data)!=NX_OK){
@@ -520,12 +600,6 @@ static PyObject *NeXusFile_getattr(PyObject *, PyObject *args)
   if(NXfree(&attr_value)!=NX_OK){
       PyErr_SetString(PyExc_IOError,"In getattr: free failed");
       return NULL;
-  }
-  if((attr_type!=NX_CHAR)&&(attr_len==1)){
-    PyObject *my_result=PyList_GetItem(result,0);
-    Py_DECREF(result);
-    result=my_result;
-    Py_INCREF(result);
   }
 
   return result;
@@ -730,12 +804,6 @@ static PyObject *NeXusFile_getnextattr(PyObject *, PyObject *args)
       PyErr_SetString(PyExc_IOError,"In getattr: free failed");
       return NULL;
   }
-  if((attr_type!=NX_CHAR)&&(attr_len==1)){
-    PyObject *my_value=PyList_GetItem(value,0);
-    Py_DECREF(value);
-    value=my_value;
-    Py_INCREF(value);
-  }
 
   PyObject *result=PyTuple_New(2);
   PyTuple_SET_ITEM(result,0,name);
@@ -855,8 +923,10 @@ static PyMethodDef NeXusFile_methods[]={
    ""},
   {"makelink",     (PyCFunction)NeXusFile_makelink, METH_VARARGS,
    ""},
+  /*
   {"copysequence", (PyCFunction)NeXusFile_copysequence, METH_VARARGS,
    "copysequence(source,target) - the target must already be sized properly"},
+  */
   {NULL,NULL}
 };
 
