@@ -7,6 +7,7 @@
 // NessiVector
 #include <vector>
 #include <stdexcept>
+#include <string>
 
 enum res_type {FLOAT,INT,PYTHON};
 
@@ -401,19 +402,41 @@ static PyObject *NeXusFile_closedata(PyObject *, PyObject *args)
   return Py_None;
 }
 
+static res_type get_res_type(PyObject *pytype){
+  if(pytype==NULL || pytype==Py_None)
+    return FLOAT;
+
+  std::string float_type("f");
+  std::string int_type("i");
+  std::string python_type("p");
+
+  std::string type(PyString_AsString(pytype));
+
+  if(float_type==type)
+    return FLOAT;
+  if(int_type==type)
+    return INT;
+  if(python_type==type)
+    return PYTHON;
+
+  throw std::invalid_argument("Do not understand type");
+}
+
+char * NeXusFile_getdata_doc=
+  "getdata(handle,type='f')";
+
 //NXgetdata(handle,data)
 static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
 {
-  std::cout << "01:" << std::endl;
   // get the arguments
   PyObject *pyhandle;
-  if(!PyArg_ParseTuple(args,"O",&pyhandle))
+  PyObject *pytype=Py_None;
+  if(!PyArg_ParseTuple(args,"O|s",&pyhandle,&pytype))
     return NULL;
 
-  std::cout << "02:" << std::endl;
   NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
+  res_type result_type=get_res_type(pytype);
 
-  std::cout << "03:" << std::endl;
   // find out about the data we are about to read
   int rank=0;
   int type=0;
@@ -423,7 +446,6 @@ static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
     return NULL;
   }
 
-  std::cout << "04:" << std::endl;
   //allocate memory for the data
   void *data;
   if(NXmalloc(&data,rank,dims,type)!=NX_OK){
@@ -431,14 +453,12 @@ static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
     return NULL;
   }
 
-  std::cout << "05:" << std::endl;
   // get the data
   if(NXgetdata(handle,data)!=NX_OK){
     PyErr_SetString(PyExc_IOError,"In getdata: getdata failed");
     return NULL;
   }
 
-  std::cout << "06:" << std::endl;
   // calculate the total length of the data as a 1D array
   long tot_len=1;
   for( int i=0 ; i<rank ; i++ ){
@@ -446,18 +466,15 @@ static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
       tot_len*=dims[i];
   }
   
-  std::cout << "07:" << std::endl;
   // convert the data into a list
-  PyObject *result=NeXusFile_convertobj(data,type,tot_len,FLOAT);
+  PyObject *result=NeXusFile_convertobj(data,type,tot_len,result_type);
 
-  std::cout << "08:" << std::endl;
   // free up the allocated memory
   if(NXfree(&data)!=NX_OK){
     PyErr_SetString(PyExc_IOError,"In getdata: free failed");
     return NULL;
   }
 
-  std::cout << "09:" << std::endl;
   // return the result
   return result;
 }
@@ -478,6 +495,9 @@ static bool PyObject_to_intarray(PyObject *pyobj, int *array)
   return true;
 }
 
+char * NeXusFile_getslab_doc=
+  "getslab(handle,start,size,type='f')";
+
 //NXgetslab(handle,data,start[],size[])
 static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
 {
@@ -485,23 +505,19 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
   PyObject *pyhandle;
   PyObject *pystart;
   PyObject *pysize;
-  if(!PyArg_ParseTuple(args,"OOO",&pyhandle,&pystart,&pysize))
+  PyObject *pytype=Py_None;
+  if(!PyArg_ParseTuple(args,"OOO|O",&pyhandle,&pystart,&pysize,&pytype))
     return NULL;
-  Py_INCREF(pyhandle);
-  Py_INCREF(pystart);
-  Py_INCREF(pysize);
+  res_type result_type=get_res_type(pytype);
 
     // turn the arguments into something useful
   NXhandle handle=static_cast<NXhandle>(PyCObject_AsVoidPtr(pyhandle));
-  Py_DECREF(pyhandle);
   int start[NX_MAXRANK];
   int size[NX_MAXRANK];
   if(!PyObject_to_intarray(pystart,start))
     return NULL;
   if(!PyObject_to_intarray(pysize,size))
     return NULL;
-  Py_DECREF(pystart);
-  Py_DECREF(pysize);
 
   // find out about the data we are about to read
   int rank=0;
@@ -535,7 +551,7 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
   }
   
   // convert the data into a list
-  PyObject *result=NeXusFile_convertobj(data,type,tot_len,FLOAT);
+  PyObject *result=NeXusFile_convertobj(data,type,tot_len,result_type);
 
   // free up the allocated memory
   if(NXfree(&data)!=NX_OK){
@@ -890,9 +906,9 @@ static PyMethodDef NeXusFile_methods[]={
   {"closedata",    (PyCFunction)NeXusFile_closedata, METH_VARARGS,
    ""},
   {"getdata",      (PyCFunction)NeXusFile_getdata, METH_VARARGS,
-   ""},
+   NeXusFile_getdata_doc},
   {"getslab",      (PyCFunction)NeXusFile_getslab, METH_VARARGS,
-   ""},
+   NeXusFile_getslab_doc},
   {"getattr",      (PyCFunction)NeXusFile_getattr, METH_VARARGS,
    ""},
   {"putdata",      (PyCFunction)NeXusFile_putdata, METH_VARARGS,
