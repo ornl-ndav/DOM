@@ -192,6 +192,7 @@ static PyObject * NeXusFile_convertobj(void * value,int type, long length,res_ty
         PyList_Append(result,inner);
         Py_DECREF(inner);
       }
+    return result;
   }
 
   return NeXusFile_convertobj2(value,type,length,result_type);
