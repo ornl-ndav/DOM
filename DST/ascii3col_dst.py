@@ -15,6 +15,7 @@ import sys
 class Ascii3ColDST(dst_base.DST_BASE):
     MIME_TYPE="text/Spec"
     EMPTY=""
+    SPACE=" "
     COLUMNS=3
     
     ########## DST_BASE functions
@@ -98,16 +99,17 @@ class Ascii3ColDST(dst_base.DST_BASE):
         print >> self.__file, "#S",self.__counter,"Spectrum ID",so.id
         print >> self.__file, "#N", self.COLUMNS
         print >> self.__file, self.__axes_and_units
+        so_y_len=len(so.y)
         for i in range(len(so)+1):
             dim = so.dim()
             for j in range(dim):
-                print >> self.__file, so.axis[j].val[i]," ",
+                print >> self.__file, so.axis[j].val[i],self.SPACE,
                 if so.axis[j].var != None:
                     print >> self.__file, \
-                          math.sqrt(math.fabs(so.axis[j].var[i]))," ",
+                          math.sqrt(math.fabs(so.axis[j].var[i])),self.SPACE,
             
-            if i < len(so.y):
-                print >> self.__file, so.y[i]," ",
+            if i < so_y_len:
+                print >> self.__file, so.y[i],self.SPACE,
                 print >> self.__file, math.sqrt(math.fabs(so.var_y[i]))
             else:
                 print >> self.__file, self.EMPTY
