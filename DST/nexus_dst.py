@@ -118,6 +118,14 @@ class NeXusDST(dst_base.DST_BASE):
 
         return result
 
+    def release_resource(self):
+        del self.__nexus
+        del self.__tree
+        del self.__data_group
+        del self.__data_signal
+        del self.__so_axis
+        del self.__avail_data
+
     ########## special functions
     def __generate_ids(self,start,stop):
         if(start==stop):
