@@ -1,2 +1,4 @@
 class AttributeList(dict):
-    pass
+    def __init__(self):
+        self.instrument=None
+        self.sample=None
