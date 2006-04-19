@@ -10,11 +10,36 @@ class Instrument:
 
         Keyword arguments:
          units="meter" to specify what units the returned value will be in."""
+
+        # parse the keywords
+        if kwargs.has_key("units"):
+            units=kwargs["units"]
+        else:
+            units="meter"
+
+        # standardize the units
+        if units=="meter":
+            pass
+        elif units=="meters":
+            units="meter"
+        elif units=="metre":
+            units="meter"
+        elif units=="metres":
+            units="meter"
+        elif units=="mm":
+            units="meter"
+
+        # return the result
         if self.__L0==None:
             raise RuntimeError,"Primary flight path is not defined"
-        return self.__L0
+        if(units=="meter"):
+            return self.__L0
+        else:
+            raise RuntimeError,"Do not know how to convert to \"%s\"" % units
 
     def set_primary(self,distance,units="meter"):
+        """The primary flight path (neutronic distance from moderator
+        to sample) in meters."""
         if units=="m" or units=="meter" or units=="meters" \
                or units=="metre" or units=="metres":
             self.__L0=float(distance)
