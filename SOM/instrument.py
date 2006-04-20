@@ -12,22 +12,7 @@ class Instrument:
          units="meter" to specify what units the returned value will be in."""
 
         # parse the keywords
-        if kwargs.has_key("units"):
-            units=kwargs["units"]
-        else:
-            units="meter"
-
-        # standardize the units
-        if units=="meter":
-            pass
-        elif units=="meters":
-            units="meter"
-        elif units=="metre":
-            units="meter"
-        elif units=="metres":
-            units="meter"
-        elif units=="mm":
-            units="meter"
+        units=__get_units__(kwargs,"meter")
 
         # return the result
         if self.__L0==None:
@@ -40,8 +25,8 @@ class Instrument:
     def set_primary(self,distance,units="meter"):
         """The primary flight path (neutronic distance from moderator
         to sample) in meters."""
-        if units=="m" or units=="meter" or units=="meters" \
-               or units=="metre" or units=="metres":
+        units=__standardize_units__(units,"meter")
+        if units=="meter":
             self.__L0=float(distance)
         else:
             raise RuntimeError,"Do not understand units \"%s\"" % units
@@ -69,3 +54,33 @@ class Instrument:
         Keyword arguments:
          units="radian" to specify what units the returned value will be in."""
         raise RuntimeError,"Azimuthal angle is not defined"
+
+def __standardize_units__(units,default_units):
+    # return early if the requested and specified are the same
+    if units==default_units:
+        return default_units
+
+    # check if it is just plural form of the default units
+    if units==default_units+"s":
+        return default_units
+
+    # the real work of standardization
+    if units=="m" or units=="meter" or units=="meters" \
+           or units=="metre" or units=="metres":
+        return "meter"
+    if units=="degree" or units=="degrees":
+        return "degree"
+    if units=="radian" or units=="radians":
+        return "radian"
+
+    # give up
+    raise RuntimeError,"Do not understand units \"%s\"" % units
+
+def __get_units__(kwargs,default_units):
+    # get the value out of the hashmap
+    if not kwargs.has_key("units"):
+        return default_units
+    units=kwargs["units"]
+
+    # let somebody else do the work
+    return __standardize_units__(units,default_units)

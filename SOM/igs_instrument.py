@@ -1,4 +1,7 @@
 from instrument import Instrument
+from instrument import __get_units__
+from instrument import __standardize_units__
+
 class IGS_Instrument(Instrument):
     def __init__(self):
         Instrument.__init__(self)
@@ -76,34 +79,3 @@ class IGS_Instrument(Instrument):
 
     def set_azimuthal(self,angles,units="radian",id=None):
         units=__standardize_units__(units,"radian")
-
-    def __standardize_units__(units,default_units):
-        # return early if the requested and specified are the same
-        if units==default_units:
-            return default_units
-
-        # check if it is just plural form of the default units
-        if units==default_units+"s":
-            return default_units
-
-        # the real work of standardization
-        if units=="m" or units=="meter" or units=="meters" \
-           or units=="metre" or units=="metres":
-            return "meter"
-        if units=="degree" or units=="degrees":
-            return "degree"
-        if units=="radian" or units=="radians":
-            return "radian"
-
-        # give up
-        raise RuntimeError,"Do not understand units \"%s\"" % units
-
-    def __get_units__(kwargs,default_units):
-        # get the value out of the hashmap
-        if not kwargs.has_key("units"):
-            return default_val
-        units=kwargs["units"]
-
-        # let somebody else do the work
-        return __standardize_units__(units,default_units)
-
