@@ -1,6 +1,5 @@
 from instrument import Instrument
 from instrument import __get_units__
-from instrument import __standardize_units__
 
 class IGS_Instrument(Instrument):
     def __init__(self):
@@ -15,19 +14,26 @@ class IGS_Instrument(Instrument):
         else:
             raise RuntimeError,"Do not understand units \"%s\"" % units
     
-    def set_L2(self,distance,units="meter",id=None):
-        units=__standardize_units__(units,"meter")
-        self.__L2=distance
+    def set_L2(self,distance,id=None,**kwargs):
+        units=__get_units__(kwargs,"meter")
+        if units=="meter":
+            self.__L2=distance
+        else:
+            raise RuntimeError,"Do not understand units \"%s\"" % units
 
     def get_L3(self,id=None,**kwargs):
         units=__get_units__(kwargs,"meter")
         if units=="meter":
-            return 0.
+            return (0.,0.)
         else:
             raise RuntimeError,"Do not understand units \"%s\"" % units
 
-    def set_L3(self,distances,units="meter",id=None):
-        units=__standardize_units__(units,"meter")
+    def set_L3(self,distances,id=None,**kwargs):
+        units=__get_units__(kwargs,"meter")
+        if units=="meter":
+            return (0.,0.)
+        else:
+            raise RuntimeError,"Do not understand units \"%s\"" % units
 
     def get_secondary(self,id=None,**kwargs):
         """The secondary flight path (neutronic distance from sample
@@ -62,8 +68,8 @@ class IGS_Instrument(Instrument):
         #math.radians <- degrees to radians
         raise RuntimeError,"Polar angle is not defined"
 
-    def set_polar(self,angles,units="radian",id=None):
-        units=__standardize_units__(units,"radian")
+    def set_polar(self,angles,id=None,**kwargs):
+        units=__get_units__(kwargs,"radian")
 
     def get_azimuthal(self,id=None,**kwargs):
         """The azimuthal angle (angle between plane and detector) in
@@ -77,5 +83,5 @@ class IGS_Instrument(Instrument):
 
         raise RuntimeError,"Azimuthal angle is not defined"
 
-    def set_azimuthal(self,angles,units="radian",id=None):
-        units=__standardize_units__(units,"radian")
+    def set_azimuthal(self,angles,id=None,**kwargs):
+        units=__get_units__(kwargs,"radian")

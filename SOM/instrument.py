@@ -22,10 +22,10 @@ class Instrument:
         else:
             raise RuntimeError,"Do not know how to convert to \"%s\"" % units
 
-    def set_primary(self,distance,units="meter"):
+    def set_primary(self,distance,**kwargs):
         """The primary flight path (neutronic distance from moderator
         to sample) in meters."""
-        units=__standardize_units__(units,"meter")
+        units=__get_units__(kwargs,"meter")
         if units=="meter":
             self.__L0=float(distance)
         else:
