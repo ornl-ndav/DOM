@@ -25,11 +25,16 @@ class Instrument:
     def set_primary(self,distance,**kwargs):
         """The primary flight path (neutronic distance from moderator
         to sample) in meters."""
+        # fix the units
         units=__get_units__(kwargs,"meter")
-        if units=="meter":
-            self.__L0=float(distance)
-        else:
+        if units!="meter":
             raise RuntimeError,"Do not understand units \"%s\"" % units
+
+        # fix the value
+        distance=__standardize_value__(distance)
+
+        # set the value
+        self.__L0=distance
 
     def get_secondary(self,id=None,**kwags):
         """The secondary flight path (neutronic distance from sample
@@ -84,3 +89,13 @@ def __get_units__(kwargs,default_units):
 
     # let somebody else do the work
     return __standardize_units__(units,default_units)
+
+def __standardize_value__(thing):
+    try:
+        if len(thing)!=2:
+            raise RuntimeError,"Cannot set value \"%s\"",str(thing)
+        value=float(thing[0])
+        err2=float(thing[1])
+        return (value,err2)
+    except TypeError:
+        return (float(thing),0.)

@@ -1,11 +1,12 @@
 from instrument import Instrument
 from instrument import __get_units__
+from instrument import __standardize_value__
 
 class IGS_Instrument(Instrument):
     def __init__(self):
         Instrument.__init__(self)
         self.set_primary(84)
-        self.__L2=None
+        self.set_L2(2.499)
     
     def get_L2(self,id=None,**kwargs):
         units=__get_units__(kwargs,"meter")
@@ -15,24 +16,28 @@ class IGS_Instrument(Instrument):
             raise RuntimeError,"Do not understand units \"%s\"" % units
     
     def set_L2(self,distance,id=None,**kwargs):
+        # fix the units
         units=__get_units__(kwargs,"meter")
-        if units=="meter":
-            self.__L2=distance
-        else:
+        if units!="meter":
             raise RuntimeError,"Do not understand units \"%s\"" % units
+
+        # fix the value
+        distance=__standardize_value__(distance)
+
+        # set the value
+        self.__L2=distance
 
     def get_L3(self,id=None,**kwargs):
         units=__get_units__(kwargs,"meter")
-        if units=="meter":
-            return (0.,0.)
-        else:
+        if units!="meter":
             raise RuntimeError,"Do not understand units \"%s\"" % units
 
+        return (0.,0.)
+
     def set_L3(self,distances,id=None,**kwargs):
+        # fix the units
         units=__get_units__(kwargs,"meter")
-        if units=="meter":
-            return (0.,0.)
-        else:
+        if units!="meter":
             raise RuntimeError,"Do not understand units \"%s\"" % units
 
     def get_secondary(self,id=None,**kwargs):
@@ -42,16 +47,19 @@ class IGS_Instrument(Instrument):
         Keyword arguments:
          units="meter" to specify what units the returned value will be in."""
 
-        # parse the keywords
+        # fix the units
         units=__get_units__(kwargs,"meter")
+        if units!="meter":
+            raise RuntimeError,"Do not understand units \"%s\"" % units
 
         # calculate the position
-        result=self.get_L2(id)+self.get_L3(id)
+        L2=self.get_L2(id)
+        L3=self.get_L3(id)
+        value=L2[0]+L3[0]
+        err2=L2[1]+L3[1]
 
-        if units=="meter":
-            return result
-        else:
-            raise RuntimeError,"Do not understand units \"%s\"" % units
+        # return the result
+        return (value,err2)
 
     def get_polar(self,id=None,**kwargs):
         """The polar angle (angle between incident beam and detector)
@@ -60,13 +68,15 @@ class IGS_Instrument(Instrument):
         Keyword arguments:
          units="radian" to specify what units the returned value will be in."""
 
-        # parse the keywords
-        units=__get_units__(kwargs,"degree")
+        # fix the units
+        units=__get_units__(kwargs,"radian")
+        if units!="radian":
+            raise RuntimeError,"Do not understand units \"%s\"" % units
 
         #import math
         #math.degrees
         #math.radians <- degrees to radians
-        raise RuntimeError,"Polar angle is not defined"
+        return (0.,0.)
 
     def set_polar(self,angles,id=None,**kwargs):
         units=__get_units__(kwargs,"radian")
@@ -78,10 +88,12 @@ class IGS_Instrument(Instrument):
         Keyword arguments:
          units="radian" to specify what units the returned value will be in."""
 
-        # parse the keywords
-        units=__get_units__(kwargs,"degree")
+        # fix the units
+        units=__get_units__(kwargs,"radian")
+        if units!="radian":
+            raise RuntimeError,"Do not understand units \"%s\"" % units
 
-        raise RuntimeError,"Azimuthal angle is not defined"
+        return (0.,0.)
 
     def set_azimuthal(self,angles,id=None,**kwargs):
         units=__get_units__(kwargs,"radian")
