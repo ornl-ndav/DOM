@@ -48,7 +48,7 @@ class Dave2dDST(dst_base.DST_BASE):
             print >> self.__file, "# Run Number:",som.attr_list["run_number"]
         print >> self.__file, "# Title:",som.getTitle()
         if som.attr_list.has_key("username"):
-            print >> self.__file, "#User:",som.attr_list["username"]
+            print >> self.__file, "# User:",som.attr_list["username"]
         if som.attr_list.has_key("operations"):
             for op in som.attr_list["operations"]:
                 print >> self.__file, "# Operation",op
@@ -61,23 +61,23 @@ class Dave2dDST(dst_base.DST_BASE):
 
     def writeXValues(self,som):
         so = som[0]
-        len_x1 = len(so.axis[0].val) - 1
-        len_x2 = len(so.axis[1].val) - 1
+        len_x1 = len(so.axis[1].val) - 1
+        len_x2 = len(so.axis[0].val) - 1
 
-        print >> self.__file, "# Number of x1 values"
+        print >> self.__file, "# Number of",som.getAxisLabel(1),"values"
         print >> self.__file, len_x1
-        print >> self.__file, "# Number of x2 values"
+        print >> self.__file, "# Number of",som.getAxisLabel(0),"values"
         print >> self.__file, len_x2
 
-        print >> self.__file, "#x1 Values:"
+        print >> self.__file, som.getAxisLabel(1),"Values:"
         for i in range(len_x1):
-            print >> self.__file, so.axis[0].val[i] + \
-                  (so.axis[0].val[i+1] - so.axis[0].val[i])/ 2.0
-
-        print >> self.__file, "#x2 Values:"
-        for i in range(len_x2):
             print >> self.__file, so.axis[1].val[i] + \
-                  (so.axis[1].val[i+1] - so.axis[1].val[i]) / 2.0
+                  (so.axis[1].val[i+1] - so.axis[1].val[i])/ 2.0
+
+        print >> self.__file, som.getAxisLabel(0),"Values:"
+        for i in range(len_x2):
+            print >> self.__file, so.axis[0].val[i] + \
+                  (so.axis[0].val[i+1] - so.axis[0].val[i]) / 2.0
         
 
     def writeData(self,so):
