@@ -1,5 +1,6 @@
 from attribute import AttributeList
 from instrument import Instrument
+from asg_instrument import ASG_Instrument
 from igs_instrument import IGS_Instrument
 from sample import Sample
 from som import SOM
