@@ -5,8 +5,8 @@ from instrument import __standardize_value__
 class ASG_Instrument(Instrument):
     def __init__(self):
         Instrument.__init__(self)
-        self.set_primary(15.0,0.1)
-        self.set_secondary(1.0,0.05)
+        self.set_primary((15.0,0.1))
+        self.set_secondary((1.0,0.05))
     
     def get_secondary(self,id=None,**kwargs):
         """The secondary flight path (neutronic distance from sample
