@@ -34,9 +34,9 @@ class Dave2dDST(dst_base.DST_BASE):
 
 
     def writeSOM(self,som):
-        self.writeHeader(som)
         self.writeXValues(som)
         self.writeData(som[0])
+        self.writeHeader(som)
 
     ########## Special functions
 
