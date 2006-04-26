@@ -85,7 +85,7 @@ class Dave2dDST(dst_base.DST_BASE):
         len_x2 = len(so.axis[1].val) - 1
 
         for i in range(len_x1):
-            print >> self.__file, "#Group", i
+            print >> self.__file, "# Group", i
             slice_y = so.y[i*len_x2:((i+1)*len_x2)]
             slice_var_y = so.var_y[i*len_x2:((i+1)*len_x2)] 
 
