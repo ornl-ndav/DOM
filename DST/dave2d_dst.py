@@ -69,12 +69,12 @@ class Dave2dDST(dst_base.DST_BASE):
         print >> self.__file, "# Number of",som.getAxisLabel(0),"values"
         print >> self.__file, len_x2
 
-        print >> self.__file, som.getAxisLabel(1),"Values:"
+        print >> self.__file, "#",som.getAxisLabel(1),"Values:"
         for i in range(len_x1):
             print >> self.__file, so.axis[1].val[i] + \
                   (so.axis[1].val[i+1] - so.axis[1].val[i])/ 2.0
 
-        print >> self.__file, som.getAxisLabel(0),"Values:"
+        print >> self.__file, "#",som.getAxisLabel(0),"Values:"
         for i in range(len_x2):
             print >> self.__file, so.axis[0].val[i] + \
                   (so.axis[0].val[i+1] - so.axis[0].val[i]) / 2.0
