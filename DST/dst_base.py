@@ -37,6 +37,7 @@ def getInstance(mime_type,resource,*args,**kwargs):
 
     # import the appropriate concrete classes
     import ascii3col_dst
+    import dave2d_dst
     import nexus_dst
 
     # do the factory stuff
@@ -44,5 +45,7 @@ def getInstance(mime_type,resource,*args,**kwargs):
         return apply(nexus_dst.NeXusDST,my_args,kwargs)
     elif mime_type==ascii3col_dst.Ascii3ColDST.MIME_TYPE:
         return apply(ascii3col_dst.Ascii3ColDST,my_args,kwargs)
+    elif mime_type==dave2d_dst.Dave2dDST.MIME_TYPE:
+        return apply(dave2d_dst.Dave2dDST,my_args,kwargs)
     else:
         raise Exception,"something wrong"
