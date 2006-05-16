@@ -172,22 +172,28 @@ static PyObject * NeXusFile_convertobj(void * value,int type, long length,res_ty
   }
 
   if(result_type==PYTHON){
-    result=PyList_New(0); // new reference
-
-    // fill the result
-    PyObject *inner;
-    for( long i=0 ; i<length ; i++ )
-      {
-        PyObject *inner=NeXusFile_convertscalar(value,type,i); // new reference
-        if(inner==NULL){
-          PyErr_SetString(PyExc_RuntimeError,"Failure in convertscalar");
-          Py_DECREF(result);
-          Py_XDECREF(inner);
-          return NULL;
+    if(length==1){ 
+      result=NeXusFile_convertscalar(value,type,0); 
+      result; 
+    } else {
+      result=PyList_New(0); // new reference
+      
+      // fill the result
+      PyObject *inner;
+      for( long i=0 ; i<length ; i++ )
+        {
+          // new reference
+          PyObject *inner=NeXusFile_convertscalar(value,type,i); 
+          if(inner==NULL){
+            PyErr_SetString(PyExc_RuntimeError,"Failure in convertscalar");
+            Py_DECREF(result);
+            Py_XDECREF(inner);
+            return NULL;
+          }
+          PyList_Append(result,inner);
+          Py_DECREF(inner);
         }
-        PyList_Append(result,inner);
-        Py_DECREF(inner);
-      }
+    }
     return result;
   }
 
