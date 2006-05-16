@@ -170,10 +170,6 @@ static PyObject * NeXusFile_convertobj(void * value,int type, long length,res_ty
     Py_INCREF(Py_None);
     return Py_None;
   }
-  if(length==1){
-    result=NeXusFile_convertscalar(value,type,0);
-    return result;
-  }
 
   if(result_type==PYTHON){
     result=PyList_New(0); // new reference
@@ -593,6 +589,7 @@ static PyObject *NeXusFile_getattr(PyObject *, PyObject *args)
       PyErr_SetString(PyExc_IOError,"In getattr: getattr failed");
       return NULL;
   }
+
   PyObject *result=NeXusFile_convertobj(attr_value,attr_type,attr_len);
   if(NXfree(&attr_value)!=NX_OK){
       PyErr_SetString(PyExc_IOError,"In getattr: free failed");
