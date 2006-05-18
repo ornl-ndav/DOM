@@ -170,6 +170,7 @@ class NeXusDST(dst_base.DST_BASE):
 
     def __generate_SOM_ids(self):
         path_list=self.list_type("NXdata")
+        path_list.extend(self.list_type("NXmonitor"))
         SOM_list=[]
         for path in path_list:
             signal_list=self.__get_avail_signals(path)
@@ -305,11 +306,12 @@ class NeXusData:
         counts_attrlist=children[self.__data]
         for key in counts_attrlist.keys():
             if key=="axes":
-                inner_list=(counts_attr_list[key]).split(",")
+                inner_list=(counts_attrlist[key]).split(",")
                 for i in range(len(inner_list)):
-                    axes[i]=NeXusAxis(self.__nexus,inner_list[i])
+                    axes[i+1]=NeXusAxis(self.__nexus,inner_list[i])
             if key=="units":
                 self.units=counts_attrlist[key]
+
 
         # set the axes
         if len(axes)>0:
@@ -331,7 +333,9 @@ class NeXusData:
     def __id_to_index(self,so_id):
         num_axes=len(self.axes)
 
-        if num_axes==2:
+        if num_axes==1:
+            return None
+        elif num_axes==2:
             if self.axes[0]==self.variable:
                 return [0,so_id]
             else:
