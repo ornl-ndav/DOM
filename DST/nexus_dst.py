@@ -152,7 +152,7 @@ class NeXusDST(dst_base.DST_BASE):
         if (end_id==None) or (max_id<end_id):
             end_id=max_id
 
-        ids=self.__generate_ids(start_id,end_id)
+        ids=self.__generate_ids(start_id,end_id,data.location)
 
         for item in ids:
             so=data.get_so(item)
@@ -178,16 +178,18 @@ class NeXusDST(dst_base.DST_BASE):
         del self.__avail_data
 
     ########## special functions
-    def __generate_ids(self,start,stop):
+    def __generate_ids(self,start,stop,location):
         if(start==stop):
             return [start]
         try:
             dim=len(start)
             result=[]
             if dim==2:
+                from os.path import basename
+                loc = basename(location)
                 for i in range(start[0],stop[0]+1):
                     for j in range(start[1],stop[1]+1):
-                        result.append((i,j))
+                        result.append((loc,(i,j)))
                 return result
             else:
                 raise RuntimeError,"Do not understand %dd indices" % dim
@@ -398,11 +400,13 @@ class NeXusData:
             return None
         elif num_axes==2:
             if self.axes[0]==self.variable:
-                return [0,so_id]
+                return [0,so_id[1]]
             else:
-                return [so_id,0]
+                return [so_id[1],0]
         elif num_axes==3:
             var_index=self.axes.index(self.variable)
+            # Give the (i,j) part of the ID
+            so_id = so_id[1]
             index=0
             result=[]
             for i in range(3):
@@ -488,9 +492,11 @@ class NeXusData:
 #                    print axis.value[i],
 #                print
             id_list=[]
+            from os.path import basename
+            loc = basename(self.location)
             for i in range(len(label_axes[0].value)):
                 for j in range(len(label_axes[1].value)):
-                    so_id=(i,j)
+                    so_id=(loc,(i,j))
                     id_list.append(so_id)
             print
             print len(id_list)
