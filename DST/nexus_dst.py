@@ -35,12 +35,17 @@ class NeXusDST(dst_base.DST_BASE):
         self.__so_axis=so_axis
 
     def get_SO_ids(self,SOM_id=None,so_axis=None):
+        id_list = []
         if(SOM_id!=None):
             data=self.__avail_data[SOM_id]
+            id_list = data.get_ids()
         else:
-            data=self.__avail_data[(self.__data_group,self.__data_signal)]
+            som_id_list = self.__create_loc_sig_list()
+            for som_id in som_id_list:
+                data=self.__avail_data[som_id]
+                id_list.extend(data.get_ids())
 
-        return data.get_ids()
+        return id_list
 
     def get_SOM_ids(self):
         return self.__avail_data.keys()
@@ -320,16 +325,18 @@ class NeXusDST(dst_base.DST_BASE):
         return my_list
 
     def set_SO_axis(self,so_axis):
-        data=self.__avail_data[(self.__data_group,self.__data_signal)]
-        if data.has_axis(so_axis):
-            self.__so_axis=so_axis
-        else:
-            raise ValueError,"Invalid axis specified (%s)" % so_axis
+        som_id_list = self.__create_loc_sig_list()
+        for som_id in som_id_list:
+            data=self.__avail_data[som_id]
+            if data.has_axis(so_axis):
+                self.__so_axis=so_axis
+            else:
+                raise ValueError,"Invalid axis specified (%s)" % so_axis
 
     def set_data(self,path,signal=1):
         if self.__avail_data.has_key((path,signal)):
-            self.__data_group=path
-            self.__data_signal=signal
+            self.__data_group.append(path)
+            self.__data_signal.append(signal)
         else:
             raise ValueError,"Invalid data specified (%s,%d)" % (path,signal)
 
