@@ -13,8 +13,8 @@ class NeXusDST(dst_base.DST_BASE):
         # allocate places for everything
         self.__nexus=nexus_file.NeXusFile(resource)
         self.__tree=self.__build_tree()
-        self.__data_group=None
-        self.__data_signal=None
+        self.__data_group=[]
+        self.__data_signal=[]
         self.__so_axis=None
         self.__avail_data={}
 
@@ -24,12 +24,12 @@ class NeXusDST(dst_base.DST_BASE):
             data=NeXusData(self.__nexus,self.__tree,location,signal)
             self.__avail_data[(location,signal)]=data
 
-        # set the data group if there is only one
+        # set the data group to be all NXdata
         if data_group_path==None:
-            if len(self.__avail_data)==1:
-                key=self.__avail_data.keys()[0]
-                self.__data_group=key[0]
-                self.__signal=key[1]
+            nxdata_ids=self.__generate_SOM_ids(type="NXdata")
+            for (location,signal) in nxdata_ids:
+                self.__data_group.append(location)
+                self.__data_signal.append(signal)
 
         # set the so axis
         self.__so_axis=so_axis
@@ -38,7 +38,7 @@ class NeXusDST(dst_base.DST_BASE):
         if(SOM_id!=None):
             data=self.__avail_data[SOM_id]
         else:
-            data=self.__avail_data[(self.__data_group,self.__signal)]
+            data=self.__avail_data[(self.__data_group,self.__data_signal)]
 
         return data.get_ids()
 
@@ -74,10 +74,57 @@ class NeXusDST(dst_base.DST_BASE):
         else:
             end_id=None
 
-        if(som_id!=None):
-            data=self.__avail_data[som_id]
+        if so_axis == None:
+            so_axis = "time_of_flight"
         else:
-            data=self.__avail_data[(self.__data_group,self.__signal)]
+            pass
+
+        if(som_id!=None):
+            id_list = []
+            try:
+                som_id.reverse()
+                som_id.reverse()
+                for i in range(len(som_id)):
+                    id_list.append(som_id[i])
+            except AttributeError:
+                id_list.append(som_id)
+
+        else:
+            id_list = self.__create_loc_sig_list()
+
+        result=SOM.SOM()
+        result.attr_list["filename"]=self.__nexus.filename()
+
+        count = 0
+        for id in id_list:
+            data = self.__avail_data[id]
+            # Construct keywords if necessary
+            kwargs = {}
+            if start_id != None:
+                kwargs["start_id"] = start_id[count]
+            else:
+                pass
+            
+            if end_id != None:
+                kwargs["end_id"] = end_id[count]
+            else:
+                pass
+                
+            self.__construct_SOM(result,data,so_axis)
+            count += 1
+
+        return result
+
+    def __construct_SOM(self,result,data,so_axis,**kwargs):
+
+        if(kwargs.has_key("start_id")):
+            start_id=kwargs["start_id"]
+        else:
+            start_id=None
+        if(kwargs.has_key("end_id")):
+            end_id=kwargs["end_id"]
+        else:
+            end_id=None
 
         orig_axis=data.variable
         if orig_axis.label==so_axis or orig_axis.location==so_axis:
@@ -86,13 +133,11 @@ class NeXusDST(dst_base.DST_BASE):
         if orig_axis!=None and so_axis!=None and data.has_axis(so_axis):
             data.set_so_axis(so_axis)
 
-        result=SOM.SOM()
         result.setTitle("") # should put something here
         result.setAxisLabel(0,data.variable.label)
         result.setAxisUnits(0,data.variable.units)
         result.setYLabel(data.data_label)
         result.setYUnits(data.data_units)
-        result.attr_list["filename"]=self.__nexus.filename()
 
         attrs=self.__get_attr_list(data.location)
         for key in attrs.keys():
@@ -116,7 +161,13 @@ class NeXusDST(dst_base.DST_BASE):
         if orig_axis!=None:
             data.set_so_axis(orig_axis.location)
 
-        return result
+    def __create_loc_sig_list(self):
+        id_list = []
+        for (location,signal) in map(None,self.__data_group,
+                                     self.__data_signal):
+            id_list.append((location,signal))
+
+        return id_list
 
     def release_resource(self):
         del self.__nexus
@@ -168,9 +219,19 @@ class NeXusDST(dst_base.DST_BASE):
         self.__nexus.openpath(path)
         return str(self.__nexus.getdata())
 
-    def __generate_SOM_ids(self):
-        path_list=self.list_type("NXdata")
-        path_list.extend(self.list_type("NXmonitor"))
+    def __generate_SOM_ids(self,**kwargs):
+        try:
+            value = kwargs["type"]
+            if value == "NXdata":
+                path_list=self.list_type("NXdata")
+            elif value == "NXmonitor":
+                path_list=self.list_type("NXmonitor")
+            else:
+                raise RuntimeError, "Do not understand type %s" % value
+        except KeyError:
+            path_list=self.list_type("NXdata")
+            path_list.extend(self.list_type("NXmonitor"))
+            
         SOM_list=[]
         for path in path_list:
             signal_list=self.__get_avail_signals(path)
