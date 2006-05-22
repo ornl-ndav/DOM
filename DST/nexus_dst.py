@@ -115,7 +115,7 @@ class NeXusDST(dst_base.DST_BASE):
             else:
                 pass
                 
-            self.__construct_SOM(result,data,so_axis)
+            self.__construct_SOM(result,data,so_axis,**kwargs)
             count += 1
 
         return result
