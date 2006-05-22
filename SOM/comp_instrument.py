@@ -81,14 +81,13 @@ class CompositeInstrument(instrument.Instrument):
         return self.__inst_hash[key]
 
 
-    def get_primary(self,key,id,**kwargs):
+    def get_primary(self,id,**kwargs):
         """
         This function obtains the primary flight path from the instrument
         object.
 
         Parameters:
         ----------
-        -> key is the key name for the requested instrument
         -> id is the object containing the pixel ID
         -> kwargs is a list of key word arguments that the function will
            accept        
@@ -99,17 +98,16 @@ class CompositeInstrument(instrument.Instrument):
            for the request instrument
         """
 
-        return self.__inst_hash[key].get_primary(id,**kwargs)
+        return self.__inst_hash[id[0]].get_primary(id,**kwargs)
 
     
-    def get_secondary(self,key,id,**kwargs):
+    def get_secondary(self,id,**kwargs):
         """
         This function obtains the secondary flight path from the instrument
         object.
 
         Parameters:
         ----------
-        -> key is the key name for the requested instrument
         -> id is the object containing the pixel ID
         -> kwargs is a list of key word arguments that the function will
            accept        
@@ -120,16 +118,15 @@ class CompositeInstrument(instrument.Instrument):
            error for the request instrument
         """
 
-        return self.__inst_hash[key].get_secondary(id,**kwargs)
+        return self.__inst_hash[id[0]].get_secondary(id,**kwargs)
 
 
-    def get_polar(self,key,id,**kwargs):
+    def get_polar(self,id,**kwargs):
         """
         This function obtains the polar angle from the instrument object.
 
         Parameters:
         ----------
-        -> key is the key name for the requested instrument
         -> id is the object containing the pixel ID
         -> kwargs is a list of key word arguments that the function will
            accept        
@@ -140,16 +137,15 @@ class CompositeInstrument(instrument.Instrument):
            for the request instrument
         """
 
-        return self.__inst_hash[key].get_polar(id,**kwargs)
+        return self.__inst_hash[id[0]].get_polar(id,**kwargs)
 
 
-    def get_azimuthal(self,key,id,**kwargs):
+    def get_azimuthal(self,id,**kwargs):
         """
         This function obtains the azimuthal angle from the instrument object.
 
         Parameters:
         ----------
-        -> key is the key name for the requested instrument
         -> id is the object containing the pixel ID
         -> kwargs is a list of key word arguments that the function will
            accept        
@@ -160,4 +156,4 @@ class CompositeInstrument(instrument.Instrument):
            for the request instrument
         """
 
-        return self.__inst_hash[key].get_azimuthal(id,**kwargs)
+        return self.__inst_hash[id[0]].get_azimuthal(id,**kwargs)
