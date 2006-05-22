@@ -1,8 +1,17 @@
 class Instrument:
     """This is an abstract base class representing important
     geometrical information about the instrument."""
-    def __init__(self):
-        self.__L0=None
+    def __init__(self,**kwargs):
+        self.__L0                   = None
+        self.__secondary__          = None;
+        self.__secondary_err2__     = None;
+        self.__secondary_selector__ = None
+        self.__polar__              = None;
+        self.__polar_err2__         = None;
+        self.__polar_selector__     = None
+        self.__azimuthal__          = None;
+        self.__azimuthal_err2__     = None;
+        self.__azimuthal_selector__ = None;
     
     def get_primary(self,id=None,**kwargs):
         """The primary flight path (neutronic distance from moderator
@@ -36,13 +45,40 @@ class Instrument:
         # set the value
         self.__L0=distance
 
-    def get_secondary(self,id=None,**kwags):
+    def get_secondary(self,id=None,**kwargs):
         """The secondary flight path (neutronic distance from sample
         to detector) in meters
 
         Keyword arguments:
          units="meter" to specify what units the returned value will be in."""
-        raise RuntimeError,"Secondary flight path is not defined"
+        try:
+            offset=self.__secondary_selector__.getIndex(id)
+        except AttributeError:
+            raise RuntimeError,"Do not have information for selecting " \
+                  +"correct secondary flight path"
+
+        try:
+            val=self.__secondary__[offset]
+        except TypeError:
+            raise RuntimeError,"Do not have information for secondary " \
+                  +"flight path"
+        
+        try:
+            err2=self.__secondary_err2__[offset]
+            return (val,err2)
+        except TypeError:
+            return (val,0.)
+
+    def get_total_path(self,id=None,**kwargs):
+        """The total flight path (neutronic distance from sample
+        to detector) in meters
+
+        Keyword arguments:
+         units="meter" to specify what units the returned value will be in."""
+        L1=self.get_primary(**kwargs)
+        L2=self.get_secondary(id,**kwargs)
+
+        return (L1[0]+L2[0],L1[1]+L2[1])
 
     def get_polar(self,id=None,**kwargs):
         """The polar angle (angle between incident beam and detector)
@@ -50,7 +86,22 @@ class Instrument:
 
         Keyword arguments:
          units="radian" to specify what units the returned value will be in."""
-        raise RuntimeError,"Polar angle is not defined"
+        try:
+            offset=self.__polar_selctor__.getIndex(id)
+        except AttributeError:
+            raise RuntimeError,"Do not have information for selecting " \
+                  +"correct polar angle"
+
+        try:
+            val=self.__polar__[offset]
+        except TypeError:
+            raise RuntimeError,"Do not have information for polar angle"
+        
+        try:
+            err2=self.__polar_err2__[offset]
+            return (val,err2)
+        except TypeError:
+            return (val,0.)
 
     def get_azimuthal(self,id=None,**kwargs):
         """The azimuthal angle (angle between plane and detector) in
@@ -58,7 +109,22 @@ class Instrument:
 
         Keyword arguments:
          units="radian" to specify what units the returned value will be in."""
-        raise RuntimeError,"Azimuthal angle is not defined"
+        try:
+            offset=self.__azimuthal_selctor__.getIndex(id)
+        except AttributeError:
+            raise RuntimeError,"Do not have information for selecting " \
+                  +"correct azimuthal angle"
+
+        try:
+            val=self.__azimuthal__[offset]
+        except TypeError:
+            raise RuntimeError,"Do not have information for azumuthal angle"
+        
+        try:
+            err2=self.__azimuthal_err2__[offset]
+            return (val,err2)
+        except TypeError:
+            return (val,0.)
 
 def __standardize_units__(units,default_units):
     # return early if the requested and specified are the same
