@@ -1,17 +1,72 @@
 class Instrument:
     """This is an abstract base class representing important
-    geometrical information about the instrument."""
+    geometrical information about the instrument.
+
+    Parameters:
+    -----------
+    ->kwargs is a list of key word arguments that the function accepts:
+         azimuthal = The values of the azimuthal angle
+         azimuthal_err2 = The values of the square of the uncertainty in the
+                     azimuthal angle
+         polar = The values of the polar angle
+         polar_err2 = The values of the square of the uncertainty in the
+                     polar angle
+         primary = The value of the primary flight path and the square of
+                     its uncertainty
+         secondary = The values of the secondary flight path
+         secondary_err2 = The values of the square of the uncertainty in the 
+                     secondary flight path
+    """
     def __init__(self,**kwargs):
-        self.__L0                   = None
-        self.__secondary__          = None;
-        self.__secondary_err2__     = None;
-        self.__secondary_selector__ = None
-        self.__polar__              = None;
-        self.__polar_err2__         = None;
-        self.__polar_selector__     = None
-        self.__azimuthal__          = None;
-        self.__azimuthal_err2__     = None;
+        # primary flight path
+        try:
+            self.__L0=kwargs["primary"]
+        except KeyError:
+            self.__L0=None
+            
+        #secondary flight path
+        try:
+            self.__secondary__=kwargs["secondary"]
+        except KeyError:
+            self.__secondary__=None
+        try:
+            self.__secondary_err2__=kwargs["secondary_err2"]
+            if self.__secondary__==None:
+                raise AssertionError,"Cannot set uncertainty in secondary "\
+                      +"flight path without value"
+        except KeyError:
+            self.__secondary_err2__=None
+
+        # polar angle
+        try:
+            self.__polar__=kwargs["polar"]
+        except KeyError:
+            self.__polar__=None;
+        try:
+            self.__polar_err2__=kwargs["polar_err2"]
+            if self.__polar__==None:
+                raise AssertionError,"Cannot set uncertainty in polar angle "\
+                      +"without value"
+        except KeyError:
+            self.__polar_err2__=None
+
+        # azimuthal angle
+        try:
+            self.__azimuthal__=kwargs["azimuthal"]
+        except KeyError:
+            self.__azimuthal__=None;
+        try:
+            self.__azimutahl_err2__=kwargs["azimuthal_err2"]
+            if self.__azimutahl__==None:
+                raise AssertionError,"Cannot set uncertainty in azimuthal "\
+                      +"angle without value"
+        except KeyError:
+            self.__azimuthal_err2__=None
+
+
         self.__azimuthal_selector__ = None;
+        self.__polar_selector__     = None
+        self.__secondary_selector__ = None
     
     def get_primary(self,id=None,**kwargs):
         """The primary flight path (neutronic distance from moderator
