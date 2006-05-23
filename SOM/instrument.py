@@ -57,8 +57,8 @@ class Instrument:
         except KeyError:
             self.__azimuthal__=None;
         try:
-            self.__azimutahl_err2__=kwargs["azimuthal_err2"]
-            if self.__azimutahl__==None:
+            self.__azimuthal_err2__=kwargs["azimuthal_err2"]
+            if self.__azimuthal__==None:
                 raise AssertionError,"Cannot set uncertainty in azimuthal "\
                       +"angle without value"
         except KeyError:
