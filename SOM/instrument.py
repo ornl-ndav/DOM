@@ -158,7 +158,7 @@ class Instrument:
         Keyword arguments:
          units="radian" to specify what units the returned value will be in."""
         try:
-            offset=self.__polar_selctor__.getIndex(id)
+            offset=self.__polar_selector__.getIndex(id)
         except AttributeError:
             raise RuntimeError,"Do not have information for selecting " \
                   +"correct polar angle"
@@ -181,7 +181,7 @@ class Instrument:
         Keyword arguments:
          units="radian" to specify what units the returned value will be in."""
         try:
-            offset=self.__azimuthal_selctor__.getIndex(id)
+            offset=self.__azimuthal_selector__.getIndex(id)
         except AttributeError:
             raise RuntimeError,"Do not have information for selecting " \
                   +"correct azimuthal angle"
