@@ -110,7 +110,6 @@ class NeXusDST(dst_base.DST_BASE):
 
         count = 0
         for id in id_list:
-            print "AA:",id
             inst_keys.append(id[0].split('/')[-1])
             inst_keys.append(self.__inst_info.getInstrument(id[0]))
             
@@ -193,10 +192,6 @@ class NeXusDST(dst_base.DST_BASE):
 
         return id_list
 
-
-    def __get_instrument(self,name,**kwargs):
-        if name == "BSS":
-            return SOM.IGS_Instrument()
 
     def release_resource(self):
         del self.__nexus
@@ -528,8 +523,7 @@ class NeXusData:
                 for j in range(len(label_axes[1].value)):
                     so_id=(loc,(i,j))
                     id_list.append(so_id)
-            print
-            print len(id_list)
+
             return id_list
 
         raise SystemError,"Cannot generate ids for %dd data" % num_axes
@@ -663,7 +657,6 @@ class NeXusInstrument:
 
         for location in self.__det_locations:
             label = location.split('/')[-1]
-            print "LLL:",label
             info_list=[]
             for name in self.__det_info:
                 path = location+"/"+name
@@ -673,7 +666,6 @@ class NeXusInstrument:
 
         for location in self.__mon_locations:
             label = location.split('/')[-1]
-            print "LL:",label
             path = location+"/distance"
             self.__mon_data[label]=self.__get_value(path)
 
@@ -757,7 +749,7 @@ class NeXusInstrument:
 
     def getInstrument(self,path):
         label = path.split('/')[-1]
-        print "GG:",label
+
         # Check the monitor list
         flag = False
         try:
