@@ -8,6 +8,7 @@ class Instrument:
          azimuthal = The values of the azimuthal angle
          azimuthal_err2 = The values of the square of the uncertainty in the
                      azimuthal angle
+         instrument= The (abbreviated) name of the instrument
          polar = The values of the polar angle
          polar_err2 = The values of the square of the uncertainty in the
                      polar angle
@@ -63,10 +64,21 @@ class Instrument:
         except KeyError:
             self.__azimuthal_err2__=None
 
+        # the instrument name decides what selectors to chose
+        try:
+            inst=kwargs["instrument"]
+            inst=inst.upper() # keys on uppercase version of instrument name
+        except KeyError:
+            raise AssertionError,"Must specify instrument name"
 
-        self.__azimuthal_selector__ = None;
-        self.__polar_selector__     = None
-        self.__secondary_selector__ = None
+        # use the instrument name to set the selectors
+        from indexselector import getIndexSelector
+        if inst=="BSS":
+            self.__azimuthal_selector__ = None;
+            self.__polar_selector__     = getIndexSelector("ISelector")
+            self.__secondary_selector__ = getIndexSelector("JSelector")
+        else:
+            raise RuntimeError,"Do not understand instrument: \""+inst+"\""
     
     def get_primary(self,id=None,**kwargs):
         """The primary flight path (neutronic distance from moderator
