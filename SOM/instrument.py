@@ -67,13 +67,20 @@ class Instrument:
         # the instrument name decides what selectors to chose
         try:
             inst=kwargs["instrument"]
-            inst=inst.upper() # keys on uppercase version of instrument name
+            try:
+                inst=inst.upper() # keys on uppercase version of instrument name
+            except AttributeError:
+                pass # errors will be picked up below
         except KeyError:
-            raise AssertionError,"Must specify instrument name"
+            inst=None
 
         # use the instrument name to set the selectors
         from indexselector import getIndexSelector
-        if inst=="BSS":
+        if inst==None:
+            self.__azimuthal_selector__ = None;
+            self.__polar_selector__     = None;
+            self.__secondary_selector__ = None;
+        elif inst=="BSS":
             self.__azimuthal_selector__ = None;
             self.__polar_selector__     = getIndexSelector("ISelector")
             self.__secondary_selector__ = getIndexSelector("JSelector")
