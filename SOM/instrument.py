@@ -33,8 +33,7 @@ class Instrument:
         try:
             self.__secondary_err2__=kwargs["secondary_err2"]
             if self.__secondary__==None:
-                raise AssertionError,"Cannot set uncertainty in secondary "\
-                      +"flight path without value"
+                self.__secondary_err2__=None
         except KeyError:
             self.__secondary_err2__=None
 
@@ -46,8 +45,7 @@ class Instrument:
         try:
             self.__polar_err2__=kwargs["polar_err2"]
             if self.__polar__==None:
-                raise AssertionError,"Cannot set uncertainty in polar angle "\
-                      +"without value"
+                self.__polar_err2__=None
         except KeyError:
             self.__polar_err2__=None
 
@@ -59,8 +57,7 @@ class Instrument:
         try:
             self.__azimuthal_err2__=kwargs["azimuthal_err2"]
             if self.__azimuthal__==None:
-                raise AssertionError,"Cannot set uncertainty in azimuthal "\
-                      +"angle without value"
+                self.__azimuthal_err2__=None
         except KeyError:
             self.__azimuthal_err2__=None
 
@@ -68,7 +65,7 @@ class Instrument:
         try:
             inst=kwargs["instrument"]
             try:
-                inst=inst.upper() # keys on uppercase version of instrument name
+                inst=inst.upper() #keys on uppercase version of instrument name
             except AttributeError:
                 pass # errors will be picked up below
         except KeyError:
