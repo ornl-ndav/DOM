@@ -17,12 +17,15 @@ class NeXusDST(dst_base.DST_BASE):
         self.__data_signal=[]
         self.__so_axis=None
         self.__avail_data={}
+        self.__inst_info=None
 
         # create the data list
         som_ids=self.__generate_SOM_ids()
         for (location,signal) in som_ids:
             data=NeXusData(self.__nexus,self.__tree,location,signal)
             self.__avail_data[(location,signal)]=data
+
+        self.__inst_info=NeXusInstrument(self.__nexus,self.__tree)
 
         # set the data group to be all NXdata
         if data_group_path==None:
@@ -97,11 +100,20 @@ class NeXusDST(dst_base.DST_BASE):
         else:
             id_list = self.__create_loc_sig_list()
 
+
         result=SOM.SOM()
         result.attr_list["filename"]=self.__nexus.filename()
+        result.attr_list["instrument_name"] = self.__inst_info.getName()
+        result.attr_list["beamline"] = self.__inst_info.getBeamline()
+
+        inst_keys=[]
 
         count = 0
         for id in id_list:
+            print "AA:",id
+            inst_keys.append(id[0].split('/')[-1])
+            inst_keys.append(self.__inst_info.getInstrument(id[0]))
+            
             data = self.__avail_data[id]
             # Construct keywords if necessary
             kwargs = {}
@@ -117,6 +129,13 @@ class NeXusDST(dst_base.DST_BASE):
                 
             self.__construct_SOM(result,data,so_axis,**kwargs)
             count += 1
+
+
+        if len(inst_keys) > 2:
+            inst = SOM.CompositeInstrument(pairs=inst_keys)
+            result.attr_list.instrument = inst
+        else:
+            result.attr_list.instrument = inst_keys[1]
 
         return result
 
@@ -157,6 +176,8 @@ class NeXusDST(dst_base.DST_BASE):
         if (end_id==None) or (max_id<end_id):
             end_id=max_id
 
+
+        print "SS:",start_id,end_id
         ids=self.__generate_ids(start_id,end_id,data.location)
 
         for item in ids:
@@ -173,6 +194,11 @@ class NeXusDST(dst_base.DST_BASE):
             id_list.append((location,signal))
 
         return id_list
+
+
+    def __get_instrument(self,name,**kwargs):
+        if name == "BSS":
+            return SOM.IGS_Instrument()
 
     def release_resource(self):
         del self.__nexus
@@ -202,7 +228,6 @@ class NeXusDST(dst_base.DST_BASE):
             return range(start,stop)
             
         
-
     def __get_attr_list(self,data_path):
         # prefix of what attributes to use
         data_path="/"+data_path.split("/")[0]
@@ -616,3 +641,148 @@ def __get_sds_attr__(filehandle,path):
         attrs[name]=value
     return attrs
 
+
+class NeXusInstrument:
+    def __init__(self,filehandle,tree):
+        # do the easy part
+
+        self.__head_tag="/entry/instrument"
+        self.__nexus=filehandle
+        self.__tree=tree
+        self.__det_locations=self.__list_type(tree,"NXdetector")
+        self.__mon_locations=self.__list_type(tree,"NXmonitor")
+        
+        self.__det_data={}
+        self.__mon_data={}
+
+        self.__det_info=["secondary_flight_path", "polar_angle",
+                         "azimuthal_angle"]
+
+        self.__nexus.openpath("/entry/instrument/name")
+        self.__inst_name=self.__nexus.getattr("short_name","")
+        
+        self.__beamline = self.__get_val_as_str("/entry/instrument/beamline")
+
+        for location in self.__det_locations:
+            label = location.split('/')[-1]
+            print "LLL:",label
+            info_list=[]
+            for name in self.__det_info:
+                path = location+"/"+name
+                info_list.append(self.__get_value(path))
+                
+            self.__det_data[label]=info_list
+
+        for location in self.__mon_locations:
+            label = location.split('/')[-1]
+            print "LL:",label
+            path = location+"/distance"
+            self.__mon_data[label]=self.__get_value(path)
+
+        self.__primary = self.__get_value(self.__head_tag+
+                                          "/moderator/distance")
+
+
+    def __get_value(self,path):
+        try:
+            self.__tree[path]
+        except KeyError:
+            return (None, None, None)
+            
+        try:
+            self.__nexus.openpath(path)
+        except IOError:
+            return (None, None, None)
+
+        values = self.__nexus.getdata()
+        len_values = len(values)
+        if len_values == 1:
+            values = values[0]
+        else:
+            pass
+        
+        while True:
+            (name,value)=self.__nexus.getnextattr()
+            if name == None:
+                break
+            if name == "units":
+                units = value
+
+        errors = self.__get_errors(path)
+        if errors == None:
+            if len_values > 1:
+                pass
+            else:
+                errors = 0.0
+        else:
+            pass
+    
+        return (values,errors,units)
+
+
+    def __get_errors(self,path):
+        path = path+"_errors"
+
+        try:
+            self.__tree[path]
+        except KeyError:
+            return None
+            
+        try:
+            self.__nexus.openpath(path)
+        except IOError:
+            return None
+
+        return self.__nexus.getdata()
+    
+        
+    def __list_type(self,tree,type):
+        my_list=[]
+        for key in tree.keys():
+            if tree[key]==type:
+                my_list.append(key)
+        return my_list
+
+
+    def __get_val_as_str(self,path):
+        self.__nexus.openpath(path)
+        return str(self.__nexus.getdata())
+
+
+    def getName(self):
+        return self.__inst_name
+
+
+    def getBeamline(self):
+        return self.__beamline
+    
+
+    def getInstrument(self,path):
+        label = path.split('/')[-1]
+        print "GG:",label
+        # Check the monitor list
+        flag = False
+        try:
+            geometry = self.__mon_data[label]
+            return SOM.Instrument(primary=(geometry[0],geometry[1]))
+        except KeyError:
+            flag = True
+            
+        # Check the detector list
+        try:
+            geometry = self.__det_data[label]
+            return SOM.Instrument(instrument=self.__inst_name,
+                                  primary=(self.__primary[0],
+                                           self.__primary[1]),
+                                  secondary=geometry[0][0],
+                                  secondary_err2=geometry[0][1],
+                                  polar=geometry[1][0],
+                                  polar_err2=geometry[1][1],
+                                  azimuthal=geometry[2][0],
+                                  azimuthal_err2=geometry[2][1])
+        except KeyError:
+            flag = True
+
+        # No label found in monitor or detector list
+        if flag:
+            return None
