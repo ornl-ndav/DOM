@@ -127,6 +127,26 @@ class CompositeInstrument(instrument.Instrument):
         return self.__inst_hash[id[0]].get_secondary(id,**kwargs)
 
 
+    def get_total_path(self,id,**kwargs):
+        """
+        This function obtains the total flight path from the instrument
+        object.
+
+        Parameters:
+        ----------
+        -> id is the object containing the pixel ID
+        -> kwargs is a list of key word arguments that the function will
+           accept        
+
+        Returns:
+        -------
+        <- A tuple containing the total flight path and its associated
+           error for the request instrument
+        """
+
+        return self.__inst_hash[id[0]].get_total_path(id,**kwargs)
+
+
     def get_polar(self,id,**kwargs):
         """
         This function obtains the polar angle from the instrument object.
