@@ -81,10 +81,11 @@ class CompositeInstrument(instrument.Instrument):
         return self.__inst_hash[key]
 
 
-    def get_primary(self,id,**kwargs):
+    def get_primary(self,id=None,**kwargs):
         """
         This function obtains the primary flight path from the instrument
-        object.
+        object. If no ID is passed to the function, it returns the primary
+        flight path from the 
 
         Parameters:
         ----------
@@ -98,7 +99,12 @@ class CompositeInstrument(instrument.Instrument):
            for the request instrument
         """
 
-        return self.__inst_hash[id[0]].get_primary(id,**kwargs)
+        if id == None:
+            tag = self.__inst_hash.keys()[0]
+        else:
+            tag = id[0]
+
+        return self.__inst_hash[tag].get_primary(id,**kwargs)
 
     
     def get_secondary(self,id,**kwargs):
