@@ -176,8 +176,6 @@ class NeXusDST(dst_base.DST_BASE):
         if (end_id==None) or (max_id<end_id):
             end_id=max_id
 
-
-        print "SS:",start_id,end_id
         ids=self.__generate_ids(start_id,end_id,data.location)
 
         for item in ids:
@@ -218,8 +216,8 @@ class NeXusDST(dst_base.DST_BASE):
             if dim==2:
                 from os.path import basename
                 loc = basename(location)
-                for i in range(start[0],stop[0]+1):
-                    for j in range(start[1],stop[1]+1):
+                for i in range(start[0],stop[0]):
+                    for j in range(start[1],stop[1]):
                         result.append((loc,(i,j)))
                 return result
             else:
