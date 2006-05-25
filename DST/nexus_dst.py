@@ -748,13 +748,15 @@ class NeXusInstrument:
     
 
     def getInstrument(self,path):
+        import math
+        
         label = path.split('/')[-1]
 
         # Check the monitor list
         flag = False
         try:
             geometry = self.__mon_data[label]
-            return SOM.Instrument(primary=(geometry[0],geometry[1]))
+            return SOM.Instrument(primary=(math.fabs(geometry[0]),geometry[1]))
         except KeyError:
             flag = True
             
@@ -774,7 +776,7 @@ class NeXusInstrument:
                 distance_err2 = geometry[0][1]
                 
             return SOM.Instrument(instrument=self.__inst_name,
-                                  primary=(self.__primary[0],
+                                  primary=(math.fabs(self.__primary[0]),
                                            self.__primary[1]),
                                   secondary=distance,
                                   secondary_err2=distance_err2,
