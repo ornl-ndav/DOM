@@ -648,7 +648,7 @@ class NeXusInstrument:
         self.__mon_data={}
 
         self.__det_info=["secondary_flight_path", "polar_angle",
-                         "azimuthal_angle"]
+                         "azimuthal_angle", "distance"]
 
         self.__nexus.openpath("/entry/instrument/name")
         self.__inst_name=self.__nexus.getattr("short_name","")
@@ -761,11 +761,23 @@ class NeXusInstrument:
         # Check the detector list
         try:
             geometry = self.__det_data[label]
+
+            # Secondary flight path versus distance checks
+            if geometry[0][0] == None:
+                distance = geometry[3][0]
+            else:
+                distance = geometry[0][0]
+
+            if geometry[0][1] == None:
+                distance_err2 = geometry[3][1]
+            else:
+                distance_err2 = geometry[0][1]
+                
             return SOM.Instrument(instrument=self.__inst_name,
                                   primary=(self.__primary[0],
                                            self.__primary[1]),
-                                  secondary=geometry[0][0],
-                                  secondary_err2=geometry[0][1],
+                                  secondary=distance,
+                                  secondary_err2=distance_err2,
                                   polar=geometry[1][0],
                                   polar_err2=geometry[1][1],
                                   azimuthal=geometry[2][0],
