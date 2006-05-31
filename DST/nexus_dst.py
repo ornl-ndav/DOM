@@ -637,6 +637,7 @@ def __get_sds_attr__(filehandle,path):
 class NeXusInstrument:
     def __init__(self,filehandle,tree):
         # do the easy part
+        import math
 
         self.__tag="/instrument"
         self.__nexus=filehandle
@@ -674,6 +675,10 @@ class NeXusInstrument:
 
         self.__primary = self.__get_value(self.__head_tag+
                                           "/moderator/distance")
+
+        # Remake tuple with primary with |distance|
+        self.__primary = (math.fabs(self.__primary[0]), self.__primary[1],
+                          self.__primary[2])
 
 
     def __get_value(self,path):
@@ -751,7 +756,6 @@ class NeXusInstrument:
     
 
     def getInstrument(self,path):
-        import math
         
         label = path.split('/')[-1]
 
@@ -759,7 +763,10 @@ class NeXusInstrument:
         flag = False
         try:
             geometry = self.__mon_data[label]
-            return SOM.Instrument(primary=(math.fabs(geometry[0]),geometry[1]))
+            # Add monitor distance to |moderator distance| to get correct
+            # distance and recreate tuple
+            geometry = (self.__primary[0] + geometry[0], geometry[1])
+            return SOM.Instrument(primary=geometry)
         except KeyError:
             flag = True
             
@@ -779,7 +786,7 @@ class NeXusInstrument:
                 distance_err2 = geometry[0][1]
                 
             return SOM.Instrument(instrument=self.__inst_name,
-                                  primary=(math.fabs(self.__primary[0]),
+                                  primary=(self.__primary[0],
                                            self.__primary[1]),
                                   secondary=distance,
                                   secondary_err2=distance_err2,
