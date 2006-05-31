@@ -638,22 +638,25 @@ class NeXusInstrument:
     def __init__(self,filehandle,tree):
         # do the easy part
 
-        self.__head_tag="/entry/instrument"
+        self.__tag="/instrument"
         self.__nexus=filehandle
         self.__tree=tree
+        self.__entry_locations=self.__list_type(tree,"NXentry")
         self.__det_locations=self.__list_type(tree,"NXdetector")
         self.__mon_locations=self.__list_type(tree,"NXmonitor")
-        
+
         self.__det_data={}
         self.__mon_data={}
 
         self.__det_info=["secondary_flight_path", "polar_angle",
                          "azimuthal_angle", "distance"]
 
-        self.__nexus.openpath("/entry/instrument/name")
+        self.__head_tag = self.__entry_locations[-1]+self.__tag
+        
+        self.__nexus.openpath(self.__head_tag+"/name")
         self.__inst_name=self.__nexus.getattr("short_name","")
         
-        self.__beamline = self.__get_val_as_str("/entry/instrument/beamline")
+        self.__beamline = self.__get_val_as_str(self.__head_tag+"/beamline")
 
         for location in self.__det_locations:
             label = location.split('/')[-1]
