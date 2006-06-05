@@ -784,8 +784,15 @@ class NeXusInstrument:
                 distance_err2 = geometry[3][1]
             else:
                 distance_err2 = geometry[0][1]
+
+            if self.__inst_name == "BSS" and label == "bank3":
+                instname = "BSS_diff"
+                extra_stuff = 128
+            else:
+                instname = self.__inst_name
+                extra_stuff = None
                 
-            return SOM.Instrument(instrument=self.__inst_name,
+            return SOM.Instrument(instrument=instname,
                                   primary=(self.__primary[0],
                                            self.__primary[1]),
                                   secondary=distance,
@@ -793,7 +800,8 @@ class NeXusInstrument:
                                   polar=geometry[1][0],
                                   polar_err2=geometry[1][1],
                                   azimuthal=geometry[2][0],
-                                  azimuthal_err2=geometry[2][1])
+                                  azimuthal_err2=geometry[2][1],
+                                  extra=extra_stuff)
         except KeyError:
             flag = True
 
