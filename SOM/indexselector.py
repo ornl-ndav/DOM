@@ -53,6 +53,8 @@ def getIndexSelector(selector_name,**kwargs):
         return simpleselector.JSelector(**kwargs)
     elif selector_name == "ZSelector":
         return simpleselector.ZSelector(**kwargs)
+    elif selector_name == "IJSelector":
+        return simpleselector.IJSelector(**kwargs)
     else:
         raise Exception, "Do not understand selector %s" % selector_name
 

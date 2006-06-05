@@ -72,3 +72,32 @@ class ZSelector(indexselector.IndexSelectorBase):
         """
 
         return 0
+
+class IJSelector(indexselector.IndexSelectorBase):
+    """
+    This class takes a NeXus spectrum ID and returns the index associated
+    with the slowest varying position index.
+    """
+
+    def __init__(self,**kwargs):
+        try:
+            self.__N_j = int(kwargs["Nj"])
+        except KeyError:
+           raise RuntimeError, "Need to provide the number of pixels for the "\
+                 +"fastest running index"
+    
+
+    def getIndex(self, id):
+        """
+        Return the slowest varying pixel position index
+
+        Parameters:
+        ----------
+        -> id is a NeXus spectrum ID
+
+        Returns:
+        -------
+        <- The slowest varying pixel position index
+        """
+        
+        return id[1][1] + self.__N_j * id[1][0]
