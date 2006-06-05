@@ -787,7 +787,10 @@ class NeXusInstrument:
 
             if self.__inst_name == "BSS" and label == "bank3":
                 instname = "BSS_diff"
-                extra_stuff = 128
+                path = "/entry-diff/instrument/"+label+"/distance"
+                self.__nexus.openpath(path)
+                dims = self.__nexus.getdims()
+                extra_stuff = dims[0][1]
             else:
                 instname = self.__inst_name
                 extra_stuff = None
