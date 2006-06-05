@@ -71,6 +71,11 @@ class Instrument:
         except KeyError:
             inst=None
 
+        try:
+            extra=kwargs["extra"]
+        except KeyError:
+            extra=None
+
         # use the instrument name to set the selectors
         from indexselector import getIndexSelector
         if inst==None:
@@ -81,6 +86,11 @@ class Instrument:
             self.__azimuthal_selector__ = None;
             self.__polar_selector__     = getIndexSelector("ISelector")
             self.__secondary_selector__ = getIndexSelector("JSelector")
+        elif inst=="BSS_DIFF":
+            self.__azimuthal_selector__ = None;
+            self.__polar_selector__     = getIndexSelector("ISelector")
+            self.__secondary_selector__ = getIndexSelector("IJSelector",
+                                                           Nj=extra)
         else:
             raise RuntimeError,"Do not understand instrument: \""+inst+"\""
     
