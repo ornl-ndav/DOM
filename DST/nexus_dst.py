@@ -68,26 +68,26 @@ class NeXusDST(dst_base.DST_BASE):
         return result
         
 
-    def getSOM(self,som_id=None,so_axis=None,**kwds):
+    def getSOM(self, som_id=None, so_axis=None, **kwds):
         """Available keywords are start_id,end_id which provide a way
         to carve out the data to retrieve"""
 
         # grab the keyword paramaters
-        if(kwds.has_key("start_id")):
-            start_id=kwds["start_id"]
+        if kwds.has_key("start_id"):
+            start_id = kwds["start_id"]
         else:
-            start_id=None
-        if(kwds.has_key("end_id")):
-            end_id=kwds["end_id"]
+            start_id = None
+        if kwds.has_key("end_id"):
+            end_id = kwds["end_id"]
         else:
-            end_id=None
+            end_id = None
 
-        if so_axis == None:
+        if so_axis is None:
             so_axis = "time_of_flight"
         else:
             pass
 
-        if(som_id!=None):
+        if som_id is not None:
             id_list = []
             try:
                 som_id.reverse()
@@ -100,35 +100,46 @@ class NeXusDST(dst_base.DST_BASE):
         else:
             id_list = self.__create_loc_sig_list()
 
-
-        result=SOM.SOM()
-        result.attr_list["filename"]=self.__nexus.filename()
+        result = SOM.SOM()
+        result.attr_list["filename"] = self.__nexus.filename()
         result.attr_list["instrument_name"] = self.__inst_info.getName()
         result.attr_list["beamline"] = self.__inst_info.getBeamline()
 
-        inst_keys=[]
+        inst_keys = []
+
+        # If there is only one ID in the list, expect that starting and
+        # ending ids are a single tuple each
+        if len(id_list) == 1:
+            len_id_1 = True
+        else:
+            len_id_1 = False
 
         count = 0
         for id in id_list:
             inst_keys.append(id[0].split('/')[-1])
             inst_keys.append(self.__inst_info.getInstrument(id[0]))
-            
+
             data = self.__avail_data[id]
             # Construct keywords if necessary
             kwargs = {}
-            if start_id != None:
-                kwargs["start_id"] = start_id[count]
+            if start_id is not None:
+                if len_id_1:
+                    kwargs["start_id"] = start_id
+                else:
+                    kwargs["start_id"] = start_id[count]
             else:
                 pass
             
-            if end_id != None:
-                kwargs["end_id"] = end_id[count]
+            if end_id is not None:
+                if len_id_1:
+                    kwargs["end_id"] = end_id
+                else:
+                    kwargs["end_id"] = end_id[count]
             else:
                 pass
                 
-            self.__construct_SOM(result,data,so_axis,**kwargs)
+            self.__construct_SOM(result, data, so_axis, **kwargs)
             count += 1
-
 
         if len(inst_keys) > 2:
             inst = SOM.CompositeInstrument(pairs=inst_keys)
@@ -138,60 +149,60 @@ class NeXusDST(dst_base.DST_BASE):
 
         return result
 
-    def __construct_SOM(self,result,data,so_axis,**kwargs):
+    def __construct_SOM(self, result, data, so_axis, **kwargs):
 
-        if(kwargs.has_key("start_id")):
-            start_id=kwargs["start_id"]
+        if kwargs.has_key("start_id"):
+            start_id = kwargs["start_id"]
         else:
-            start_id=None
-        if(kwargs.has_key("end_id")):
-            end_id=kwargs["end_id"]
+            start_id = None
+        if kwargs.has_key("end_id"):
+            end_id = kwargs["end_id"]
         else:
-            end_id=None
+            end_id = None
 
-        orig_axis=data.variable
-        if orig_axis.label==so_axis or orig_axis.location==so_axis:
-            orig_axis=None
+        orig_axis = data.variable
+        if orig_axis.label == so_axis or orig_axis.location == so_axis:
+            orig_axis = None
 
-        if orig_axis!=None and so_axis!=None and data.has_axis(so_axis):
+        if orig_axis is not None and so_axis is not None and \
+               data.has_axis(so_axis):
             data.set_so_axis(so_axis)
 
         result.setTitle("") # should put something here
-        result.setAxisLabel(0,data.variable.label)
-        result.setAxisUnits(0,data.variable.units)
+        result.setAxisLabel(0, data.variable.label)
+        result.setAxisUnits(0, data.variable.units)
         result.setYLabel(data.data_label)
         result.setYUnits(data.data_units)
 
-        attrs=self.__get_attr_list(data.location)
+        attrs = self.__get_attr_list(data.location)
         for key in attrs.keys():
-            result.attr_list[key]=attrs[key]
+            result.attr_list[key] = attrs[key]
 
-        min_id=data.get_id_min()
-        max_id=data.get_id_max()
+        min_id = data.get_id_min()
+        max_id = data.get_id_max()
 
-        if (start_id==None) or (min_id>start_id):
-            start_id=min_id
+        if start_id is None or min_id > start_id:
+            start_id = min_id
 
-        if (end_id==None) or (max_id<end_id):
-            end_id=max_id
+        if end_id is None or max_id < end_id:
+            end_id = max_id
 
-        ids=self.__generate_ids(start_id,end_id,data.location)
+        ids = self.__generate_ids(start_id, end_id, data.location)
 
         for item in ids:
-            so=data.get_so(item)
+            so = data.get_so(item)
             result.append(so)
 
-        if orig_axis!=None:
+        if orig_axis is not None:
             data.set_so_axis(orig_axis.location)
 
     def __create_loc_sig_list(self):
         id_list = []
-        for (location,signal) in map(None,self.__data_group,
+        for (location, signal) in map(None, self.__data_group,
                                      self.__data_signal):
-            id_list.append((location,signal))
+            id_list.append((location, signal))
 
         return id_list
-
 
     def release_resource(self):
         del self.__nexus
