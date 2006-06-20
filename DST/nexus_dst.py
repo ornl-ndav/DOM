@@ -105,6 +105,13 @@ class NeXusDST(dst_base.DST_BASE):
         result.attr_list["instrument_name"] = self.__inst_info.getName()
         result.attr_list["beamline"] = self.__inst_info.getBeamline()
 
+        entry_locations = self.list_type("NXentry")
+        path = entry_locations[0] + "/title"
+        try:
+            result.setTitle(self.__get_val_as_str(path))
+        except IOError:
+            result.setTitle("")
+
         inst_keys = []
 
         # If there is only one ID in the list, expect that starting and
@@ -168,7 +175,6 @@ class NeXusDST(dst_base.DST_BASE):
                data.has_axis(so_axis):
             data.set_so_axis(so_axis)
 
-        result.setTitle("") # should put something here
         result.setAxisLabel(0, data.variable.label)
         result.setAxisUnits(0, data.variable.units)
         result.setYLabel(data.data_label)
