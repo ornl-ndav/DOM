@@ -1,4 +1,5 @@
 from attribute import AttributeList
+from information import Information, CompositeInformation
 from instrument import Instrument
 from comp_instrument import CompositeInstrument
 from asg_instrument import ASG_Instrument
