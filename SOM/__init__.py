@@ -11,5 +11,7 @@ from som import SOM
 from so import PrimaryAxis
 from so import SO
 
+from version import version as __version__
+
 # version
 __id__ = "$Id$"

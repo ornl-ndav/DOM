@@ -10,10 +10,11 @@
 from distutils.core import setup, Extension
 import os
 import sys
+from version import version as __version__
 
 # Package name and version information
 PACKAGE = "DOM"
-VERSION = "1.0.0itc1"
+VERSION = __version__
 
 # Package list
 package_list = ['', 'DST', 'SOM']

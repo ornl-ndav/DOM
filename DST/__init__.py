@@ -6,6 +6,7 @@ from dst_utils import *
 from gsas_dst import GsasDST
 from nexus_dst import NeXusDST
 
+from version import version as __version__
 
 # version
 __id__ = "$Id$"
