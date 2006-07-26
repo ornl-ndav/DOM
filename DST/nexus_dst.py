@@ -417,7 +417,9 @@ class NeXusData:
                         self.__data=child
                         self.data_label=child.split("/")[-1]
                 elif key=="axis": # look for the axis to label themselves
-                    axes[value]=NeXusAxis(self.__nexus,child)
+                    axis = NeXusAxis(self.__nexus,child)
+                    if axis.primary is not None and axis.primary == 1:
+                        axes[value] = axis
         if self.signal==None:
             raise ValueError,"Could not find signal=%d" % int(signal)
 
@@ -431,7 +433,6 @@ class NeXusData:
                     axes[i+1]=NeXusAxis(self.__nexus,inner_list[i])
             if key=="units":
                 self.units=counts_attrlist[key]
-
 
         # set the axes
         if len(axes)>0:
@@ -577,9 +578,9 @@ class NeXusData:
             return 0
         elif num_axes==2:
             if self.axes[0]==self.variable:
-                return len(self.axis[1])
+                return len(self.axes[1])
             else:
-                return len(self.axis[0])
+                return len(self.axes[0])
         elif num_axes==3:
             label_axes=[]
             for axis in self.axes:
@@ -647,6 +648,10 @@ class NeXusAxis:
             self.number=attrs["axis"]
         except KeyError:
             self.number=None
+        try:
+            self.primary = attrs["primary"]
+        except KeyError:
+            self.primary = None
 
 
     def __str__(self):
