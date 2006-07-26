@@ -828,6 +828,12 @@ class NeXusInstrument:
                 self.__nexus.openpath(path)
                 dims = self.__nexus.getdims()
                 extra_stuff = dims[0][1]
+            elif self.__inst_name == "REF_M" or self.__inst_name == "REF_L":
+                instname = self.__inst_name
+                path = "/entry/instrument/"+label+"/distance"
+                self.__nexus.openpath(path)
+                dims = self.__nexus.getdims()
+                extra_stuff = dims[0][1]
             else:
                 instname = self.__inst_name
                 extra_stuff = None
