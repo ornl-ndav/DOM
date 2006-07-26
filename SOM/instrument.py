@@ -91,6 +91,14 @@ class Instrument:
             self.__polar_selector__     = getIndexSelector("ISelector")
             self.__secondary_selector__ = getIndexSelector("IJSelector",
                                                            Nj=extra)
+        elif inst == "REF_M":
+            self.__azimuthal_selector__ = getIndexSelector("JSelector")
+            self.__secondary_selector__ = getIndexSelector("IJSelector",
+                                                           Nj=extra)
+        elif inst == "REF_L":
+            self.__azimuthal_selector__ = getIndexSelector("ISelector")
+            self.__secondary_selector__ = getIndexSelector("IJSelector",
+                                                           Nj=extra)
         else:
             raise RuntimeError,"Do not understand instrument: \""+inst+"\""
     

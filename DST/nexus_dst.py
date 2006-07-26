@@ -26,8 +26,6 @@ class NeXusDST(dst_base.DST_BASE):
             self.__avail_data[(location,signal)]=data
 
         self.__inst_info=NeXusInstrument(self.__nexus,self.__tree)
-        self.__sns_info = SnsInformation(self.__nexus, self.__tree,
-                                         self.__inst_info.getName())
 
         # set the data group to be all NXdata
         if data_group_path==None:
@@ -155,19 +153,6 @@ class NeXusDST(dst_base.DST_BASE):
             result.attr_list.instrument = inst
         else:
             result.attr_list.instrument = inst_keys[1]
-
-        info_keys = self.__sns_info.getKeys()
-        for key in info_keys:
-            pair_list = self.__sns_info.getInformation(key)
-            if pair_list[1] is None:
-                info = None
-            else:
-                if len(pair_list) > 2:
-                    info = SOM.CompositeInformation(pairs=pair_list)
-                else:
-                    info = pair_list[1]
-
-            result.attr_list[key] = info
 
         return result
 
@@ -417,9 +402,7 @@ class NeXusData:
                         self.__data=child
                         self.data_label=child.split("/")[-1]
                 elif key=="axis": # look for the axis to label themselves
-                    axis = NeXusAxis(self.__nexus,child)
-                    if axis.primary is not None and axis.primary == 1:
-                        axes[value] = axis
+                    axes[value]=NeXusAxis(self.__nexus,child)
         if self.signal==None:
             raise ValueError,"Could not find signal=%d" % int(signal)
 
@@ -433,6 +416,7 @@ class NeXusData:
                     axes[i+1]=NeXusAxis(self.__nexus,inner_list[i])
             if key=="units":
                 self.units=counts_attrlist[key]
+
 
         # set the axes
         if len(axes)>0:
@@ -578,9 +562,9 @@ class NeXusData:
             return 0
         elif num_axes==2:
             if self.axes[0]==self.variable:
-                return len(self.axes[1])
+                return len(self.axis[1])
             else:
-                return len(self.axes[0])
+                return len(self.axis[0])
         elif num_axes==3:
             label_axes=[]
             for axis in self.axes:
@@ -648,10 +632,6 @@ class NeXusAxis:
             self.number=attrs["axis"]
         except KeyError:
             self.number=None
-        try:
-            self.primary = attrs["primary"]
-        except KeyError:
-            self.primary = None
 
 
     def __str__(self):
@@ -828,6 +808,12 @@ class NeXusInstrument:
                 self.__nexus.openpath(path)
                 dims = self.__nexus.getdims()
                 extra_stuff = dims[0][1]
+            elif self.__inst_name == "REF_M" or self.__inst_name == "REF_L":
+                instname = self.__inst_name
+                path = "/entry/instrument/"+label+"/distance"
+                self.__nexus.openpath(path)
+                dims = self.__nexus.getdims()
+                extra_stuff = dims[0][1]
             else:
                 instname = self.__inst_name
                 extra_stuff = None
@@ -847,166 +833,4 @@ class NeXusInstrument:
 
         # No label found in monitor or detector list
         if flag:
-            return None
-
-class SnsInformation:
-    def __init__(self, filehandle, tree, inst_name):
-        self.__tag = "/instrument"
-        self.__nexus = filehandle
-        self.__tree = tree
-        self.__inst_name = inst_name
-
-        self.__entry_locations = self.__list_type(tree,"NXentry")
-        self.__det_locations = self.__list_type(tree,"NXdetector")
-        self.__det_data={}
-
-        self.__head_tag = self.__entry_locations[-1]+self.__tag
-        
-        if self.__inst_name == "BSS":
-
-            self.__det_locations.extend(self.__list_type(tree,"NXcrystal"))
-
-            SOM_keys = {"analyzer" : ["Wavelength_final"],
-                        "bank" : ["Initial_energy_offset",
-                                  "Final_energy_offset"]}
-            data_loc = {"analyzer" : ["wavelength"],
-                        "bank" : ["initial_energy_offset",
-                                  "final_energy_offset"]}
-
-            index_sel = {"analyzer" : ["IJSelector"],
-                         "bank" : ["IJSelector", "IJSelector"]}
-
-            self.__get_data(SOM_keys, data_loc, index_sel)
-
-        else:
-            self.__det_data = {None : (None, None, None)}
-
-    def __get_data(self, keys, data, selectors):
-        import re
-
-        expression = r'\d+$'
-        myre = re.compile(expression)
-
-        for location in self.__det_locations:
-            label = location.split('/')[-1]
-
-            if self.__inst_name == "BSS" and label == "bank3":
-                continue
-            else:
-                pass
-
-            value = myre.split(label)[0]
-            number = label.split(value)[-1]
-            for key, dpath, sel in map(None, keys[value], data[value],
-                                       selectors[value]):
-                if not self.__det_data.has_key(key):
-                    self.__det_data[key] = []
-                else:
-                    pass
-                    
-                path = location + "/" + dpath
-                info = (self.__get_value(path))
-                bank_label = "bank" + number
-
-                self.__det_data[key].append(bank_label)
-
-                if sel == "IJSelector":
-                    try:
-                        self.__nexus.openpath(path)
-                        dims = self.__nexus.getdims()
-                        try:
-                            dim = dims[0][1]
-                            self.__det_data[key].append(\
-                                SOM.Information(info[0],
-                                                info[1],
-                                                info[2],
-                                                sel,
-                                                Nj=dim))
-                        except IndexError:
-                            self.__det_data[key].append(None)
-                            
-                    except IOError:
-                        self.__det_data[key].append(None)
-                else:
-                    self.__det_data[key].append(SOM.Information(info[0],
-                                                                info[1],
-                                                                info[2],
-                                                                sel))
-
-    def __get_value(self,path):
-        try:
-            self.__tree[path]
-        except KeyError:
-            return (None, None, None)
-            
-        try:
-            self.__nexus.openpath(path)
-        except IOError:
-            return (None, None, None)
-
-        values = self.__nexus.getdata()
-        len_values = len(values)
-        if len_values == 1:
-            values = values[0]
-        else:
-            pass
-        
-        while True:
-            (name,value)=self.__nexus.getnextattr()
-            if name == None:
-                break
-            if name == "units":
-                units = value
-
-        errors = self.__get_errors(path)
-        if errors == None:
-            if len_values > 1:
-                pass
-            else:
-                errors = 0.0
-        else:
-            pass
-    
-        return (values,errors,units)
-
-
-    def __get_errors(self,path):
-        path = path+"_errors"
-
-        try:
-            self.__tree[path]
-        except KeyError:
-            return None
-            
-        try:
-            self.__nexus.openpath(path)
-        except IOError:
-            return None
-
-        return self.__nexus.getdata()
-    
-        
-    def __list_type(self,tree,type):
-        my_list=[]
-        for key in tree.keys():
-            if tree[key]==type:
-                my_list.append(key)
-        return my_list
-
-
-    def __get_val_as_str(self,path):
-        self.__nexus.openpath(path)
-        return str(self.__nexus.getdata())
-
-
-    def getKeys(self):
-        try:
-            return self.__det_data.keys()
-        except AttributeError:
-            return None
-
-    def getInformation(self, key):
-        try:
-            return self.__det_data[key]
-        except KeyError:
             return None
