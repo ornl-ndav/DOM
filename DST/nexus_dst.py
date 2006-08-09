@@ -1,6 +1,7 @@
 import dst_base
 import nexus_file
 import nessi_list
+import param_map
 import SOM
 
 class NeXusDST(dst_base.DST_BASE):
@@ -18,6 +19,7 @@ class NeXusDST(dst_base.DST_BASE):
         self.__so_axis=None
         self.__avail_data={}
         self.__inst_info=None
+        self.__extra_params = param_map.ParameterMap()        
 
         # create the data list
         som_ids=self.__generate_SOM_ids()
@@ -38,6 +40,33 @@ class NeXusDST(dst_base.DST_BASE):
 
         # set the so axis
         self.__so_axis=so_axis
+
+    def getParameter(self, name):
+        entry_locations = self.list_type("NXentry")
+
+        (tag, type) = self.__extra_params.getPathAndType(name)
+
+        path = entry_locations[0] + "/" + tag
+
+        try:
+            self.__nexus.openpath(path)
+        except IOError:
+            return None
+
+        try:
+            units = self.__nexus.getattr("units", "s")
+        except RuntimeError:
+            units = None
+
+        if type == "float":
+            return (float(self.__nexus.getdata()[0]), units)
+        elif type == "int":
+            return (int(self.__nexus.getdata()[0]), units)
+        elif type == "string":
+            return (str(self.__nexus.getdata()[0]), units)
+        else:
+            raise RuntimeError("Do not understand type %s" % type)
+    
 
     def get_SO_ids(self,SOM_id=None,so_axis=None):
         id_list = []
