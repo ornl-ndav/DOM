@@ -143,6 +143,12 @@ class NeXusDST(dst_base.DST_BASE):
         except IOError:
             result.setTitle("")
 
+        path = entry_locations[0] + "/notes"
+        try:
+            result.attr_list["notes"] = self.__get_val_as_str(path)
+        except IOError:
+            result.attr_list["notes"] = ""
+
         inst_keys = []
 
         # If there is only one ID in the list, expect that starting and
