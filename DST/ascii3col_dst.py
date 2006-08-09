@@ -116,6 +116,13 @@ class Ascii3ColDST(dst_base.DST_BASE):
                 print >> self.__file, "#C %s: %s" % (key, pdict[key]) 
         else:
             pass
+
+        if som.attr_list.has_key("proton_charge"):
+            print >> self.__file, "#C Proton Charge:",\
+                  str(som.attr_list["proton_charge"])
+        else:
+            pass
+                
         
         (format_str, names) = self.__formatDataInfo(som)
         self.__axes_and_units =  format_str % names
