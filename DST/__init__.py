@@ -5,6 +5,7 @@ from dst_base import getInstance
 from dst_utils import *
 from gsas_dst import GsasDST
 from nexus_dst import NeXusDST
+from param_map import ParameterMap
 
 from version import version as __version__
 
