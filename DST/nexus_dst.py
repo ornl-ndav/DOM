@@ -914,7 +914,7 @@ class SnsInformation:
                         "bank" : ["initial_energy_offset",
                                   "final_energy_offset"]}
 
-            index_sel = {"analyzer" : ["IJSelector"],
+            index_sel = {"analyzer" : ["JSelector"],
                          "bank" : ["IJSelector", "IJSelector"]}
 
             self.__get_data(SOM_keys, data_loc, index_sel)
