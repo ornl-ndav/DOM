@@ -139,19 +139,64 @@ static PyObject * NeXusFile_convertscalar(void *value, int type, long index)
   return result;
 }
 
+template <typename NumT>
+static void NeXusFile_delete(void *ptr){
+  std::vector<NumT> *thing=static_cast<std::vector<NumT> *>(ptr);
+  delete thing;
+  return;
+}
+
+template <typename NumT, typename NumV>
+static PyObject * NeXusFile_convertobj2(void *value, long length){
+  std::vector<NumV> *result=new std::vector<NumV>(static_cast<NumT *>(value),static_cast<NumT *>(value)+static_cast<size_t>(length));
+
+  PyObject *pyresult=PyCObject_FromVoidPtr(result,NeXusFile_delete<NumT>);
+  Py_INCREF(pyresult); // previous call does not increase reference count
+  return pyresult;
+}
+
 static PyObject * NeXusFile_convertobj2(void *value,int type, long length,res_type result_type){
   if(result_type==FLOAT){
-    std::vector<double> *result=new std::vector<double>();
-    for( int i=0 ; i<length ; i++ )
-      result->push_back(NeXusFile_convertscalar2double(value,type,i));
-    PyObject *pyresult=PyCObject_FromVoidPtr(result,NULL);
-    return pyresult;
+    if(type==NX_FLOAT32){
+      return NeXusFile_convertobj2<float,double>(value,length);
+    }else if(type==NX_FLOAT64){
+      return NeXusFile_convertobj2<double,double>(value,length);
+    }else if(type==NX_INT8){
+      return NeXusFile_convertobj2<unsigned char,double>(value,length);
+    }else if(type==NX_UINT8){
+      return NeXusFile_convertobj2<unsigned char,double>(value,length);
+    }else if(type==NX_INT16){
+      return NeXusFile_convertobj2<short int,double>(value,length);
+    }else if(type==NX_UINT16){
+      return NeXusFile_convertobj2<unsigned short,double>(value,length);
+    }else if(type==NX_INT32){
+      return NeXusFile_convertobj2<int,double>(value,length);
+    }else if(type==NX_UINT32){
+      return NeXusFile_convertobj2<unsigned int,double>(value,length);
+    }else{
+      PyErr_SetString(PyExc_AttributeError,"Do not understand type");
+      return NULL;
+    }
   }else{
-    std::vector<int> *result=new std::vector<int>();
-    for( int i=0 ; i<length ; i++ )
-      result->push_back(NeXusFile_convertscalar2int(value,type,i));
-    PyObject *pyresult=PyCObject_FromVoidPtr(result,NULL);
-    return pyresult;
+    if(type==NX_FLOAT32 || type==NX_FLOAT64){
+      PyErr_SetString(PyExc_AttributeError,"Will not convert float to int");
+      return NULL;
+    }else if(type==NX_INT8){
+      return NeXusFile_convertobj2<unsigned char,int>(value,length);
+    }else if(type==NX_UINT8){
+      return NeXusFile_convertobj2<unsigned char,int>(value,length);
+    }else if(type==NX_INT16){
+      return NeXusFile_convertobj2<short int,int>(value,length);
+    }else if(type==NX_UINT16){
+      return NeXusFile_convertobj2<unsigned short,int>(value,length);
+    }else if(type==NX_INT32){
+      return NeXusFile_convertobj2<int,int>(value,length);
+    }else if(type==NX_UINT32){
+      return NeXusFile_convertobj2<unsigned int,int>(value,length);
+    }else{
+      PyErr_SetString(PyExc_AttributeError,"Do not understand type");
+      return NULL;
+    }
   }
 }
 
