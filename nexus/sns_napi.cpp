@@ -223,6 +223,7 @@ static PyObject * NeXusFile_convertobj2(void *value,int type, long length,res_ty
   PyObject *nl_array = PyObject_GetAttr(pyresult, nl_array_attr);
   PyObject_CallMethod(nl_array, "__set_from_NessiVector__", "(O,O)", 
                       nl_array, data);
+  Py_DECREF(nl_array);
   Py_DECREF(data);
 
   return pyresult;
