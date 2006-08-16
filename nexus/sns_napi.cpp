@@ -9,6 +9,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <unistd.h>
+
 enum res_type {FLOAT,INT,PYTHON};
 
 static int GROUP_STRING_LEN=80;
@@ -139,7 +141,7 @@ static PyObject * NeXusFile_convertscalar(void *value, int type, long index)
   return result;
 }
 
-template <typename NumT>
+template <typename NumT> 
 static void NeXusFile_delete(void *ptr){
   std::vector<NumT> *thing=static_cast<std::vector<NumT> *>(ptr);
   delete thing;
@@ -148,7 +150,9 @@ static void NeXusFile_delete(void *ptr){
 
 template <typename NumT, typename NumV>
 static PyObject * NeXusFile_convertobj2(void *value, long length){
-  std::vector<NumV> *result=new std::vector<NumV>(static_cast<NumT *>(value),static_cast<NumT *>(value)+static_cast<size_t>(length));
+  std::vector<NumV> *result=new std::vector<NumV>(static_cast<NumT *>(value),
+                                                  static_cast<NumT *>(value)+
+                                                  static_cast<size_t>(length));
 
   PyObject *pyresult=PyCObject_FromVoidPtr(result,NeXusFile_delete<NumT>);
   Py_INCREF(pyresult); // previous call does not increase reference count
@@ -156,48 +160,75 @@ static PyObject * NeXusFile_convertobj2(void *value, long length){
 }
 
 static PyObject * NeXusFile_convertobj2(void *value,int type, long length,res_type result_type){
+
+  PyObject *nl_module = PyImport_ImportModule("nessi_list");
+  if(!nl_module) {
+    PyErr_SetString(PyExc_RuntimeError, "Cannot import module");
+  }
+  PyObject *nl_class = PyObject_GetAttrString(nl_module, "NessiList");
+  if(!nl_class) {
+    PyErr_SetString(PyExc_RuntimeError, "Cannot load NessiList");
+  }
+  
+  PyObject *nl_array_attr = PyString_FromString("__array__");
+  
+  PyObject *data = NULL;  
+  PyObject *pyresult = NULL;
+
   if(result_type==FLOAT){
+
+    pyresult = PyObject_CallObject(nl_class, NULL);
+                        
     if(type==NX_FLOAT32){
-      return NeXusFile_convertobj2<float,double>(value,length);
+      data = NeXusFile_convertobj2<float,double>(value,length);
     }else if(type==NX_FLOAT64){
-      return NeXusFile_convertobj2<double,double>(value,length);
+      data = NeXusFile_convertobj2<double,double>(value,length);
     }else if(type==NX_INT8){
-      return NeXusFile_convertobj2<unsigned char,double>(value,length);
+      data = NeXusFile_convertobj2<unsigned char,double>(value,length);
     }else if(type==NX_UINT8){
-      return NeXusFile_convertobj2<unsigned char,double>(value,length);
+      data = NeXusFile_convertobj2<unsigned char,double>(value,length);
     }else if(type==NX_INT16){
-      return NeXusFile_convertobj2<short int,double>(value,length);
+      data = NeXusFile_convertobj2<short int,double>(value,length);
     }else if(type==NX_UINT16){
-      return NeXusFile_convertobj2<unsigned short,double>(value,length);
+      data = NeXusFile_convertobj2<unsigned short,double>(value,length);
     }else if(type==NX_INT32){
-      return NeXusFile_convertobj2<int,double>(value,length);
+      data = NeXusFile_convertobj2<int,double>(value,length);
     }else if(type==NX_UINT32){
-      return NeXusFile_convertobj2<unsigned int,double>(value,length);
+      data = NeXusFile_convertobj2<unsigned int,double>(value,length);
     }else{
       PyErr_SetString(PyExc_AttributeError,"Do not understand type");
-      return NULL;
     }
+
   }else{
+
+    PyObject *kwargs = Py_BuildValue("{s:s}", "type", "int");
+    pyresult = PyObject_Call(nl_class, NULL, kwargs);
+
     if(type==NX_FLOAT32 || type==NX_FLOAT64){
       PyErr_SetString(PyExc_AttributeError,"Will not convert float to int");
-      return NULL;
     }else if(type==NX_INT8){
-      return NeXusFile_convertobj2<unsigned char,int>(value,length);
+      data = NeXusFile_convertobj2<unsigned char,int>(value,length);
     }else if(type==NX_UINT8){
-      return NeXusFile_convertobj2<unsigned char,int>(value,length);
+      data = NeXusFile_convertobj2<unsigned char,int>(value,length);
     }else if(type==NX_INT16){
-      return NeXusFile_convertobj2<short int,int>(value,length);
+      data = NeXusFile_convertobj2<short int,int>(value,length);
     }else if(type==NX_UINT16){
-      return NeXusFile_convertobj2<unsigned short,int>(value,length);
+      data = NeXusFile_convertobj2<unsigned short,int>(value,length);
     }else if(type==NX_INT32){
-      return NeXusFile_convertobj2<int,int>(value,length);
+      data = NeXusFile_convertobj2<int,int>(value,length);
     }else if(type==NX_UINT32){
-      return NeXusFile_convertobj2<unsigned int,int>(value,length);
+      data = NeXusFile_convertobj2<unsigned int,int>(value,length);
     }else{
       PyErr_SetString(PyExc_AttributeError,"Do not understand type");
-      return NULL;
     }
   }
+
+  PyObject *nl_array = PyObject_GetAttr(pyresult, nl_array_attr);
+  PyObject_CallMethod(nl_array, "__set_from_NessiVector__", "(O,O)", 
+                      nl_array, data);
+  Py_DECREF(data);
+
+  return pyresult;
 }
 
 static PyObject * NeXusFile_convertobj(void * value,int type, long length,res_type result_type=PYTHON)
@@ -481,7 +512,6 @@ static PyObject *NeXusFile_getdata(PyObject *, PyObject *args)
     PyErr_SetString(PyExc_IOError,"In getdata: getdata failed");
     return NULL;
   }
-
   // calculate the total length of the data as a 1D array
   long tot_len=1;
   for( int i=0 ; i<rank ; i++ ){

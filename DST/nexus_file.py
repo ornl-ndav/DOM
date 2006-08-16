@@ -76,37 +76,10 @@ class NeXusFile:
         return sns_napi.putslab(self.__HANDLE__,c_ptr,dims)
 
     def getdata(self,type="f"):
-        data=sns_napi.getdata(self.__HANDLE__,type)
-        if type=="p":
-            return data
-        try:
-            if type=="f":
-                data2=nessi_list.NessiList(type="double")
-            elif type=="i":
-                data2=nessi_list.NessiList(type="int")
-            else:
-                raise ValueError,"Did not understand type=%s" %str(type)
-            data2.__array__.__set_from_NessiVector__(data2.__array__,data)
-            return data2
-        except TypeError:
-            return data
-    
+        return sns_napi.getdata(self.__HANDLE__,type)
 
     def getslab(self,start,size,type="f"):
-        data=sns_napi.getslab(self.__HANDLE__,start,size,type)
-        if type=="p":
-            return data
-        try:
-            if type=="f":
-                data2=nessi_list.NessiList(type="double")
-            elif type=="i":
-                data2=nessi_list.NessiList(type="int")
-            else:
-                raise ValueError,"Did not understand type=%s" %str(type)
-            data2.__array__.__set_from_NessiVector__(data2.__array__,data)
-            return data2
-        except TypeError:
-            return data
+        return sns_napi.getslab(self.__HANDLE__,start,size,type)
 
     def putattr(self,name,c_ptr,type):
         return sns_napi.putattr(self.__HANDLE__,name,c_ptr,type)
