@@ -9,8 +9,6 @@
 #include <stdexcept>
 #include <string>
 
-#include <unistd.h>
-
 enum res_type {FLOAT,INT,PYTHON};
 
 static int GROUP_STRING_LEN=80;
@@ -155,7 +153,6 @@ static PyObject * NeXusFile_convertobj2(void *value, long length){
                                                   static_cast<size_t>(length));
 
   PyObject *pyresult=PyCObject_FromVoidPtr(result,NeXusFile_delete<NumT>);
-  Py_INCREF(pyresult); // previous call does not increase reference count
   return pyresult;
 }
 
