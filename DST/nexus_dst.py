@@ -552,7 +552,8 @@ class NeXusData:
 
         # set the variance to be the data if no location is specified
         if self.__data_var==None:
-            spectrum.var_y=self.__get_slice(self.__data,start_dim)
+            import copy
+            spectrum.var_y = copy.deepcopy(spectrum.y)
         else:
             spectrum.var_y=self.__get_slice(self.__data_var,start_dim)
 
