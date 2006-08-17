@@ -534,6 +534,7 @@ class NeXusData:
         return self.__nexus.getslab(start_dim,end_dim)
 
     def get_so(self,so_id):
+        import copy
         #print "retrieving",so_id # remove
         # create a spectrum object
         spectrum=SOM.SO()
@@ -542,7 +543,7 @@ class NeXusData:
         spectrum.id=so_id
 
         # give it the appropriate independent variable
-        spectrum.axis[0].val=self.variable.value
+        spectrum.axis[0].val=copy.deepcopy(self.variable.value)
 
         # locate the data slice
         start_dim=self.__id_to_index(so_id)
@@ -552,7 +553,7 @@ class NeXusData:
 
         # set the variance to be the data if no location is specified
         if self.__data_var==None:
-            import copy
+
             spectrum.var_y = copy.deepcopy(spectrum.y)
         else:
             spectrum.var_y=self.__get_slice(self.__data_var,start_dim)
