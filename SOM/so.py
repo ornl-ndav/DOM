@@ -37,7 +37,7 @@ class SO:
             if self.y != other.y:
                 return False
 
-            if self.var_y != self.var_y:
+            if self.var_y != other.var_y:
                 return False
             
             if len(self.axis) != len(other.axis):
