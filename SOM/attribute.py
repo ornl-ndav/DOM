@@ -17,3 +17,21 @@ class AttributeList(dict):
             self.sample=kwargs["sample"]
         except KeyError:
             self.sample=None
+
+
+    def __eq__(self, other):
+        try:
+
+            if self.instrument != other.instrument:
+                return False
+
+            if self.sample != other.sample:
+                return False
+
+        except:
+            return False
+
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

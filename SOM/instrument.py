@@ -101,6 +101,20 @@ class Instrument:
                                                            Nj=extra)
         else:
             raise RuntimeError,"Do not understand instrument: \""+inst+"\""
+
+    def __eq__(self, other):
+        import utils
+        try:
+            if utils.compare(self.__L0, other.get_primary()) != 0: 
+                return False
+
+        except:
+            return False
+
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
     
     def get_primary(self,id=None,**kwargs):
         """The primary flight path (neutronic distance from moderator
