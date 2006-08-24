@@ -709,14 +709,22 @@ def __get_sds_attr__(filehandle,path):
 
 
 class NeXusInstrument:
-    def __init__(self,filehandle,tree):
+    def __init__(self,filehandle,tree, **kwargs):
         # do the easy part
         import math
+
+        try:
+            from_saf = kwargs["from_saf"]
+        except KeyError:
+            from_saf = False
 
         self.__tag="/instrument"
         self.__nexus=filehandle
         self.__tree=tree
-        self.__entry_locations=self.__list_type(tree,"NXentry")
+        if from_saf:
+            self.__entry_locations=self.__list_type(tree,"NXinstrument")
+        else:
+            self.__entry_locations=self.__list_type(tree,"NXentry")
         self.__det_locations=self.__list_type(tree,"NXdetector")
         self.__mon_locations=self.__list_type(tree,"NXmonitor")
 
@@ -726,12 +734,19 @@ class NeXusInstrument:
         self.__det_info=["secondary_flight_path", "polar_angle",
                          "azimuthal_angle", "distance"]
 
-        self.__head_tag = self.__entry_locations[-1]+self.__tag
+        if not from_saf:
+            self.__head_tag = self.__entry_locations[-1]+self.__tag
+        else:
+            self.__head_tag = self.__entry_locations[-1]
         
         self.__nexus.openpath(self.__head_tag+"/name")
         self.__inst_name=self.__nexus.getattr("short_name","")
-        
-        self.__beamline = self.__get_val_as_str(self.__head_tag+"/beamline")
+
+        try:
+            self.__beamline = self.__get_val_as_str(self.__head_tag
+                                                    +"/beamline")
+        except IOError:
+            self.__beamline = None
 
         for location in self.__det_locations:
             label = location.split('/')[-1]
@@ -829,7 +844,12 @@ class NeXusInstrument:
         return self.__beamline
     
 
-    def getInstrument(self,path):
+    def getInstrument(self, path, **kwargs):
+
+        try:
+            from_saf = kwargs["from_saf"]
+        except KeyError:
+            from_saf = False
         
         label = path.split('/')[-1]
 
@@ -861,13 +881,19 @@ class NeXusInstrument:
 
             if self.__inst_name == "BSS" and label == "bank3":
                 instname = "BSS_diff"
-                path = "/entry-diff/instrument/"+label+"/distance"
+                if from_saf:
+                    path = "/instrument-diffraction/"+label+"/distance"
+                else:
+                    path = "/entry-diff/instrument/"+label+"/distance"
                 self.__nexus.openpath(path)
                 dims = self.__nexus.getdims()
                 extra_stuff = dims[0][1]
             elif self.__inst_name == "REF_M" or self.__inst_name == "REF_L":
                 instname = self.__inst_name
-                path = "/entry/instrument/"+label+"/distance"
+                if from_saf:
+                    path = "/instrument/"+label+"/distance"
+                else:
+                    path = "/entry/instrument/"+label+"/distance"
                 self.__nexus.openpath(path)
                 dims = self.__nexus.getdims()
                 extra_stuff = dims[0][1]

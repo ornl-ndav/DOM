@@ -38,6 +38,7 @@ def getInstance(mime_type,resource,*args,**kwargs):
     # import the appropriate concrete classes
     import ascii3col_dst
     import dave2d_dst
+    import geom_dst
     import gsas_dst
     import nexus_dst
 
@@ -50,5 +51,7 @@ def getInstance(mime_type,resource,*args,**kwargs):
         return apply(dave2d_dst.Dave2dDST,my_args,kwargs)
     elif mime_type==gsas_dst.GsasDST.MIME_TYPE:
         return apply(gsas_dst.GsasDST,my_args,kwargs)
+    elif mime_type==geom_dst.GeomDST.MIME_TYPE:
+        return apply(geom_dst.GeomDST,my_args,kwargs)
     else:
         raise Exception,"something wrong"
