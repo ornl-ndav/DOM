@@ -23,6 +23,40 @@ class SOM(list):
         #return \"Title: \"+self.__title__+'\n'+str(list)
     """
 
+    def __eq__(self, other):
+        try:
+            if self.__title__ != other.getTitle():
+                return False
+
+            if self.__y_units__ != other.getYUnits():
+                return False
+
+            if self.__y_label__ != other.getYLabel():
+                return False
+
+            if self.__data_set_type__ != other.getDataSetType():
+                return False
+
+            if len(self.__axis_labels__) != other.getDimension():
+                return False
+
+            if self.__axis_labels__ != other.getAllAxisLabels():
+                return False
+
+            if self.__axis_units__ != other.getAllAxisUnits():
+                return False
+
+            if self.attr_list != other.attr_list:
+                return False
+
+        except:
+            return False
+
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+        
     def copyAttributes(self,other):
         import copy
         
@@ -116,6 +150,8 @@ class SOM(list):
         
 if __name__ == "__main__":
     import so
+    import asg_instrument
+
     som = SOM()
     som.setTitle("Test SOM")
     som.setDataSetType("histogram")
@@ -130,6 +166,8 @@ if __name__ == "__main__":
     axis_labels = ["Extent"]
     axis_units = ["centimeters"]
 
+    som.attr_list.instrument = asg_instrument.ASG_Instrument()
+
     som.setAllAxisLabels(axis_labels)
     som.setAllAxisUnits(axis_units)
     som.setYLabel("Counts")
@@ -139,3 +177,31 @@ if __name__ == "__main__":
     print "SOM:",som
     print "Title:",som.getTitle()
     print "Primary Axes:",som.getAllAxisLabels(),som.getAllAxisUnits()
+
+    som2 = SOM()
+    som2.setTitle("Test SOM")
+    som2.setDataSetType("histogram")
+    
+    so2 = so.SO(withVar=True)
+    so2.axis[0].val.extend([1.0,2.0,3.0])
+    so2.axis[0].var.extend([1.0,2.0,3.0])
+    so2.y.extend([40.0,55.0])
+    so2.var_y.extend([40.0,55.0])
+    so2.id="Pixel 1"
+
+    axis_labels = ["Extent"]
+    axis_units = ["centimeters"]
+
+    som2.attr_list.instrument = asg_instrument.ASG_Instrument()
+    som2.attr_list.instrument.set_primary((15.1,0.1))
+
+    som2.setAllAxisLabels(axis_labels)
+    som2.setAllAxisUnits(axis_units)
+    som2.setYLabel("Counts")
+    som2.setYUnits("a.u.")
+    som2.append(so2)
+
+    if som != som2:
+        print "SOMs not equal"
+    else:
+        print "SOMs equal"
