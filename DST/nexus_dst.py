@@ -118,6 +118,16 @@ class NeXusDST(dst_base.DST_BASE):
         else:
             pass
 
+        try:
+            mask_file = kwds["mask_file"]
+        except KeyError:
+            mask_file = None
+
+        try:
+            roi_file = kwds["roi_file"]
+        except KeyError:
+            roi_file = None
+
         if som_id is not None:
             id_list = []
             try:
@@ -135,6 +145,15 @@ class NeXusDST(dst_base.DST_BASE):
         result.attr_list["filename"] = self.__nexus.filename()
         result.attr_list["instrument_name"] = self.__inst_info.getName()
         result.attr_list["beamline"] = self.__inst_info.getBeamline()
+        if mask_file is not None:
+            result.attr_list["mask_file"] = mask_file
+        else:
+            pass
+
+        if roi_file is not None:
+            result.attr_list["roi_file"] = roi_file
+        else:
+            pass
 
         entry_locations = self.list_type("NXentry")
         path = entry_locations[0] + "/title"
@@ -181,7 +200,17 @@ class NeXusDST(dst_base.DST_BASE):
                     kwargs["end_id"] = end_id[count]
             else:
                 pass
-                
+
+            if mask_file is not None:
+                kwargs["mask_file"] = mask_file
+            else:
+                pass
+
+            if roi_file is not None:
+                kwargs["roi_file"] = roi_file
+            else:
+                pass
+
             self.__construct_SOM(result, data, so_axis, **kwargs)
             count += 1
 
@@ -217,6 +246,16 @@ class NeXusDST(dst_base.DST_BASE):
         else:
             end_id = None
 
+        try:
+            mask_file = kwargs["mask_file"]
+        except KeyError:
+            mask_file = None
+
+        try:
+            roi_file = kwargs["roi_file"]
+        except KeyError:
+            roi_file = None
+
         orig_axis = data.variable
         if orig_axis.label == so_axis or orig_axis.location == so_axis:
             orig_axis = None
@@ -244,6 +283,16 @@ class NeXusDST(dst_base.DST_BASE):
             end_id = max_id
 
         ids = self.__generate_ids(start_id, end_id, data.location)
+
+        if mask_file is not None:
+            ids = self.__mask_pixels(ids, mask_file)
+        else:
+            pass
+
+        if roi_file is not None:
+            ids = self.__filter_pixels(ids, roi_file)
+        else:
+            pass
 
         for item in ids:
             so = data.get_so(item)
@@ -286,7 +335,52 @@ class NeXusDST(dst_base.DST_BASE):
                 raise RuntimeError,"Do not understand %dd indices" % dim
         except TypeError,e: #assume it is a scalar
             return range(start,stop)
-            
+
+    def __mask_pixels(self, id_list, mask_filename):
+
+        try:
+            mask_file = open(mask_filename, "r")
+        except IOError:
+            raise RuntimeError("Cannot open mask file %s" % mask_filename)
+
+        for pixel_id_line in mask_file:
+
+            pixel_id = self.__generate_pixel_id(pixel_id_line.rstrip())
+
+            try:
+                id_list.remove(pixel_id)
+            except ValueError:
+                pass
+
+        mask_file.close()
+
+        return id_list
+
+    def __filter_pixels(self, id_list, roi_filename):
+        try:
+            roi_file = open(roi_filename, "r")
+        except IOError:
+            raise RuntimeError("Cannot open roi file %s" % roi_filename)
+
+        roi_id_list = []
+
+        for pixel_id_line in roi_file:
+
+            pixel_id = self.__generate_pixel_id(pixel_id_line.rstrip())
+
+            try:
+                index = id_list.index(pixel_id)
+                roi_id_list.append(id_list.pop(index))
+            except ValueError:
+                pass
+
+        roi_file.close()
+
+        return roi_id_list
+
+    def __generate_pixel_id(self, pixel_id_str):
+        parts = pixel_id_str.split('_')
+        return (parts[0], (int(parts[1]), int(parts[2])))        
         
     def __get_attr_list(self,data_path):
         # prefix of what attributes to use
