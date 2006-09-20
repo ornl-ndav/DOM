@@ -13,9 +13,9 @@ class ParameterMap:
         
         self.__pmap = {}
 
-        self.__pmap["proton charge"] = Parameter("proton_charge", "float")
-        self.__pmap["raw frames"] = Parameter("raw_frames", "int")
-        self.__pmap["total counts"] = Parameter("total_counts", "int")
+        self.__pmap["proton_charge"] = Parameter("proton_charge", "float")
+        self.__pmap["raw_frames"] = Parameter("raw_frames", "int")
+        self.__pmap["total_counts"] = Parameter("total_counts", "int")
 
     def getPathAndType(self, name):
         """
