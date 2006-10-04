@@ -99,6 +99,13 @@ class Instrument:
             self.__azimuthal_selector__ = getIndexSelector("ISelector")
             self.__secondary_selector__ = getIndexSelector("IJSelector",
                                                            Nj=extra)
+        elif inst == "GLAD":
+            self.__azimuthal_selector__ = getIndexSelector("JSelector")
+            self.__polar_selector__     = getIndexSelector("IJSelector",
+                                                           Nj=extra)
+            self.__secondary_selector__ = getIndexSelector("IJSelector",
+                                                           Nj=extra)
+            
         else:
             raise RuntimeError,"Do not understand instrument: \""+inst+"\""
 
