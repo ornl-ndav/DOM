@@ -25,6 +25,9 @@ class ISelector(indexselector.IndexSelectorBase):
         return id[1][0]
 
 
+    def __str__(self):
+        return "ISelector"
+
 class JSelector(indexselector.IndexSelectorBase):
     """
     This class takes a NeXus spectrum ID and returns the index associated
@@ -49,6 +52,8 @@ class JSelector(indexselector.IndexSelectorBase):
 
         return id[1][1]
 
+    def __str__(self):
+        return "JSelector"
 
 class ZSelector(indexselector.IndexSelectorBase):
     """
@@ -72,6 +77,9 @@ class ZSelector(indexselector.IndexSelectorBase):
         """
 
         return 0
+
+    def __str__(self):
+        return "ZSelector"
 
 class IJSelector(indexselector.IndexSelectorBase):
     """
@@ -101,3 +109,6 @@ class IJSelector(indexselector.IndexSelectorBase):
         """
         
         return id[1][1] + self.__N_j * id[1][0]
+
+    def __str__(self):
+        return "IJSelector (Nj=%d)" % self.__N_j

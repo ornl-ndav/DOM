@@ -67,6 +67,25 @@ class Information:
             return (val, err2)
         except TypeError:
             return (val, 0.)
+
+
+    def __str__(self):
+        import os
+
+        result = []
+        
+        result.append("Units: %s\tSelector: %s" % (self.__units__,
+                                                   self.__selector__))
+
+        length = len(self.__value__)
+        result.append("Value: %s" % self.__value__.__str__(length))
+
+        try:
+            result.append("Error^2: %s" % self.__err2__.__str__(length))
+        except TypeError:
+            result.append("Error^2: %s" % str(self.__err2__))
+        
+        return os.linesep.join(result)
     
         
 class CompositeInformation(Information):
@@ -168,3 +187,34 @@ class CompositeInformation(Information):
         """
 
         return self.__info_hash[id[0]].get_value(id, **kwargs)
+
+
+    def __str__(self):
+        import os
+
+        result = []
+
+        for key in self.__info_hash.keys():
+            result.append("%s: %s" % (key, str(self.__info_hash[key])))
+
+        return os.linesep.join(result)
+
+
+if __name__ == "__main__":
+    import nessi_list
+
+    val = nessi_list.NessiList()
+    err2 = nessi_list.NessiList()
+
+    val.extend(1.0,2.0)
+    err2.extend(0.5,0.4)
+
+    info1 = Information(val, None, "meter", "ZSelector")
+
+    print "Info:",info1
+
+    info2 = Information(val, err2, "meter", "ZSelector")
+
+    comp = CompositeInformation("bank1", info1, "bank2", info2)
+
+    print "CompInfo:",comp
