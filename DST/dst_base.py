@@ -40,6 +40,7 @@ def getInstance(mime_type,resource,*args,**kwargs):
     import dave2d_dst
     import geom_dst
     import gsas_dst
+    import mdw_dst
     import nexus_dst
 
     # do the factory stuff
@@ -53,5 +54,7 @@ def getInstance(mime_type,resource,*args,**kwargs):
         return apply(gsas_dst.GsasDST,my_args,kwargs)
     elif mime_type==geom_dst.GeomDST.MIME_TYPE:
         return apply(geom_dst.GeomDST,my_args,kwargs)
+    elif mime_type==mdw_dst.MdwDST.MIME_TYPE:
+        return apply(mdw_dst.MdwDST,my_args,kwargs)
     else:
         raise Exception,"something wrong"

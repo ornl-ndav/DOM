@@ -5,6 +5,7 @@ from dst_base import getInstance
 from dst_utils import *
 from geom_dst import GeomDST
 from gsas_dst import GsasDST
+from mdw_dst import MdwDST
 from nexus_dst import NeXusDST
 from param_map import ParameterMap
 
