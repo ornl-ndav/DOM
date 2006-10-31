@@ -1,6 +1,8 @@
 import time as _time
 from datetime import tzinfo, timedelta
 
+ZERO = timedelta(0)
+
 STDOFFSET = timedelta(seconds = -_time.timezone)
 if _time.daylight:
     DSTOFFSET = timedelta(seconds = -_time.altzone)
