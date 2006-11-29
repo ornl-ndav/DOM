@@ -547,7 +547,7 @@ static bool PyObject_to_intarray(PyObject *pyobj, int *array)
   return true;
 }
 
-static std::string formatIntArray(int rank, int* dims) {
+static std::string formatIntArray(const int rank, const int* dims) {
   std::stringstream buffer;
   buffer << "[";
   for ( int i = 0 ; i < rank ; i++ ){
