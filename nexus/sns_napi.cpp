@@ -4,6 +4,7 @@
 #include <napi.h>
 // C++
 #include <iostream>
+#include <sstream>
 // NessiVector
 #include <vector>
 #include <stdexcept>
@@ -546,6 +547,34 @@ static bool PyObject_to_intarray(PyObject *pyobj, int *array)
   return true;
 }
 
+static std::string formatIntArray(int rank, int* dims) {
+  std::stringstream buffer;
+  buffer << "[";
+  for ( int i = 0 ; i < rank ; i++ ){
+    buffer << dims[i];
+    if (i+1<rank) {
+      buffer << ",";
+    }
+  }
+  buffer << "]";
+  return buffer.str();
+}
+
+static const char * formatgetSlabError(const int rank, const int * start,
+                                       const int * size, const int type,
+                                       const std::string message) {
+    std::stringstream msg;
+    msg << "In getslab(";
+    msg << formatIntArray(rank,start);
+    msg << ",";
+    msg << formatIntArray(rank,size);
+    msg << ",";
+    msg << type;
+    msg << "): ";
+    msg << message;
+    return msg.str().c_str();
+}
+
 char * NeXusFile_getslab_doc=
   "getslab(handle,start,size,type='f')";
 
@@ -575,21 +604,24 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
   int type=0;
   int dims[NX_MAXRANK];
   if(NXgetinfo(handle,&rank,dims,&type)!=NX_OK){
-    PyErr_SetString(PyExc_IOError,"In getslab: getinfo failed");
+    PyErr_SetString(PyExc_IOError,
+                    formatgetSlabError(rank, start, size, type, "getinfo failed"));
     return NULL;
   }
 
   //allocate memory for the data
   void *data;
   if(NXmalloc(&data,rank,size,type)!=NX_OK){
-    PyErr_SetString(PyExc_IOError,"In getslab: malloc failed");
+    PyErr_SetString(PyExc_IOError,
+                    formatgetSlabError(rank, start, size, type, "malloc failed"));
     NXfree(&data);
     return NULL;
   }
 
   // get the data
   if(NXgetslab(handle,data,start,size)!=NX_OK){
-    PyErr_SetString(PyExc_IOError,"In getslab: getslab failed");
+    PyErr_SetString(PyExc_IOError,
+                    formatgetSlabError(rank, start, size, type, "getslab failed"));
     NXfree(&data);
     return NULL;
   }
@@ -606,7 +638,8 @@ static PyObject *NeXusFile_getslab(PyObject *, PyObject *args)
 
   // free up the allocated memory
   if(NXfree(&data)!=NX_OK){
-    PyErr_SetString(PyExc_IOError,"In getslab: free failed");
+    PyErr_SetString(PyExc_IOError,
+                    formatgetSlabError(rank, start, size, type, "free failed"));
     Py_XDECREF(result);
     return NULL;
   }
