@@ -397,13 +397,19 @@ class NeXusDST(dst_base.DST_BASE):
         attrs={}
         for path in attr_list:
             key=path.split("/")[-1]
-            attrs[key]=self.__get_val_as_str(path)
+            val=self.__get_val_as_str(path)
+            if val.startswith('[') and val.endswith(']'):
+                val = self.__strip_string(val)
+            attrs[key]=val
 
         return attrs
 
     def __get_val_as_str(self,path):
         self.__nexus.openpath(path)
         return str(self.__nexus.getdata())
+
+    def __strip_string(self, string):
+        return string.lstrip('[').rstrip(']')
 
     def __generate_SOM_ids(self,**kwargs):
         try:
