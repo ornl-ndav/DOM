@@ -91,7 +91,10 @@ class Ascii3ColDST(dst_base.DST_BASE):
             pass
         
         print >> self.__file, "#C Title:",som.getTitle()
-        print >> self.__file, "#C Notes:", som.attr_list["notes"]
+        if som.attr_list.has_key("notes"):
+            print >> self.__file, "#C Notes:", som.attr_list["notes"]
+        else:
+            pass
 
         if som.attr_list.has_key("username"):
             print >> self.__file, "#C User:",som.attr_list["username"]
