@@ -1013,6 +1013,13 @@ class NeXusInstrument:
             
         # Check the detector list
         try:
+            az_selector = None
+            pol_selector = None
+            sec_selector = None
+
+            instname = self.__inst_name
+            extra_stuff = None
+            
             geometry = self.__det_data[label]
 
             # Secondary flight path versus distance checks
@@ -1026,15 +1033,27 @@ class NeXusInstrument:
             else:
                 distance_err2 = geometry[0][1]
 
-            if self.__inst_name == "BSS" and label == "bank3":
-                instname = "BSS_diff"
-                if from_saf:
-                    path = "/instrument-diffraction/"+label+"/distance"
+            if self.__inst_name == "BSS":
+                if label == "bank3":
+                    instname = "BSS_diff"
+                    if from_saf:
+                        path = "/instrument-diffraction/"+label+"/distance"
+                    else:
+                        path = "/entry-diff/instrument/"+label+"/distance"
+                        self.__nexus.openpath(path)
+                        dims = self.__nexus.getdims()
+                        extra_stuff = dims[0][1]
                 else:
-                    path = "/entry-diff/instrument/"+label+"/distance"
-                self.__nexus.openpath(path)
-                dims = self.__nexus.getdims()
-                extra_stuff = dims[0][1]
+                    if from_saf:
+                        path = "/instrument-inelastic/"+label+"/polar_angle"
+                    else:
+                        path = "/entry/instrument/"+label+"/polar_angle"
+                    self.__nexus.openpath(path)
+                    dims = self.__nexus.getdims()
+                    if len(dims[0]) < 2:
+                        pol_selector = "ISelector"
+                    else:
+                        extra_stuff = dims[0][1]
             elif self.__inst_name == "REF_M" or self.__inst_name == "REF_L"\
                      or self.__inst_name == "GLAD":
                 instname = self.__inst_name
@@ -1046,18 +1065,20 @@ class NeXusInstrument:
                 dims = self.__nexus.getdims()
                 extra_stuff = dims[0][1]
             else:
-                instname = self.__inst_name
-                extra_stuff = None
-                
+                pass
+
             return SOM.Instrument(instrument=instname,
                                   primary=(self.__primary[0],
                                            self.__primary[1]),
                                   secondary=distance,
                                   secondary_err2=distance_err2,
+                                  secondary_selector=sec_selector,
                                   polar=geometry[1][0],
                                   polar_err2=geometry[1][1],
+                                  polar_selectro=pol_selector,
                                   azimuthal=geometry[2][0],
                                   azimuthal_err2=geometry[2][1],
+                                  azimuthal_selector=az_selector,
                                   extra=extra_stuff)
         except KeyError:
             flag = True
