@@ -89,7 +89,11 @@ class IJSelector(indexselector.IndexSelectorBase):
 
     def __init__(self,**kwargs):
         try:
-            self.__N_j = int(kwargs["Nj"])
+            input = kwargs["Nj"]
+            if input is None:
+                return None
+            else:
+                self.__N_j = int(input)
         except KeyError:
            raise RuntimeError, "Need to provide the number of pixels for the "\
                  +"fastest running index"
