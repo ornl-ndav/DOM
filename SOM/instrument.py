@@ -8,15 +8,19 @@ class Instrument:
          azimuthal = The values of the azimuthal angle
          azimuthal_err2 = The values of the square of the uncertainty in the
                      azimuthal angle
+         azimuthal_selector = The name of the selector for the azimuthal angle
          instrument= The (abbreviated) name of the instrument
          polar = The values of the polar angle
          polar_err2 = The values of the square of the uncertainty in the
                      polar angle
+         polar_selector = The name of the selector for the polar angle
          primary = The value of the primary flight path and the square of
                      its uncertainty
          secondary = The values of the secondary flight path
          secondary_err2 = The values of the square of the uncertainty in the 
                      secondary flight path
+         secondary_selector = The name of the selector for the secondary
+                              flight path
     """
     def __init__(self,**kwargs):
         # primary flight path
@@ -84,7 +88,8 @@ class Instrument:
             self.__secondary_selector__ = None;
         elif inst=="BSS":
             self.__azimuthal_selector__ = None;
-            self.__polar_selector__     = getIndexSelector("ISelector")
+            self.__polar_selector__     = getIndexSelector("IJSelector",
+                                                           Nj=extra)
             self.__secondary_selector__ = getIndexSelector("JSelector")
         elif inst=="BSS_DIFF":
             self.__azimuthal_selector__ = None;
@@ -108,6 +113,30 @@ class Instrument:
             
         else:
             raise RuntimeError,"Do not understand instrument: \""+inst+"\""
+
+        try:
+            az_sel_name = kwargs["azimuthal_selector"]
+            if az_sel_name is not None:
+                self.__azimuthal_selector__ = getIndexSelector(az_sel_name,
+                                                               Nj=extra)
+        except KeyError:
+            pass
+
+        try:
+            pol_sel_name = kwargs["polar_selector"]
+            if pol_sel_name is not None:
+                self.__polar_selector__ = getIndexSelector(pol_sel_name,
+                                                           Nj=extra)
+        except KeyError:
+            pass
+
+        try:
+            sec_sel_name = kwargs["secondary_selector"]
+            if sec_sel_name is not None:
+                self.__secondary_selector__ = getIndexSelector(sec_sel_name,
+                                                               Nj=extra)
+        except KeyError:
+            pass        
 
     def __eq__(self, other):
         import utils
