@@ -8,8 +8,12 @@ class SO:
     
     def __init__(self,dim=1,id=None,**kwargs):
 
-        self.y     = nessi_list.NessiList()
-        self.var_y = nessi_list.NessiList()
+        if kwargs.has_key("construct"):
+            self.y     = nessi_list.NessiList()
+            self.var_y = nessi_list.NessiList()
+        else:
+            self.y     = None
+            self.var_y = None
         self.id    = id
         self.axis = []
         for i in range(dim):
@@ -59,10 +63,16 @@ class SO:
 class PrimaryAxis:
     
     def __init__(self,id=1,**kwargs):
-        
-        self.val = nessi_list.NessiList()
+
+        if kwargs.has_key("construct"):
+            self.val = nessi_list.NessiList()
+        else:
+            self.val = None
         if kwargs.has_key("withVar"):
-            self.var = nessi_list.NessiList()
+            if kwargs.has_key("construct"):
+                self.var = nessi_list.NessiList()
+            else:
+                self.var = None
         else:
             self.var = None
         self.pid = id
@@ -99,7 +109,7 @@ class PrimaryAxis:
     
         
 if __name__ == "__main__":
-    so1 = SO(withVar=True)
+    so1 = SO(construct=True, withVar=True)
     so1.axis[0].val.extend([1.0,2.0,3.0])
     so1.axis[0].var.extend([1.0,2.0,3.0])
     so1.y.extend([40.0,55.0])
@@ -107,7 +117,7 @@ if __name__ == "__main__":
     so1.id="Pixel 1"
     print "1D SO:", so1
 
-    so2 = SO(withVar=True)
+    so2 = SO(construct=True, withVar=True)
     so2.axis[0].val.extend([1.0,2.0,3.0])
     so2.axis[0].var.extend([1.0,2.0,3.0])
     so2.y.extend([60.0,65.0])
