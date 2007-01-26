@@ -294,8 +294,12 @@ class NeXusDST(dst_base.DST_BASE):
         else:
             pass
 
+        num_tof_chan = data.get_variable_length() - 1
+        num_y_pix = max_id[1]
+
         for item in ids:
-            so = data.get_so(item)
+            #so = data.get_so(item)
+            so = data.get_so2(item, num_tof_chan, num_y_pix)
             result.append(so)
 
         if orig_axis is not None:
@@ -316,6 +320,10 @@ class NeXusDST(dst_base.DST_BASE):
         del self.__data_signal
         del self.__so_axis
         del self.__avail_data
+
+    def delete_blocks(self):
+        del self.__avail_data
+        self.__avail_data = None
 
     ########## special functions
     def __generate_ids(self,start,stop,location):
@@ -539,6 +547,7 @@ class NeXusData:
         self.axes=[]
         self.variable=""
         self.__data_cptr=None # replace with getslab stuff
+        self.__data_var_cptr=None # replace with getslab stuff
         
         # now start pushing through attributes
         children=self.__get_data_children(tree,path)
@@ -575,6 +584,17 @@ class NeXusData:
         for i in range(len(axes)):
             self.axes.append(axes[i+1])
         self.variable=self.axes[0]
+
+
+        self.__data_cptr = self.__get_slice(self.__data)
+        if self.__data_var is not None:
+            self.__data_var_cptr = self.__get_slice(self.__data_var)
+
+    def get_variable_length(self):
+        return len(self.variable.value)
+
+    def get_block_length(self):
+        return len(self.__data_cptr)
 
     def set_so_axis(self,axis):
         for my_axis in self.axes:
@@ -653,10 +673,37 @@ class NeXusData:
 
         # set the variance to be the data if no location is specified
         if self.__data_var==None:
-
             spectrum.var_y = copy.deepcopy(spectrum.y)
         else:
             spectrum.var_y=self.__get_slice(self.__data_var,start_dim)
+
+        return spectrum
+
+    def get_so2(self, so_id, tof_chan, num_y):
+        import copy
+        # create a spectrum object
+        spectrum=SOM.SO()
+
+        # give it the id specified
+        spectrum.id=so_id
+
+        # give it the appropriate independent variable
+        spectrum.axis[0].val=copy.deepcopy(self.variable.value)
+
+        # locate the data slice
+        start_dim=self.__id_to_index(so_id)
+
+        # calculate 1D indicies
+        start_index = tof_chan * (start_dim[1] + (start_dim[0] * num_y))
+        end_index = tof_chan + start_index
+
+        spectrum.y=self.__data_cptr[start_index:end_index]
+
+        # set the data
+        if self.__data_var is None:
+            spectrum.var_y=copy.deepcopy(spectrum.y)
+        else:
+            spectrum.var_y=self.__data_var_cptr[start_index:end_index]
 
         return spectrum
 
