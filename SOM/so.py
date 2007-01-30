@@ -18,9 +18,10 @@ class SO:
         self.axis = []
         for i in range(dim):
             self.axis.append(PrimaryAxis(i+1,**kwargs))
+        self.__dim = dim
 
     def dim(self):
-        return len(self.axis)
+        return self.__dim
 
     def __len__(self):
         return len(self.y)
