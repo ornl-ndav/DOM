@@ -83,17 +83,19 @@ class Instrument:
         # use the instrument name to set the selectors
         from indexselector import getIndexSelector
         if inst==None:
-            self.__azimuthal_selector__ = None;
-            self.__polar_selector__     = None;
-            self.__secondary_selector__ = None;
+            self.__azimuthal_selector__ = None
+            self.__polar_selector__     = None
+            self.__secondary_selector__ = None
         elif inst=="BSS":
-            self.__azimuthal_selector__ = None;
+            self.__azimuthal_selector__ = None
             self.__polar_selector__     = getIndexSelector("IJSelector",
                                                            Nj=extra)
             self.__secondary_selector__ = getIndexSelector("JSelector")
         elif inst=="BSS_DIFF":
-            self.__azimuthal_selector__ = None;
-            self.__polar_selector__     = getIndexSelector("ISelector")
+            self.__azimuthal_selector__ = getIndexSelector("IJSelector",
+                                                           Nj=extra)
+            self.__polar_selector__     = getIndexSelector("IJSelector",
+                                                           Nj=extra)
             self.__secondary_selector__ = getIndexSelector("IJSelector",
                                                            Nj=extra)
         elif inst == "REF_M":

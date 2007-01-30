@@ -1037,12 +1037,30 @@ class NeXusInstrument:
                 if label == "bank3":
                     instname = "BSS_diff"
                     if from_saf:
-                        path = "/instrument-diffraction/"+label+"/distance"
+                        dis_path = "/instrument-diffraction/"+label+"/distance"
+                        pol_path = "/instrument-diffraction/"+label\
+                                   +"/polar_angle"
+                        az_path = "/instrument-diffraction/"+label\
+                                   +"/azimuthal_angle"                        
                     else:
-                        path = "/entry-diff/instrument/"+label+"/distance"
-                        self.__nexus.openpath(path)
-                        dims = self.__nexus.getdims()
-                        extra_stuff = dims[0][1]
+                        dis_path = "/entry-diff/instrument/"+label+"/distance"
+                        pol_path = "/entry-diff/instrument/"+label\
+                                   +"/polar_angle"
+                        az_path = "/entry-diff/instrument/"+label\
+                                   +"/azimuthal_angle"                        
+
+                    self.__nexus.openpath(dis_path)
+                    dims = self.__nexus.getdims()
+                    extra_stuff = dims[0][1]
+                    self.__nexus.openpath(pol_path)
+                    dims = self.__nexus.getdims()
+                    if len(dims[0]) < 2:
+                        pol_selector = "ISelector"
+                    self.__nexus.openpath(az_path)
+                    dims = self.__nexus.getdims()
+                    if len(dims[0]) < 2:
+                        az_selector = "JSelector"
+                    
                 else:
                     if from_saf:
                         path = "/instrument-inelastic/"+label+"/polar_angle"
