@@ -211,7 +211,7 @@ class NeXusDST(dst_base.DST_BASE):
             else:
                 pass
 
-            self.__construct_SOM(result, data, so_axis, **kwargs)
+            self.__construct_SOM(result, data, so_axis, inst_keys[0], **kwargs)
             count += 1
 
         if len(inst_keys) > 2:
@@ -235,7 +235,7 @@ class NeXusDST(dst_base.DST_BASE):
 
         return result
 
-    def __construct_SOM(self, result, data, so_axis, **kwargs):
+    def __construct_SOM(self, result, data, so_axis, bank_id, **kwargs):
 
         if kwargs.has_key("start_id"):
             start_id = kwargs["start_id"]
@@ -290,7 +290,7 @@ class NeXusDST(dst_base.DST_BASE):
             pass
 
         if roi_file is not None:
-            ids = self.__filter_pixels(ids, roi_file)
+            ids = self.__filter_pixels(ids, bank_id, roi_file)
         else:
             pass
 
@@ -364,7 +364,7 @@ class NeXusDST(dst_base.DST_BASE):
 
         return id_list
 
-    def __filter_pixels(self, id_list, roi_filename):
+    def __filter_pixels(self, id_list, bank_id, roi_filename):
         try:
             roi_file = open(roi_filename, "r")
         except IOError:
@@ -376,11 +376,17 @@ class NeXusDST(dst_base.DST_BASE):
 
             pixel_id = self.__generate_pixel_id(pixel_id_line.rstrip())
 
-            try:
-                index = id_list.index(pixel_id)
-                roi_id_list.append(id_list.pop(index))
-            except ValueError:
-                pass
+            # if bank IDs are not the same, move on
+            if pixel_id[0] != bank_id:
+                continue
+            
+            roi_id_list.append(pixel_id)
+            
+            #try:
+            #    index = id_list.index(pixel_id)
+            #    roi_id_list.append(id_list.pop(index))
+            #except ValueError:
+            #    pass
 
         roi_file.close()
 
