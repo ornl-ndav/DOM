@@ -1099,7 +1099,7 @@ class NeXusInstrument:
                                   secondary_selector=sec_selector,
                                   polar=geometry[1][0],
                                   polar_err2=geometry[1][1],
-                                  polar_selectro=pol_selector,
+                                  polar_selector=pol_selector,
                                   azimuthal=geometry[2][0],
                                   azimuthal_err2=geometry[2][1],
                                   azimuthal_selector=az_selector,
