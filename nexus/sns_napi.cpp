@@ -199,8 +199,11 @@ static PyObject * NeXusFile_convertobj2(void *value,int type, long length,res_ty
 
   }else{
 
-    PyObject *kwargs = Py_BuildValue("{s:s}", "type", "int");
-    pyresult = PyObject_Call(nl_class, NULL, kwargs);
+    PyObject *kwargs = Py_BuildValue("{ss}", "type", "int");
+    PyObject *args = PyTuple_New(0);
+    pyresult = PyObject_Call(nl_class, args, kwargs);
+    Py_DECREF(kwargs);
+    Py_DECREF(args);
 
     if(type==NX_FLOAT32 || type==NX_FLOAT64){
       PyErr_SetString(PyExc_AttributeError,"Will not convert float to int");
