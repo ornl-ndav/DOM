@@ -412,8 +412,7 @@ class NeXusDST(dst_base.DST_BASE):
         for path in attr_list:
             key=path.split("/")[-1]
             val=self.__get_val_as_str(path)
-            if val.startswith('[') and val.endswith(']'):
-                val = self.__strip_string(val)
+            val = self.__strip_string(val)
             attrs[key]=val
 
         return attrs
