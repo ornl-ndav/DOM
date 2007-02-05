@@ -553,6 +553,7 @@ class NeXusData:
         self.variable=""
         self.__data_cptr=None # replace with getslab stuff
         self.__data_var_cptr=None # replace with getslab stuff
+        self.__is_cached = False
         
         # now start pushing through attributes
         children=self.__get_data_children(tree,path)
@@ -589,11 +590,6 @@ class NeXusData:
         for i in range(len(axes)):
             self.axes.append(axes[i+1])
         self.variable=self.axes[0]
-
-
-        self.__data_cptr = self.__get_slice(self.__data)
-        if self.__data_var is not None:
-            self.__data_var_cptr = self.__get_slice(self.__data_var)
 
     def get_variable_length(self):
         return len(self.variable.value)
@@ -685,6 +681,14 @@ class NeXusData:
         return spectrum
 
     def get_so2(self, so_id, tof_chan, num_y):
+        # Determine if data block is cached. If not, read in the block and
+        # set the flag True
+        if not self.__is_cached:
+            self.__data_cptr = self.__get_slice(self.__data)
+            if self.__data_var is not None:
+                self.__data_var_cptr = self.__get_slice(self.__data_var)
+            self.__is_cached = True
+        
         import copy
         # create a spectrum object
         spectrum=SOM.SO()
