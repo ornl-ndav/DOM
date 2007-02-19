@@ -97,7 +97,6 @@ class NeXusDST(dst_base.DST_BASE):
         result=data.get_so(so_id)
         data.set_so_axis(orig_axis.label)
         return result
-        
 
     def getSOM(self, som_id=None, so_axis=None, **kwds):
         """Available keywords are start_id,end_id which provide a way
@@ -294,9 +293,18 @@ class NeXusDST(dst_base.DST_BASE):
         else:
             pass
 
-        num_tof_chan = data.get_variable_length() - 1
-        num_y_pix = max_id[1]
+        num_axis3 = data.get_axis_length(2)
+        num_tof_chan = data.get_variable_length()
 
+        if num_axis3+1 == num_tof_chan:
+            num_tof_chan -= 1
+            result.setDataSetType("histogram")
+        elif num_axis3 == num_tof_chan:
+            result.setDataSetType("density")
+        else:
+            raise RuntimeError("Do not know how to handle dataset")
+
+        num_y_pix = max_id[1]
         for item in ids:
             #so = data.get_so(item)
             so = data.get_so2(item, num_tof_chan, num_y_pix)
@@ -546,7 +554,7 @@ class NeXusData:
         self.signal=None
         self.__data=None
         self.__data_var=None # if left unset use the data for this
-        self.__data_dims=[]
+        self.__data_dims=None
         self.data_label=""
         self.data_units=""
         self.axes=[]
@@ -554,7 +562,7 @@ class NeXusData:
         self.__data_cptr=None # replace with getslab stuff
         self.__data_var_cptr=None # replace with getslab stuff
         self.__is_cached = False
-        
+
         # now start pushing through attributes
         children=self.__get_data_children(tree,path)
         axes={}
@@ -572,6 +580,9 @@ class NeXusData:
                         axes[value] = axis
         if self.signal==None:
             raise ValueError,"Could not find signal=%d" % int(signal)
+
+        self.__nexus.openpath(self.__data)
+        self.__data_dims = self.__nexus.getdims()
 
         # look for the axes as an attribute to the signal data
         # also find the units
@@ -596,6 +607,9 @@ class NeXusData:
 
     def get_block_length(self):
         return len(self.__data_cptr)
+
+    def get_axis_length(self, loc):
+        return self.__data_dims[0][loc]
 
     def set_so_axis(self,axis):
         for my_axis in self.axes:
@@ -696,6 +710,7 @@ class NeXusData:
         # give it the id specified
         spectrum.id=so_id
 
+        #print "A:",so_id
         # give it the appropriate independent variable
         spectrum.axis[0].val=copy.deepcopy(self.variable.value)
 
@@ -894,9 +909,12 @@ class NeXusInstrument:
             self.__head_tag = self.__entry_locations[-1]+self.__tag
         else:
             self.__head_tag = self.__entry_locations[-1]
-        
-        self.__nexus.openpath(self.__head_tag+"/name")
-        self.__inst_name=self.__nexus.getattr("short_name","")
+
+        try:
+            self.__nexus.openpath(self.__head_tag+"/name")
+            self.__inst_name=self.__nexus.getattr("short_name","")
+        except IOError:
+            self.__inst_name = None
 
         try:
             self.__beamline = self.__get_val_as_str(self.__head_tag
@@ -922,10 +940,12 @@ class NeXusInstrument:
                                           "/moderator/distance")
 
         # Remake tuple with primary with |distance|
-        self.__primary = (math.fabs(self.__primary[0]), self.__primary[1],
-                          self.__primary[2])
-
-
+        try:
+            self.__primary = (math.fabs(self.__primary[0]), self.__primary[1],
+                              self.__primary[2])
+        except TypeError:
+            self.__primary = (float('nan'), float('nan'))
+            
     def __get_value(self,path):
         try:
             self.__tree[path]
