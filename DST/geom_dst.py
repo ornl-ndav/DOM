@@ -20,6 +20,8 @@
 # its use would not infringe privately owned rights.
 #
 
+# $Id$
+
 import dst_base
 import nexus_dst
 import nexus_file

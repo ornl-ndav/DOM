@@ -20,6 +20,8 @@
 # its use would not infringe privately owned rights.
 #
 
+# $Id$
+
 import time as _time
 from datetime import tzinfo, timedelta
 

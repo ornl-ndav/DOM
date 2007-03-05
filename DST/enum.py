@@ -20,6 +20,8 @@
 # its use would not infringe privately owned rights.
 #
 
+# $Id$
+
 class Enum:
 
     """Taken from http://www.novig.com/python-iaq.html

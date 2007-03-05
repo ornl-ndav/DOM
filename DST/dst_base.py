@@ -20,6 +20,8 @@
 # its use would not infringe privately owned rights.
 #
 
+# $Id$
+
 class DST_BASE:
     # ----- initialization
     def __init__(self,resource):
