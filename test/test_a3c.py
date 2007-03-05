@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #                        Data Object Model
 #           A part of the SNS Analysis Software Suite.
 #
@@ -19,8 +21,6 @@
 # information, apparatus, product, or process disclosed, or represents that
 # its use would not infringe privately owned rights.
 #
-
-#!/usr/bin/env python
 
 # $Id$
 

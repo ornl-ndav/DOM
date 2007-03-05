@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #                        Data Object Model
 #           A part of the SNS Analysis Software Suite.
 #
@@ -20,7 +22,6 @@
 # its use would not infringe privately owned rights.
 #
 
-#!/usr/bin/env python
 import DST
 import sys
 
