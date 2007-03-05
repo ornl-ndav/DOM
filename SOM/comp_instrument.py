@@ -20,6 +20,8 @@
 # its use would not infringe privately owned rights.
 #
 
+# $Id$
+
 import instrument
 
 class CompositeInstrument(instrument.Instrument):

@@ -20,6 +20,8 @@
 # its use would not infringe privately owned rights.
 #
 
+# $Id$
+
 class Sample:
     """This is an abstract base class representing important
     information about the sample."""

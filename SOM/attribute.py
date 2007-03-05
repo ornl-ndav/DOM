@@ -20,6 +20,8 @@
 # its use would not infringe privately owned rights.
 #
 
+# $Id$
+
 class AttributeList(dict):
     def __init__(self,**kwargs):
         """

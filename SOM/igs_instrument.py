@@ -20,6 +20,8 @@
 # its use would not infringe privately owned rights.
 #
 
+# $Id$
+
 from instrument import Instrument
 from instrument import __get_units__
 from instrument import __standardize_value__

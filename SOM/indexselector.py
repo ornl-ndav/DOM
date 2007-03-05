@@ -20,6 +20,8 @@
 # its use would not infringe privately owned rights.
 #
 
+# $Id$
+
 class IndexSelectorBase:
     """
     This is the IndexSelectorBase abstract base class. It serves as the

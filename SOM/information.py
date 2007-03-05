@@ -20,6 +20,8 @@
 # its use would not infringe privately owned rights.
 #
 
+# $Id$
+
 class Information:
     """
     This is a collector class used for storing information that is not pure

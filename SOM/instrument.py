@@ -20,6 +20,8 @@
 # its use would not infringe privately owned rights.
 #
 
+# $Id$
+
 class Instrument:
     """This is an abstract base class representing important
     geometrical information about the instrument.
