@@ -20,6 +20,8 @@
 # its use would not infringe privately owned rights.
 #
 
+# $Id$
+
 #!/usr/bin/env python
 import DST
 import sys
