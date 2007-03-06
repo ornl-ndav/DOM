@@ -22,13 +22,7 @@
 # its use would not infringe privately owned rights.
 #
 
-###############################################################################
-#
-# Script for installing the DOM package modules
-#
 # $Id$
-#
-###############################################################################
 
 from distutils.core import setup, Extension
 import os
