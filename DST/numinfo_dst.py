@@ -41,13 +41,33 @@ class NumInfoDST(dst_base.DST_BASE):
         self.__doc = xml.dom.minidom.Document()
         self.__file = resource
         self.__timestamp = dst_utils.make_ISO8601(time.time())
+
+        try:
+            self.__line_wrap_num = kwargs["line_wrap_num"]
+        except KeyError:
+            self.__line_wrap_num = 4
+
+        try:
+            self.__tag = kwargs["tag"]
+        except KeyError:
+            self.__tag = "Integral"
+
+        try:
+            self.__units = kwargs["units"]
+        except KeyError:
+            self.__units = "counts"
+
+        try:
+            self.__comments = kwargs["comments"]
+        except KeyError:
+            self.__comments = None
         
     def release_resource(self):
         self.__file.close()
 
     def writeSOM(self,som):
         self.prepareContents(som)
-        self.writeFile()
+        #self.writeFile()
 
     ########## Special functions
 
@@ -70,6 +90,41 @@ class NumInfoDST(dst_base.DST_BASE):
         errors = [math.sqrt(num_list[i][1]) for i in xrange(num_list_size)]
         ids = [som[i].id for i in xrange(som_size)]
 
+        #self.__parseContentsForXml(values, errors, ids)
+
+        self.__parseContentsForAscii(som, values, errors, ids)
+
+
+    def __parseContentsForAscii(self, som, values, errors, ids):
+        
+        try:
+            som.attr_list["filename"].reverse()
+            som.attr_list["filename"].reverse()
+            for file in som.attr_list["filename"]:
+                print >> self.__file, "#F", file
+        except AttributeError:
+            print >> self.__file, "#F",som.attr_list["filename"]
+ 	
+        print >> self.__file, "#D",self.__timestamp
+ 	       
+        if som.attr_list.has_key("run_number"):
+            print >> self.__file, "#C Run Number:",som.attr_list["run_number"]
+        else:
+            pass
+
+        if self.__comments is not None:
+            for comment in self.__comments:
+                print >> self.__file, "#C", comment
+ 	       
+        print >> self.__file, \
+              "#L Pixel ID  %s (%s) Error (%s)" % (self.__tag, self.__units,
+                                                   self.__units)
+        
+        for k in xrange(len(values)):
+            print >> self.__file, ids[k], values[k], errors[k]
+
+    def __parseContentsForXml(self, values, errors, ids):
+
         value_string_bank_list = []
         error_string_bank_list = []
         bank_list = []
@@ -77,8 +132,7 @@ class NumInfoDST(dst_base.DST_BASE):
         bank_check = True
         bank_id = ids[0][0]
         bank_list.append(bank_id)
-        line_count = 8
-        counter = 1
+        counter = 0
 
         import os
         
@@ -100,14 +154,14 @@ class NumInfoDST(dst_base.DST_BASE):
 
                 bank_id = ids[j][0]
                 bank_list.append(bank_id)
-                counter = 1
+                counter = 0
                 value_substring = []
                 value_bank_string = os.linesep
                 error_substring = []
                 error_bank_string = os.linesep                
                 
-            if counter == line_count:
-                counter = 1
+            if counter == self.__line_wrap_num:
+                counter = 0
                 value_bank_string += " ".join(value_substring)+os.linesep
                 value_substring = []
                 error_bank_string += " ".join(error_substring)+os.linesep
@@ -146,3 +200,5 @@ class NumInfoDST(dst_base.DST_BASE):
         import xml.dom.ext
 
         xml.dom.ext.PrettyPrint(self.__doc, self.__file)
+
+    
