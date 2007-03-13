@@ -202,7 +202,8 @@ class NeXusDST(dst_base.DST_BASE):
 
         count = 0
         for id in id_list:
-            inst_keys.append(id[0].split('/')[-1])
+            bank_id = id[0].split('/')[-1]
+            inst_keys.append(bank_id)
             inst_keys.append(self.__inst_info.getInstrument(id[0]))
 
             data = self.__avail_data[id]
@@ -234,7 +235,7 @@ class NeXusDST(dst_base.DST_BASE):
             else:
                 pass
 
-            self.__construct_SOM(result, data, so_axis, inst_keys[0], **kwargs)
+            self.__construct_SOM(result, data, so_axis, bank_id, **kwargs)
             count += 1
 
         if len(inst_keys) > 2:
@@ -411,7 +412,7 @@ class NeXusDST(dst_base.DST_BASE):
             # if bank IDs are not the same, move on
             if pixel_id[0] != bank_id:
                 continue
-            
+
             roi_id_list.append(pixel_id)
             
             #try:
