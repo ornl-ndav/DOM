@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #                        Data Object Model
 #           A part of the SNS Analysis Software Suite.
 #
@@ -20,19 +22,28 @@
 # its use would not infringe privately owned rights.
 #
 
-from ascii3col_dst import Ascii3ColDST
-from dave2d_dst import Dave2dDST
-from dst_base import DST_BASE
-from dst_base import getInstance
-from dst_utils import *
-from geom_dst import GeomDST
-from gsas_dst import GsasDST
-from mdw_dst import MdwDST
-from nexus_dst import NeXusDST
-from numinfo_dst import NumInfoDST
-from param_map import ParameterMap
+# $Id$
 
-from version import version as __version__
+import DST
+import SOM
+import hlr_utils
 
-# version
-__id__ = "$Id$"
+filename = "numinfo.xml"
+tagname = "normalization_efficiency"
+
+som = SOM.SOM()
+so1 = SOM.SO()
+so1.id = ("bank1", (0, 0))
+som.append(so1)
+so2 = SOM.SO()
+so2.id = ("bank2", (0, 0))
+som.append(so2)
+
+num_list = [(111.0, 23.0), (143.0, 27.0)]
+som.attr_list[tagname] = num_list
+
+ofile = open(filename, "w")
+
+nif = DST.NumInfoDST(ofile, tagname)
+nif.writeSOM(som)
+nif.release_resource()

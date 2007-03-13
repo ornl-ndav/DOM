@@ -66,6 +66,7 @@ def getInstance(mime_type,resource,*args,**kwargs):
     import gsas_dst
     import mdw_dst
     import nexus_dst
+    import numinfo_dst
 
     # do the factory stuff
     if mime_type==nexus_dst.NeXusDST.MIME_TYPE:
@@ -80,5 +81,7 @@ def getInstance(mime_type,resource,*args,**kwargs):
         return apply(geom_dst.GeomDST,my_args,kwargs)
     elif mime_type==mdw_dst.MdwDST.MIME_TYPE:
         return apply(mdw_dst.MdwDST,my_args,kwargs)
+    elif mime_type==numinfo_dst.NumInfoDST.MIME_TYPE:
+        return apply(numinfo_dst.NumInfoDST,my_args,kwargs)
     else:
         raise Exception,"something wrong"
