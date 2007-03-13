@@ -329,7 +329,11 @@ class NeXusDST(dst_base.DST_BASE):
         else:
             raise RuntimeError("Do not know how to handle dataset")
 
-        num_y_pix = max_id[1]
+        try:
+            num_y_pix = max_id[1]
+        except TypeError:
+            num_y_pix = 1
+            
         for item in ids:
             #so = data.get_so(item)
             so = data.get_so2(item, num_tof_chan, num_y_pix)
@@ -634,7 +638,10 @@ class NeXusData:
         return len(self.__data_cptr)
 
     def get_axis_length(self, loc):
-        return self.__data_dims[0][loc]
+        try:
+            return self.__data_dims[0][loc]
+        except IndexError:
+            return self.__data_dims[0][0]
 
     def set_so_axis(self,axis):
         for my_axis in self.axes:
@@ -743,7 +750,10 @@ class NeXusData:
         start_dim=self.__id_to_index(so_id)
 
         # calculate 1D indicies
-        start_index = tof_chan * (start_dim[1] + (start_dim[0] * num_y))
+        try:
+            start_index = tof_chan * (start_dim[1] + (start_dim[0] * num_y))
+        except TypeError:
+            start_index = 0
         end_index = tof_chan + start_index
 
         spectrum.y=self.__data_cptr[start_index:end_index]
