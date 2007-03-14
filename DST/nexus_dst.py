@@ -1186,15 +1186,9 @@ class SnsInformation:
 
             self.__det_locations.extend(self.__list_type(tree,"NXcrystal"))
 
-            SOM_keys = {"analyzer" : ["Wavelength_final"],
-                        "bank" : ["Initial_energy_offset",
-                                  "Final_energy_offset"]}
-            data_loc = {"analyzer" : ["wavelength"],
-                        "bank" : ["initial_energy_offset",
-                                  "final_energy_offset"]}
-
-            index_sel = {"analyzer" : ["JSelector"],
-                         "bank" : ["IJSelector", "IJSelector"]}
+            SOM_keys = {"analyzer" : ["Wavelength_final"]}
+            data_loc = {"analyzer" : ["wavelength"]}
+            index_sel = {"analyzer" : ["JSelector"]}
 
             self.__get_data(SOM_keys, data_loc, index_sel)
 
@@ -1203,13 +1197,11 @@ class SnsInformation:
 
     def __get_data(self, keys, data, selectors):
         import re
-
         expression = r'\d+$'
         myre = re.compile(expression)
 
         for location in self.__det_locations:
             label = location.split('/')[-1]
-
             if self.__inst_name == "BSS" and label == "bank3":
                 continue
             else:
@@ -1217,41 +1209,45 @@ class SnsInformation:
 
             value = myre.split(label)[0]
             number = label.split(value)[-1]
-            for key, dpath, sel in map(None, keys[value], data[value],
-                                       selectors[value]):
-                if not self.__det_data.has_key(key):
-                    self.__det_data[key] = []
-                else:
-                    pass
+            try:
+                for key, dpath, sel in map(None, keys[value], data[value],
+                                           selectors[value]):
+                    if not self.__det_data.has_key(key):
+                        self.__det_data[key] = []
+                    else:
+                        pass
                     
-                path = location + "/" + dpath
-                info = (self.__get_value(path))
-                bank_label = "bank" + number
-
-                self.__det_data[key].append(bank_label)
-
-                if sel == "IJSelector":
-                    try:
-                        self.__nexus.openpath(path)
-                        dims = self.__nexus.getdims()
+                    path = location + "/" + dpath
+                    info = (self.__get_value(path))
+                    bank_label = "bank" + number
+                    
+                    self.__det_data[key].append(bank_label)
+                    
+                    if sel == "IJSelector":
                         try:
-                            dim = dims[0][1]
-                            self.__det_data[key].append(\
+                            self.__nexus.openpath(path)
+                            dims = self.__nexus.getdims()
+                            try:
+                                dim = dims[0][1]
+                                self.__det_data[key].append(\
                                 SOM.Information(info[0],
                                                 info[1],
                                                 info[2],
                                                 sel,
                                                 Nj=dim))
-                        except IndexError:
-                            self.__det_data[key].append(None)
+                            except IndexError:
+                                self.__det_data[key].append(None)
                             
-                    except IOError:
-                        self.__det_data[key].append(None)
-                else:
-                    self.__det_data[key].append(SOM.Information(info[0],
-                                                                info[1],
-                                                                info[2],
-                                                                sel))
+                        except IOError:
+                            self.__det_data[key].append(None)
+                        else:
+                            self.__det_data[key].append(\
+                                SOM.Information(info[0],
+                                                info[1],
+                                                info[2],
+                                                sel))
+            except KeyError:
+                continue
 
     def __get_value(self,path):
         try:
