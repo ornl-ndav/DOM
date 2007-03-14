@@ -1240,12 +1240,11 @@ class SnsInformation:
                             
                         except IOError:
                             self.__det_data[key].append(None)
-                        else:
-                            self.__det_data[key].append(\
-                                SOM.Information(info[0],
-                                                info[1],
-                                                info[2],
-                                                sel))
+                    else:
+                        self.__det_data[key].append(SOM.Information(info[0],
+                                                                    info[1],
+                                                                    info[2],
+                                                                    sel))
             except KeyError:
                 continue
 
