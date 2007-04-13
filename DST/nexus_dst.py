@@ -246,16 +246,17 @@ class NeXusDST(dst_base.DST_BASE):
 
         info_keys = self.__sns_info.getKeys()
         for key in info_keys:
-            pair_list = self.__sns_info.getInformation(key)
-            if pair_list[1] is None:
-                info = None
-            else:
-                if len(pair_list) > 2:
-                    info = SOM.CompositeInformation(pairs=pair_list)
+            if key is not None:
+                pair_list = self.__sns_info.getInformation(key)
+                if pair_list[1] is None:
+                    info = None
                 else:
-                    info = pair_list[1]
+                    if len(pair_list) > 2:
+                        info = SOM.CompositeInformation(pairs=pair_list)
+                    else:
+                        info = pair_list[1]
 
-            result.attr_list[key] = info
+                result.attr_list[key] = info
 
         return result
 
@@ -435,25 +436,55 @@ class NeXusDST(dst_base.DST_BASE):
         
     def __get_attr_list(self,data_path):
         # prefix of what attributes to use
-        data_path="/"+data_path.split("/")[0]
+        data_path ="/" + data_path.split("/")[0]
 
         # generate the full list of attributes to use
-        possible_list=self.list_type("SDS")
-        attr_list=[]
+        possible_list = self.list_type("SDS")
+        attr_list = []
         for item in possible_list:
             if item.startswith(data_path):
-                if len(item.split("/"))==3:
+                if len(item.split("/")) == 3:
                     attr_list.append(item)
 
-        attrs={}
+        # Getting top level attributes
+        attrs = {}
         for path in attr_list:
-            key=path.split("/")[-1]
-            val=self.__get_val_as_str(path)
-            val = self.__strip_string(val)
-            attrs[key]=val
+            key = path.split("/")[-1]
+
+            if key == "run_number":
+                val = self.__get_val_as_type(path, "s")
+            else:
+                try:
+                    val = self.__get_val_as_type(path, "f")
+                except ValueError:
+                    val = self.__get_val_as_type(path, "s")
+                    
+            try:
+                units = self.__get_attr_as_str(path, "units")
+                val = (val, units)
+            except RuntimeError:
+                pass
+
+            attrs[key] = val
 
         return attrs
 
+    def __get_attr_as_str(self,path,attr):
+        self.__nexus.openpath(path)
+        return self.__nexus.getattr(attr, "s")
+
+    def __get_val_as_type(self, path, type):
+        self.__nexus.openpath(path)
+        value = self.__strip_string(str(self.__nexus.getdata()))
+        if type == "f":
+            return float(value)
+        elif type == "i":
+            return int(value)
+        elif type == "s":
+            return value
+        else:
+            raise RuntimeError("Do not know how to interpret type: %s" % type)
+    
     def __get_val_as_str(self,path):
         self.__nexus.openpath(path)
         return str(self.__nexus.getdata())

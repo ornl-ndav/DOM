@@ -40,7 +40,7 @@ class NumInfoDST(dst_base.DST_BASE):
         self.__attr_name = attr_name
         self.__doc = xml.dom.minidom.Document()
         self.__file = resource
-        self.__timestamp = dst_utils.make_ISO8601(time.time())
+        self.__epoch = time.time()
 
         try:
             self.__line_wrap_num = kwargs["line_wrap_num"]
@@ -96,21 +96,8 @@ class NumInfoDST(dst_base.DST_BASE):
 
 
     def __parseContentsForAscii(self, som, values, errors, ids):
-        
-        try:
-            som.attr_list["filename"].reverse()
-            som.attr_list["filename"].reverse()
-            for file in som.attr_list["filename"]:
-                print >> self.__file, "#F", file
-        except AttributeError:
-            print >> self.__file, "#F",som.attr_list["filename"]
- 	
-        print >> self.__file, "#D",self.__timestamp
- 	       
-        if som.attr_list.has_key("run_number"):
-            print >> self.__file, "#C Run Number:",som.attr_list["run_number"]
-        else:
-            pass
+
+        dst_utils.write_spec_header(self.__file, self.__epoch, som)
 
         if self.__comments is not None:
             for comment in self.__comments:
@@ -180,7 +167,7 @@ class NumInfoDST(dst_base.DST_BASE):
         error_string_bank_list.append(error_bank_string)
         
         mainnode = self.__doc.createElement(self.__attr_name)
-        mainnode.setAttribute("created", self.__timestamp)
+        mainnode.setAttribute("created", dst_utils.makeIS08601(self.__epoch))
 
         for k in range(len(value_string_bank_list)):
             banknode = self.__doc.createElement(bank_list[k])

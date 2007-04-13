@@ -90,7 +90,19 @@ class SOM(list):
         self.setAllAxisUnits(other.getAllAxisUnits())
         self.setYLabel(other.getYLabel())
         self.setYUnits(other.getYUnits())
-        self.attr_list = copy.copy(other.attr_list)
+        if len(self.attr_list.keys()) == 0:
+            self.attr_list = copy.copy(other.attr_list)
+        else:
+            self.attr_list.instrument = copy.copy(other.attr_list.instrument)
+            self.attr_list.sample = copy.copy(other.attr_list.sample)
+                    
+            keys_to_get = [other_key for other_key in other.attr_list.keys() \
+                           for self_key in self.attr_list.keys() \
+                           if other_key != self_key]
+
+            for key_to_get in keys_to_get:
+                self.attr_list[key_to_get] = \
+                                       copy.copy(other.attr_list[key_to_get])
 
     def axisUnitsAt(self,units):
         return self.__axis_units__.index(units)

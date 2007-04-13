@@ -31,6 +31,7 @@
 ###############################################################################
 
 import dst_base
+import dst_utils
 import math
 import sys
 
@@ -47,8 +48,6 @@ class Ascii3ColDST(dst_base.DST_BASE):
         
         self.__file = resource
         self.__epoch = time.time()
-        self.__timestamp = time.strftime("%Y-%m-%d %T", \
-                                         time.localtime(self.__epoch))
 
     def release_resource(self):
         self.__file.close()
@@ -60,7 +59,9 @@ class Ascii3ColDST(dst_base.DST_BASE):
 
     def writeSOM(self,som):
         self.__data_type = som.getDataSetType()
-        self.writeHeader(som)
+        dst_utils.write_spec_header(self.__file, self.__epoch, som)
+        (format_str, names) = self.__formatDataInfo(som)
+        self.__axes_and_units =  format_str % names
         self.__counter = 1
         for so in som:
             self.writeData(so)
@@ -95,63 +96,7 @@ class Ascii3ColDST(dst_base.DST_BASE):
 
         return (result, tuple(names))
 
-    def writeHeader(self,som):
-        try:
-            som.attr_list["filename"].reverse()
-            som.attr_list["filename"].reverse()
-            for file in som.attr_list["filename"]:
-                print >> self.__file, "#F", file
-        except AttributeError:
-            print >> self.__file, "#F",som.attr_list["filename"]
-
-        print >> self.__file, "#E",self.__epoch
-        print >> self.__file, "#D",self.__timestamp
         
-        if som.attr_list.has_key("run_number"):
-            print >> self.__file, "#C Run Number:",som.attr_list["run_number"]
-        else:
-            pass
-        
-        print >> self.__file, "#C Title:",som.getTitle()
-        if som.attr_list.has_key("notes"):
-            print >> self.__file, "#C Notes:", som.attr_list["notes"]
-        else:
-            pass
-
-        if som.attr_list.has_key("username"):
-            print >> self.__file, "#C User:",som.attr_list["username"]
-        else:
-            pass
-
-        if som.attr_list.has_key("detector_angle"):
-            print >> self.__file, "#C Detector Angle:",\
-                  som.attr_list["detector_angle"]
-        else:
-            pass
-        
-        if som.attr_list.has_key("operations"):
-            for op in som.attr_list["operations"]:
-                print >> self.__file, "#C Operation",op
-        else:
-            pass
-        
-        if som.attr_list.has_key("parents"):
-            print >> self.__file, "#C Parent Files"
-            pdict = som.attr_list["parents"]
-            for key in pdict:
-                print >> self.__file, "#C %s: %s" % (key, pdict[key]) 
-        else:
-            pass
-
-        if som.attr_list.has_key("proton_charge"):
-            print >> self.__file, "#C Proton Charge:",\
-                  str(som.attr_list["proton_charge"])
-        else:
-            pass
-                
-        
-        (format_str, names) = self.__formatDataInfo(som)
-        self.__axes_and_units =  format_str % names
 
 
     def writeData(self,so):

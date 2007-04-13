@@ -45,11 +45,10 @@ class Dave2dDST(dst_base.DST_BASE):
         import time
         
         self.__file = resource
-        self.__timestamp = dst_utils.make_ISO8601(time.time())
+        self.__epoch = time.time()
 
     def release_resource(self):
         self.__file.close()
-
 
     def writeSO(self,so):
         self.writeData(so)
@@ -58,28 +57,9 @@ class Dave2dDST(dst_base.DST_BASE):
     def writeSOM(self,som):
         self.writeXValues(som)
         self.writeData(som[0])
-        self.writeHeader(som)
+        dst_utils.write_spec_header(self.__file, self.__epoch, som)
 
     ########## Special functions
-
-    def writeHeader(self,som):
-        print >> self.__file, "# Filename:",som.attr_list["filename"]
-        print >> self.__file, "# Key:", dst_utils.make_magic_key()
-        print >> self.__file, "# Creation Time:",self.__timestamp
-        if som.attr_list.has_key("run_number"):
-            print >> self.__file, "# Run Number:",som.attr_list["run_number"]
-        print >> self.__file, "# Title:",som.getTitle()
-        if som.attr_list.has_key("username"):
-            print >> self.__file, "# User:",som.attr_list["username"]
-        if som.attr_list.has_key("operations"):
-            for op in som.attr_list["operations"]:
-                print >> self.__file, "# Operation",op
-        if som.attr_list.has_key("parents"):
-            print >> self.__file, "# Parent Files"
-            pdict = som.attr_list["parents"]
-            for key in pdict:
-                print >> self.__file, "#%s: %s" % (key, pdict[key]) 
-
 
     def writeXValues(self,som):
         so = som[0]

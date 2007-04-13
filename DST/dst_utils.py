@@ -71,3 +71,76 @@ def make_magic_key():
         key = key[0:ins]+str(val)+key[ins:]
     
     return key
+
+def write_spec_header(ofile, epoch, som):
+    """
+    This function writes a header based on the Spec file format.
+    http://www.certif.com/spec_manual/user_1_4_1.html
+
+    Parameters:
+    ----------
+    -> ofile is the handle to the output file
+    -> epoch is the UNIX time at creation
+    -> som is the associated data
+    """
+
+    file_keys = [key for key in som.attr_list.keys() \
+                 if key.find("-filename") != -1]
+    if len(file_keys):
+        for file_key in file_keys:
+            tag = file_key.split('-')[0]
+            try:
+                som.attr_list[file_key].reverse()
+                som.attr_list[file_key].reverse()
+                for file in som.attr_list[file_key]:
+                    print >> ofile, "#F %s: %s" % (tag, file)
+            except AttributeError:
+                print >> ofile, "#F %s: %s" % (tag, som.attr_list[file_key])
+    else:
+        print >> ofile, "#F", som.attr_list["filename"]
+
+    print >> ofile, "#E", epoch
+    print >> ofile, "#D", make_ISO8601(epoch)
+        
+    if som.attr_list.has_key("run_number"):
+        print >> ofile, "#C Run Number:",som.attr_list["run_number"]
+    else:
+        pass
+        
+    print >> ofile, "#C Title:",som.getTitle()
+    if som.attr_list.has_key("notes"):
+        print >> ofile, "#C Notes:", som.attr_list["notes"]
+    else:
+        pass
+    
+    if som.attr_list.has_key("username"):
+        print >> ofile, "#C User:",som.attr_list["username"]
+    else:
+        pass
+    
+    if som.attr_list.has_key("detector_angle"):
+        print >> ofile, "#C Detector Angle:",\
+              som.attr_list["detector_angle"]
+    else:
+        pass
+    
+    if som.attr_list.has_key("operations"):
+        for op in som.attr_list["operations"]:
+            print >> ofile, "#C Operation",op
+    else:
+        pass
+    
+    if som.attr_list.has_key("parents"):
+        print >> ofile, "#C Parent Files"
+        pdict = som.attr_list["parents"]
+        for key in pdict:
+            print >> ofile, "#C %s: %s" % (key, pdict[key]) 
+    else:
+        pass
+
+    if som.attr_list.has_key("proton_charge"):
+        print >> ofile, "#C Proton Charge:",\
+              str(som.attr_list["proton_charge"])
+    else:
+        pass
+
