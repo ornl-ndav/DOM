@@ -149,19 +149,29 @@ class Ascii3ColDST(dst_base.DST_BASE):
                 for k in range(dim1):
                     print >> self.__file, so1.axis[k].val[i],self.SPACE,
                     if so1.axis[k].var is not None:
-                        print >> self.__file, \
-                              math.sqrt(math.fabs(so1.axis[k].var[i])),
+                        try:
+                            print >> self.__file, \
+                                  math.sqrt(math.fabs(so1.axis[k].var[i])),
+                        except OverflowError:
+                            print >> self.__file, float('inf'),
             
             dim = so.dim()
             for j in range(dim):
                 print >> self.__file, so.axis[j].val[i],self.SPACE,
                 if so.axis[j].var is not None:
-                    print >> self.__file, \
-                          math.sqrt(math.fabs(so.axis[j].var[i])),self.SPACE,
+                    try:
+                        print >> self.__file, \
+                              math.sqrt(math.fabs(so.axis[j].var[i])), \
+                              self.SPACE,
+                    except OverflowError:
+                        print >> self.__file, float('inf'), self.SPACE,     
 
             if i < so_y_len:
                 print >> self.__file, so.y[i],self.SPACE,
-                print >> self.__file, math.sqrt(math.fabs(so.var_y[i]))
+                try:
+                    print >> self.__file, math.sqrt(math.fabs(so.var_y[i]))
+                except OverflowError:
+                    print >> self.__file, float('inf')
             else:
                 print >> self.__file, self.EMPTY
 
