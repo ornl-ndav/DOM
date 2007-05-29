@@ -185,12 +185,6 @@ class NeXusDST(dst_base.DST_BASE):
         except IOError:
             result.setTitle("")
 
-        path = entry_locations[0] + "/notes"
-        try:
-            result.attr_list["notes"] = self.__get_val_as_str(path)
-        except IOError:
-            result.attr_list["notes"] = ""
-
         inst_keys = []
 
         # If there is only one ID in the list, expect that starting and
@@ -450,7 +444,7 @@ class NeXusDST(dst_base.DST_BASE):
         attrs = {}
         for path in attr_list:
             key = path.split("/")[-1]
-
+            units = None
             if key == "run_number":
                 val = self.__get_val_as_type(path, "s")
             else:
@@ -461,11 +455,10 @@ class NeXusDST(dst_base.DST_BASE):
                     
             try:
                 units = self.__get_attr_as_str(path, "units")
-                val = (val, units)
             except RuntimeError:
                 pass
 
-            attrs[key] = val
+            attrs[key] = SOM.NxParameter(val, units)
 
         return attrs
 

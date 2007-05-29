@@ -23,6 +23,7 @@
 # $Id$
 
 import attribute
+from nxparameter import NxParameter
 
 class SOM(list):
     EMPTY   = ""
@@ -81,7 +82,7 @@ class SOM(list):
     def __ne__(self, other):
         return not self.__eq__(other)
         
-    def copyAttributes(self,other):
+    def copyAttributes(self, other, add_nxpars=False):
         import copy
         
         self.setTitle(other.getTitle())
@@ -95,11 +96,20 @@ class SOM(list):
         else:
             self.attr_list.instrument = copy.copy(other.attr_list.instrument)
             self.attr_list.sample = copy.copy(other.attr_list.sample)
+
+            if add_nxpars:
+                nxpar_keys = [item[0] for item in self.attr_list.items() \
+                              if isinstance(item[1], NxParameter)]
+
+                for nxpar_key in nxpar_keys:
+                    self.attr_list[nxpar_key] += other.attr_list[nxpar_key]
+            else:
+                # Do nothing
+                pass
                     
             keys_to_get = [other_key for other_key in other.attr_list.keys() \
-                           for self_key in self.attr_list.keys() \
-                           if other_key != self_key]
-
+                           if other_key not in self.attr_list.keys()]
+                
             for key_to_get in keys_to_get:
                 self.attr_list[key_to_get] = \
                                        copy.copy(other.attr_list[key_to_get])
@@ -152,6 +162,26 @@ class SOM(list):
 
         return self.__axis_units__.__contains__(unit)
 
+    def rekeyNxPars(self, dataset_tag):
+        """
+        This function prepends a dataset tag to the keys of NxParameters in
+        the SOMs attribute list.
+
+        Parameters:
+        ----------
+        -> dataset_tag is a string containing the name to prepend to the key
+        """
+        nxpar_keys = [item[0] for item in self.attr_list.items() \
+                      if isinstance(item[1], NxParameter)]
+        
+        nxpar_values = []
+        for nxpar_key in nxpar_keys:
+            nxpar_values.append(self.attr_list.pop(nxpar_key))
+
+        import itertools
+        for nxpar_rekeyed in itertools.izip(nxpar_keys, nxpar_values):
+            self.attr_list[dataset_tag+"-"+nxpar_rekeyed[0]] = nxpar_rekeyed[1]
+            
     def setAllAxisLabels(self,labels):
         self.__axis_labels__ = labels
 

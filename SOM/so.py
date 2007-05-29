@@ -32,7 +32,12 @@ class SO:
     
     def __init__(self,dim=1,id=None,**kwargs):
 
-        if kwargs.has_key("construct"):
+        try:
+            construct = kwargs["construct"]
+        except KeyError:
+            construct = False
+
+        if construct:
             self.y     = nessi_list.NessiList()
             self.var_y = nessi_list.NessiList()
         else:
@@ -89,12 +94,22 @@ class PrimaryAxis:
     
     def __init__(self,id=1,**kwargs):
 
-        if kwargs.has_key("construct"):
+        try:
+            construct = kwargs["construct"]
+        except KeyError:
+            construct = False
+
+        try:
+            withVar = kwargs["withVar"]
+        except KeyError:
+            withVar = False
+
+        if construct:
             self.val = nessi_list.NessiList()
         else:
             self.val = None
-        if kwargs.has_key("withVar"):
-            if kwargs.has_key("construct"):
+        if withVar:
+            if construct:
                 self.var = nessi_list.NessiList()
             else:
                 self.var = None

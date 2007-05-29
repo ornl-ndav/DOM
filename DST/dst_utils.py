@@ -101,17 +101,58 @@ def write_spec_header(ofile, epoch, som):
 
     print >> ofile, "#E", epoch
     print >> ofile, "#D", make_ISO8601(epoch)
-        
-    if som.attr_list.has_key("run_number"):
-        print >> ofile, "#C Run Number:",som.attr_list["run_number"]
+
+    run_number_keys = [key for key in som.attr_list.keys() \
+                   if key.find("-run_number") != -1]
+
+    if len(run_number_keys):
+        for run_number_key in run_number_keys:
+            tag = run_number_key.split('-')[0]
+            try:
+                som.attr_list[run_number_key].reverse()
+                som.attr_list[run_number_key].reverse()
+                for run_number in som.attr_list[run_number_key]:
+                    print >> ofile, "#C %s Run Number: %s" % (tag, run_number)
+            except AttributeError:
+                print >> ofile, "#C %s Run Number: %s" \
+                      % (tag, som.attr_list[run_number_key])
     else:
-        pass
-        
-    print >> ofile, "#C Title:",som.getTitle()
-    if som.attr_list.has_key("notes"):
-        print >> ofile, "#C Notes:", som.attr_list["notes"]
+        if som.attr_list.has_key("run_number"):
+            print >> ofile, "#C Run Number:",som.attr_list["run_number"]
+
+    title_keys = [key for key in som.attr_list.keys() \
+                   if key.find("-title") != -1]
+
+    if len(title_keys):
+        for title_key in title_keys:
+            tag = title_key.split('-')[0]
+            try:
+                som.attr_list[title_key].reverse()
+                som.attr_list[title_key].reverse()
+                for title in som.attr_list[title_key]:
+                    print >> ofile, "#C %s Title: %s" % (tag, title)
+            except AttributeError:
+                print >> ofile, "#C %s Title: %s" \
+                      % (tag, som.attr_list[title_key])
     else:
-        pass
+        print >> ofile, "#C Title:",som.getTitle()
+
+    notes_keys = [key for key in som.attr_list.keys() \
+                 if key.find("-notes") != -1]
+    if len(notes_keys):
+        for notes_key in notes_keys:
+            tag = notes_key.split('-')[0]
+            try:
+                som.attr_list[notes_key].reverse()
+                som.attr_list[notes_key].reverse()
+                for notes in som.attr_list[notes_key]:
+                    print >> ofile, "#C %s Notes: %s" % (tag, notes)
+            except AttributeError:
+                print >> ofile, "#C %s Notes: %s" % (tag,
+                                                     som.attr_list[notes_key])
+    else:
+        if som.attr_list.has_key("notes"):
+            print >> ofile, "#C Notes:", som.attr_list["notes"]
     
     if som.attr_list.has_key("username"):
         print >> ofile, "#C User:",som.attr_list["username"]
@@ -138,9 +179,23 @@ def write_spec_header(ofile, epoch, som):
     else:
         pass
 
-    if som.attr_list.has_key("proton_charge"):
-        print >> ofile, "#C Proton Charge:",\
-              str(som.attr_list["proton_charge"])
+    proton_keys = [key for key in som.attr_list.keys() \
+                   if key.find("-proton_charge") != -1]
+
+    if len(proton_keys):
+        for proton_key in proton_keys:
+            tag = proton_key.split('-')[0]
+            try:
+                som.attr_list[proton_key].reverse()
+                som.attr_list[proton_key].reverse()
+                for proton in som.attr_list[proton_key]:
+                    print >> ofile, "#C %s Proton Charge: %s" % (tag, proton)
+            except AttributeError:
+                print >> ofile, "#C %s Proton Charge: %s" \
+                      % (tag, som.attr_list[proton_key])
     else:
-        pass
+        if som.attr_list.has_key("proton_charge"):
+            print >> ofile, "#C Proton Charge:",\
+                  str(som.attr_list["proton_charge"])
+
 

@@ -27,13 +27,14 @@ from comp_instrument import CompositeInstrument
 from asg_instrument import ASG_Instrument
 from igs_instrument import IGS_Instrument
 from indexselector import *
+from nxparameter import NxParameter
 from sample import Sample
 from simpleselector import *
 from som import SOM
 from so import PrimaryAxis
 from so import SO
 
-from version import version as __version__
+from DOM_version import version as __version__
 
 # version
 __id__ = "$Id$"

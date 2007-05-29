@@ -39,7 +39,6 @@ class Ascii3ColDST(dst_base.DST_BASE):
     MIME_TYPE="text/Spec"
     EMPTY=""
     SPACE=" "
-    COLUMNS=3
     
     ########## DST_BASE functions
 
@@ -48,61 +47,92 @@ class Ascii3ColDST(dst_base.DST_BASE):
         
         self.__file = resource
         self.__epoch = time.time()
+        self.__columns = 0
 
     def release_resource(self):
         self.__file.close()
 
-
     def writeSO(self,so):
         self.writeData(so)
 
-
-    def writeSOM(self,som):
+    def writeSOM(self, som, **kwargs):
         self.__data_type = som.getDataSetType()
+        try:
+            extra_som = kwargs["extra_som"]
+        except KeyError:
+            extra_som = None
+
+        if extra_som is not None and \
+               self.__data_type != extra_som.getDataSetType():
+            raise RuntimeError("The SOMs are not the same data type: "\
+                           +"%s, extra_som=%s" % (self._data_type,
+                                                  extra_som.getDataSetType()))
+        
         dst_utils.write_spec_header(self.__file, self.__epoch, som)
-        (format_str, names) = self.__formatDataInfo(som)
+        (format_str, names) = self.__formatDataInfo(som, extra_som)
         self.__axes_and_units =  format_str % names
         self.__counter = 1
-        for so in som:
-            self.writeData(so)
+        if extra_som is None:
+            for so in som:
+                self.writeData(so)
+        else:
+            import itertools
+            for so_tuple in itertools.izip(som, extra_som):
+                self.writeData(so_tuple[0], so_tuple[1])
 
     ########## Special functions
 
-    def __formatDataInfo(self,som):
+    def __dataSelfCheck(self, som):
         # Need SO for primary axis information
         so = som[0]
         dim = som.getDimension()
 
         if dim != so.dim():
-            raise RuntimeError, "SOM and attending SOs do not have the same"\
-                  +" dimensions"
+            raise RuntimeError("SOM and attending SOs do not have the same"\
+                               +" dimensions")
+
+    def __formatDataInfo(self,som,som1=None):
+        self.__dataSelfCheck(som)
 
         names = []
-        result = "#L ";
-        # Add primary axis format positions
-        for i in range(dim):
-            result += "%s(%s) "
-            names.append(som.getAxisLabel(i))
-            names.append(som.getAxisUnits(i))
-            if so.axis[i].var != None:
-                result += "Sigma(%s) "
-                names.append(som.getAxisUnits(i))
+        result = ["#L"];
+
+        if som1 is not None:
+            self.__dataSelfCheck(som1)
+            (names, result) = self.__setPrimaryAxisInfo(som1.getDimension(),
+                                                        som1, som1[0],
+                                                        names, result)
+
+        (names, result) = self.__setPrimaryAxisInfo(som.getDimension(), som,
+                                                    som[0], names, result)
 
         # Add y and var_y axis format positions
-        result += "%s(%s) Sigma(%s)"
+        result.append("%s(%s) Sigma(%s)")
         names.append(som.getYLabel())
         names.append(som.getYUnits())
         names.append(som.getYUnits())
+        self.__columns += 2
 
-        return (result, tuple(names))
+        return (self.SPACE.join(result), tuple(names))
 
-        
+    def __setPrimaryAxisInfo(self, dim, som, so, names, result):
+        # Add primary axis format positions
+        for i in range(dim):
+            self.__columns += 1
+            result.append("%s(%s)")
+            names.append(som.getAxisLabel(i))
+            names.append(som.getAxisUnits(i))
+            if so.axis[i].var != None:
+                self.__columns += 1
+                result.append("Sigma(%s)")
+                names.append(som.getAxisUnits(i))
 
+        return (names, result)
 
-    def writeData(self,so):
+    def writeData(self, so, so1=None):
         print >> self.__file, self.EMPTY
         print >> self.__file, "#S",self.__counter,"Spectrum ID",so.id
-        print >> self.__file, "#N", self.COLUMNS
+        print >> self.__file, "#N", self.__columns
         print >> self.__file, self.__axes_and_units
         so_y_len=len(so.y)
 
@@ -114,13 +144,21 @@ class Ascii3ColDST(dst_base.DST_BASE):
             pass
         
         for i in range(size):
+            if so1 is not None:
+                dim1 = so1.dim()
+                for k in range(dim1):
+                    print >> self.__file, so1.axis[k].val[i],self.SPACE,
+                    if so1.axis[k].var is not None:
+                        print >> self.__file, \
+                              math.sqrt(math.fabs(so1.axis[k].var[i])),
+            
             dim = so.dim()
             for j in range(dim):
                 print >> self.__file, so.axis[j].val[i],self.SPACE,
-                if so.axis[j].var != None:
+                if so.axis[j].var is not None:
                     print >> self.__file, \
                           math.sqrt(math.fabs(so.axis[j].var[i])),self.SPACE,
-            
+
             if i < so_y_len:
                 print >> self.__file, so.y[i],self.SPACE,
                 print >> self.__file, math.sqrt(math.fabs(so.var_y[i]))

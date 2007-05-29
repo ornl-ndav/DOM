@@ -27,7 +27,7 @@
 from distutils.core import setup, Extension
 import os
 import sys
-from version import version as __version__
+from DOM_version import version as __version__
 
 # Package name and version information
 PACKAGE = "DOM"

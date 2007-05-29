@@ -32,7 +32,7 @@ from nexus_dst import NeXusDST
 from numinfo_dst import NumInfoDST
 from param_map import ParameterMap
 
-from version import version as __version__
+from DOM_version import version as __version__
 
 # version
 __id__ = "$Id$"
