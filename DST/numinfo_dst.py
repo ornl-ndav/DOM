@@ -33,11 +33,10 @@ class NumInfoDST(dst_base.DST_BASE):
 
     ########## DST_BASE functions
 
-    def __init__(self, resource, attr_name, *args, **kwargs):
+    def __init__(self, resource, *args, **kwargs):
         import time
         import xml.dom.minidom
 
-        self.__attr_name = attr_name
         self.__doc = xml.dom.minidom.Document()
         self.__file = resource
         self.__epoch = time.time()
@@ -65,38 +64,10 @@ class NumInfoDST(dst_base.DST_BASE):
     def release_resource(self):
         self.__file.close()
 
+    def writeSO(self,so):
+        self.writeData(so)
+
     def writeSOM(self,som):
-        self.prepareContents(som)
-        #self.writeFile()
-
-    ########## Special functions
-
-    def prepareContents(self, som):
-
-        try:
-            num_list = som.attr_list[self.__attr_name]
-        except KeyError:
-            raise RuntimeError("Attribute %s is not present in SOM" \
-                               % self.__attr_name)
-
-        num_list_size = len(num_list)
-        som_size = len(som)
-
-        if num_list_size != som_size:
-            raise RuntimeError("Numeric information and SOM do not have the "\
-                               +"same number of entries.")
-
-        values = [num_list[i][0] for i in xrange(num_list_size)]
-        errors = [math.sqrt(num_list[i][1]) for i in xrange(num_list_size)]
-        ids = [som[i].id for i in xrange(som_size)]
-
-        #self.__parseContentsForXml(values, errors, ids)
-
-        self.__parseContentsForAscii(som, values, errors, ids)
-
-
-    def __parseContentsForAscii(self, som, values, errors, ids):
-
         dst_utils.write_spec_header(self.__file, self.__epoch, som)
 
         if self.__comments is not None:
@@ -106,12 +77,27 @@ class NumInfoDST(dst_base.DST_BASE):
         print >> self.__file, \
               "#L Pixel ID  %s (%s) Error (%s)" % (self.__tag, self.__units,
                                                    self.__units)
+        for so in som:
+            self.writeData(so)
         
-        for k in xrange(len(values)):
-            print >> self.__file, ids[k], values[k], errors[k]
+        #self.prepareContents(som)
+        #self.writeFile()
+
+    ########## Special functions
+
+    def writeData(self, so):
+        try:
+            variance = math.sqrt(so.var_y)
+        except OverflowError:
+            variance = float('inf')
+        
+        print >> self.__file, so.id, so.y, variance
+
+    def prepareContents(self, som):
+        self.__parseContentsForXml(values, errors, ids)
 
     def __parseContentsForXml(self, values, errors, ids):
-
+        # NOT VALID, NEEDS TO BE REDONE IF XML IS DESIRED
         value_string_bank_list = []
         error_string_bank_list = []
         bank_list = []
