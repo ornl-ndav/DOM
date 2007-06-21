@@ -48,7 +48,6 @@ class Ascii3ColDST(dst_base.DST_BASE):
         self.__file = resource
         self.__epoch = time.time()
         self.__columns = 0
-        self.__extra_som_type = ""
 
     def release_resource(self):
         self.__file.close()
@@ -59,10 +58,16 @@ class Ascii3ColDST(dst_base.DST_BASE):
     def writeSOM(self, som, **kwargs):
         self.__data_type = som.getDataSetType()
         try:
-            extra_som = som.attr_list["extra_som"]
+            extra_som = kwargs["extra_som"]
         except KeyError:
             extra_som = None
 
+        if extra_som is not None and \
+               self.__data_type != extra_som.getDataSetType():
+            raise RuntimeError("The SOMs are not the same data type: "\
+                           +"%s, extra_som=%s" % (self._data_type,
+                                                  extra_som.getDataSetType()))
+        
         dst_utils.write_spec_header(self.__file, self.__epoch, som)
         (format_str, names) = self.__formatDataInfo(som, extra_som)
         self.__axes_and_units =  format_str % names
@@ -71,13 +76,9 @@ class Ascii3ColDST(dst_base.DST_BASE):
             for so in som:
                 self.writeData(so)
         else:
-            if len(extra_som) > 1:
-                import itertools
-                for so_tuple in itertools.izip(som, extra_som):
-                    self.writeData(so_tuple[0], so_tuple[1])
-            else:
-                for so in som:
-                    self.writeData(so, extra_som[0])
+            import itertools
+            for so_tuple in itertools.izip(som, extra_som):
+                self.writeData(so_tuple[0], so_tuple[1])
 
     ########## Special functions
 
@@ -88,8 +89,7 @@ class Ascii3ColDST(dst_base.DST_BASE):
 
         if dim != so.dim():
             raise RuntimeError("SOM and attending SOs do not have the same"\
-                               +" dimensions. The dimensions are SOM(%d) and "\
-                               +"SO(%d)" % (dim, so.dim()))
+                               +" dimensions")
 
     def __formatDataInfo(self,som,som1=None):
         self.__dataSelfCheck(som)
@@ -98,13 +98,11 @@ class Ascii3ColDST(dst_base.DST_BASE):
         result = ["#L"];
 
         if som1 is not None:
-            self.__extra_som_type = som1.getDataSetType()
-            if som1.getDataSetType() == "histogram":
-                (names, result) = self.__setPrimaryAxisInfo(\
-                    som1.getDimension(),
-                    som1, som1[0],
-                    names, result)
-                
+            self.__dataSelfCheck(som1)
+            (names, result) = self.__setPrimaryAxisInfo(som1.getDimension(),
+                                                        som1, som1[0],
+                                                        names, result)
+
         (names, result) = self.__setPrimaryAxisInfo(som.getDimension(), som,
                                                     som[0], names, result)
 
@@ -114,13 +112,6 @@ class Ascii3ColDST(dst_base.DST_BASE):
         names.append(som.getYUnits())
         names.append(som.getYUnits())
         self.__columns += 2
-
-        
-        if som1 is not None and som1.getDataSetType() == "density":
-            result.append("%s(%s)")
-            names.append(som1.getYLabel())
-            names.append(som1.getYUnits())
-            self.__columns += 1
 
         return (self.SPACE.join(result), tuple(names))
 
@@ -153,7 +144,7 @@ class Ascii3ColDST(dst_base.DST_BASE):
             pass
         
         for i in range(size):
-            if so1 is not None and self.__extra_som_type == "histogram":
+            if so1 is not None:
                 dim1 = so1.dim()
                 for k in range(dim1):
                     print >> self.__file, so1.axis[k].val[i],self.SPACE,
@@ -178,19 +169,9 @@ class Ascii3ColDST(dst_base.DST_BASE):
             if i < so_y_len:
                 print >> self.__file, so.y[i],self.SPACE,
                 try:
-                    if so1 is None:
-                        print >> self.__file, \
-                              math.sqrt(math.fabs(so.var_y[i]))
-                    else:
-                        print >> self.__file, \
-                              math.sqrt(math.fabs(so.var_y[i])), self.SPACE,
+                    print >> self.__file, math.sqrt(math.fabs(so.var_y[i]))
                 except OverflowError:
-                    if so1 is None:
-                        print >> self.__file, float('inf')
-                    else:
-                        print >> self.__file, float('inf'), self.SPACE,
-                if so1 is not None and self.__extra_som_type == "density":
-                    print >> self.__file, so1.y[i]
+                    print >> self.__file, float('inf')
             else:
                 print >> self.__file, self.EMPTY
 
