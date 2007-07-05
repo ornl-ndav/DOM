@@ -66,8 +66,14 @@ class MdwDST(dst_base.DST_BASE):
 
             if value is not False and value is not None:
                 snode = self.__doc.createElement(key)
-                tnode = self.__doc.createTextNode(str(value))
-                snode.appendChild(tnode)
+                stype = str(type(value)).split('\'')[1]
+                snode.setAttribute("type", stype)
+                try:
+                    snode = value.toXmlConfig(self.__doc, snode)
+                except AttributeError:
+                    tnode = self.__doc.createTextNode(str(value))
+                    snode.appendChild(tnode)
+
                 mainnode.appendChild(snode)
             else:
                 pass

@@ -126,10 +126,14 @@ class Instrument:
             self.__azimuthal_selector__ = getIndexSelector("JSelector")
             self.__secondary_selector__ = getIndexSelector("IJSelector",
                                                            Nj=extra)
+            self.__polar_selector__     = getIndexSelector("IJSelector",
+                                                           Nj=extra)        
         elif inst == "REF_L":
             self.__azimuthal_selector__ = getIndexSelector("ISelector")
             self.__secondary_selector__ = getIndexSelector("IJSelector",
                                                            Nj=extra)
+            self.__polar_selector__     = getIndexSelector("IJSelector",
+                                                           Nj=extra)         
         elif inst == "GLAD":
             self.__azimuthal_selector__ = getIndexSelector("JSelector")
             self.__polar_selector__     = getIndexSelector("IJSelector",

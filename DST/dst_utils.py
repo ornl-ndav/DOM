@@ -153,6 +153,23 @@ def write_spec_header(ofile, epoch, som):
     else:
         if som.attr_list.has_key("notes"):
             print >> ofile, "#C Notes:", som.attr_list["notes"]
+
+    dt_over_t_keys = [key for key in som.attr_list.keys() \
+                 if key.find("-dt_over_t") != -1]
+    if len(dt_over_t_keys):
+        for dt_over_t_key in dt_over_t_keys:
+            tag = dt_over_t_key.split('-')[0]
+            try:
+                som.attr_list[dt_over_t_key].reverse()
+                som.attr_list[dt_over_t_key].reverse()
+                for dt_over_t in som.attr_list[dt_over_t_key]:
+                    print >> ofile, "#C %s dt/t: %f" % (tag, dt_over_t)
+            except AttributeError:
+                print >> ofile, "#C %s dt/t: %f" % (tag,
+                                              som.attr_list[dt_over_t_key])
+    else:
+        if som.attr_list.has_key("dt_over_t"):
+            print >> ofile, "#C Notes:", som.attr_list["dt_over_t"]
     
     if som.attr_list.has_key("username"):
         print >> ofile, "#C User:",som.attr_list["username"]

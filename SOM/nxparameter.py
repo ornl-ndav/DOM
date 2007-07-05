@@ -22,23 +22,24 @@
 
 # $Id$
 
-class NxParameter:
+class NxParameter(object):
     """
-    This class represents NeXus parameters stored in a NeXus file. A given 
-    parameter may or may not have units associated with it. The ability to
-    add similar parameters together will be a key feature of this class. The
-    values of the NxParameter class are designed to be string, floats or ints.
-    The class does not understand how to deal with anything else.
+    This class represents U{NeXus<www.nexusformat.org>} parameters stored in a
+    U{NeXus<www.nexusformat.org>} file. A given parameter may or may not have
+    units associated with it. The ability to add similar parameters together
+    will be a key feature of this class. The values of the C{NxParameter}
+    class are designed to be C{string}s, C{float}s or C{int}s. The class does
+    not understand how to deal with anything else.
     """
 
     def __init__(self, value, units=None):
         """
         Object constructor
 
-        Parameters:
-        ----------
-        -> value is a primitive type or object containing some information
-        -> units is the associated units for the value (can be None)
+        @param value: Value to be stored
+        @type value: C{string}, C{float}or C{int}
+        @param units: The associated units for the value (can be C{None})
+        @type units: C{string} or C{None}
         """
         self.__value = value
         self.__units = units
@@ -48,9 +49,8 @@ class NxParameter:
         """
         This method gets the units associated with the parameter
 
-        Returns:
-        -------
-        <- Associated parameter units
+        @return: Associated parameter units
+        @rtype: C{string}
         """
         return self.__units
 
@@ -58,24 +58,22 @@ class NxParameter:
         """
         This method gets the value of the parameter
 
-        Returns:
-        -------
-        <- The parameter value
+        @return: The parameter value
+        @rtype: C{string}, C{float} or C{int}
         """
         return self.__value
 
     def isCompatible(self, other):
         """
-        This method checks a given NxParamter object against the current one
-        and returns a boolean answer about compatibility.
+        This method checks a given C{NxParameter} object against the current
+        one and returns a C{boolean} answer about compatibility.
 
-        Parameters:
-        ----------
-        -> other is a NxParameter to check for compatibility
+        @param other: Object to check for compatibility
+        @type other: C{SOM.NxParameter} 
 
-        Return:
-        ------
-        <- A boolean value depending on the check for compatiblity
+
+        @return: The value depending on the check for compatiblity
+        @rtype: C{boolean}
         """
         if self.__units is None:
             if self.__val_type == type(other.getValue()):
@@ -93,12 +91,11 @@ class NxParameter:
 
     def __str__(self):
         """
-        This method provides a string representation of NxParameter. If units
-        are present, the representation is turned into a tuple.
+        This method provides a string representation of C{NxParameter}. If
+        units are present, the representation is turned into a C{tuple}.
 
-        Returns:
-        -------
-        <- The string representation of the value and units (if applicable)
+        @return: The representation of the value and units (if applicable)
+        @rtype: C{string}
         """
         if self.__units is None:
             return str(self.__value)
@@ -107,34 +104,31 @@ class NxParameter:
 
     def __repr__(self):
         """
-        This method provides a representation of the NxParameter
+        This method provides a representation of the C{NxParameter}
 
-        Returns:
-        -------
-        -> A string representation of the NxParameter. It uses __str__.
+        @return: The representation of the C{NxParameter}. It uses X{__str__}.
+        @rtype: C{string}
         """
         return self.__str__()
 
 
     def __add__(self, right):
         """
-        This method allows the addition of two NxParameter objects. A warning
-        is generated if the two objects are not compatible and the original
-        object is returned.
+        This method allows the addition of two C{NxParameter} objects. A
+        warning is generated if the two objects are not compatible and the
+        original object is returned.
 
-        obj3 = obj1 + obj2
+            >>> obj3 = obj1 + obj2
 
-        Parameters:
-        ----------
-        -> right is a NxParameter to add
+        @param right: Object to add
+        @param right: C{SOM.NxParameter}
 
-        Returns:
-        -------
-        <- The resulting NxParameter after addition
 
-        Exceptions:
-        ----------
-        <- RuntimeError is raised if the value type is not recognized
+        @return: The resulting object after addition
+        @rtype: C{SOM.NxParameter}
+
+
+        @raise RuntimeError: The value type is not recognized
         """
         value = ""
         units = None
@@ -160,23 +154,23 @@ class NxParameter:
 
     def __radd__(self, left):
         """
-        This method allows the addition of a scalar value to a NxParameter
-        object. A warning is generated if the scalar value and the NxParameter
-        are not compatible and the original NxParameter is returned.
+        This method allows the addition of a scalar value to a C{NxParameter}
+        object. A warning is generated if the scalar value and the
+        C{NxParameter} are not compatible and the original C{NxParameter} is
+        returned.
 
-        obj2 = \"Hi\" + obj1
+            >>> obj2 = \"Hi\" + obj1
 
-        Parameters:
-        ----------
-        -> left is a primitive type or tuple(primitive type, units)
+        @param left: The primitive type or C{tuple:(primitive type, units)} to
+                     add.
+        @type left: C{string}, C{float}, C{int} or C{tuple}
 
-        Returns:
-        -------
-        <- The resulting NxParameter after addition
 
-        Exceptions:
-        ----------
-        <- RuntimeError is raised if the value type is not recognized
+        @return: The resulting object after addition
+        @rtype: C{SOM.NxParameter} 
+
+
+        @raise RuntimeError: The value type is not recognized
         """
         left_type = type(left)
         if left_type == NxParameter:
@@ -188,23 +182,21 @@ class NxParameter:
 
     def __iadd__(self, left):
         """
-        This method allows the in place addition of a NxParameter object with
-        another NxParameter object. A warning is generated if the two objects
-        are not compatible and the original object is returned.
+        This method allows the in place addition of a C{NxParameter} object
+        with another C{NxParameter} object. A warning is generated if the two
+        objects are not compatible and the original object is returned.
 
-        obj1 += obj2
+            >>> obj1 += obj2
 
-        Parameters:
-        ----------
-        -> left is a NxParameter to add
+        @param left: Object to add
+        @type left: C{SOM.NxParameter}
 
-        Returns:
-        -------
-        <- The resulting NxParameter after addition
 
-        Exceptions:
-        ----------
-        <- RuntimeError is raised if the value type is not recognized
+        @return: The resulting object after addition
+        @rtype: C{SOM.NxParameter}
+
+
+        @raise RuntimeError: The value type is not recognized
         """
         if self.isCompatible(left):
             if self.__val_type is str:
@@ -224,16 +216,15 @@ class NxParameter:
 def fromTuple(obj):
     """
     This method provides an alternative constructor method for creating a
-    NxParameter from a tuple of the following form (value, units). A tuple may
-    be specified as following: (value, None)
+    C{NxParameter} from a C{tuple} of the following form C{(value, units)}. A
+    C{tuple} may be specified as following: C{(value, None)}.
 
-    Parameters:
-    ---------
-    -> obj is a tuple containing a value and units.
+    @param obj: Object containing a value and units.
+    @type obj: C{tuple}
 
-    Returns:
-    -------
-    <- A new NxParameter object with the information from the tuple
+
+    @return: A new object with the information from the C{tuple}
+    @rtype: C{SOM.NxParameter}
     """
     return NxParameter(obj[0], obj[1])
 
