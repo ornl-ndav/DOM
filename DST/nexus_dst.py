@@ -458,6 +458,12 @@ class NeXusDST(dst_base.DST_BASE):
             except RuntimeError:
                 pass
 
+            if key == "proton_charge" and units == "microAmp*hour":
+                val *= 36.0e8
+                units = "picoCoulomb"
+            else:
+                pass
+
             attrs[key] = SOM.NxParameter(val, units)
 
         return attrs
