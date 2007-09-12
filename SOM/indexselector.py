@@ -24,7 +24,7 @@
 
 class IndexSelectorBase:
     """
-    This is the IndexSelectorBase abstract base class. It serves as the
+    This is the C{IndexSelectorBase} abstract base class. It serves as the
     foundation for an index selector concrete class. All concrete classes must
     override both the constructor and the getIndex member function. The id
     passed to the getIndex function is interpreted based on the implementation
@@ -35,51 +35,52 @@ class IndexSelectorBase:
     set read from a NeXus file.
     """
     
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
         """
-        MUST OVERRIDE
+        Object constructor. ALL INHERITED OBJECT MUST OVERRIDE.
         """
-        
-        raise NotImplementedError
+        raise NotImplementedError("Cannot create IndexSelectorBase objects")
 
     def getIndex(self, id):
         """
-        MUST OVERRIDE
+        Method to return a given index. ALL INHERITED OBJECTS MUST OVERRIDE.
         """
-        raise NotImplementedError
+        raise NotImplementedError("IndexSelectorBase objects have no " \
+                                  +"selector logic")
 
-
-def getIndexSelector(selector_name,**kwargs):
+def getIndexSelector(selector_name, **kwargs):
     """
     This is the factory function for obtaining concrete index selector objects.
 
-    Parameters:
-    ----------
-    -> selector_name is the class name of the concrete index selector
-    -> kwargs is a list of key word arguments that the requested index selector
-       will accept
-
-    Returns:
-    -------
-    <- The requested index selector object
-
-    Exceptions:
-    ----------
-    <- Exception is raised if the requested index selector name is not
-       present in the factory list
-    """
+    @param selector_name: The class name of the concrete index selector
+    @type selector_name: C{string}
     
+    @param kwargs: A list of key word arguments that the requested index
+    selector will accept
+
+
+    @return: The requested index selector object
+    @rtype: Concrete C{IndexSelector}
+
+
+    @raise Exception: If the requested index selector name is not present in
+                      the factory list.
+    """
     import simpleselector
 
     if selector_name == "ISelector":
-        return simpleselector.ISelector(**kwargs)
+        return simpleselector.ISelector()
     elif selector_name == "JSelector":
-        return simpleselector.JSelector(**kwargs)
+        return simpleselector.JSelector()
     elif selector_name == "ZSelector":
-        return simpleselector.ZSelector(**kwargs)
+        return simpleselector.ZSelector()
     elif selector_name == "IJSelector":
-        return simpleselector.IJSelector(**kwargs)
+        try:
+            Nj_in = kwargs["Nj"]
+        except KeyError:
+            Nj_in = None
+        return simpleselector.IJSelector(Nj=Nj_in)
     else:
-        raise Exception, "Do not understand selector %s" % selector_name
+        raise Exception("Do not understand selector %s" % selector_name)
 
 

@@ -26,9 +26,50 @@ import attribute
 from nxparameter import NxParameter
 
 class SOM(list):
-    EMPTY   = ""
+    """
+    This class is the container for scientific data and metadata. The data is
+    contained by L{SO}s within a C{SOM}s internal list. Metadata is held in
+    an extensible L{AttributeList}. Instrument geometry information is kept in
+    either a L{CompositeInstrument} or an L{Instrument} object. Sample
+    information is kept in a L{Sample} object.
+
+    @cvar EMPTY: Variable for holding an empty string
+    @type EMPTY: C{string}
+
+    @ivar __title__: Dataset description
+    @type __title__: C{string}
+
+    @ivar __axis_labels__: Labels for the independent axes
+    @type __axis_labels__: C{list} of C{string}s
+
+    @ivar __axis_units__: Units for the independent axes
+    @type __axis_units__: C{list} of C{string}s
+
+    @ivar __y_label__: The label for the dependent axis
+    @type __y_label__: C{string}
+
+    @ivar __y_units__: The units for the dependent axis
+    @type __y_units__: C{string}
+
+    @ivar __data_set_type__: The axis type of the associated data. The values
+                             are I{histogram}, I{coordinate} or I{density}.
+                             The last two are describing the same type of data.
+    @type __data_set_type__: C{string}
+
+    @ivar attr_list: The dictionary of metadata for the dataset
+    @type attr_list: L{AttributeList}
+
+    @ivar dst: The pointer to the file containing the data for the dataset.
+               B{NOTE}: This is currently unused.
+    @type dst: L{DST}
+    """
+    
+    EMPTY = ""
 
     def __init__(self):
+        """
+        Object constructor
+        """
         self.__title__ = SOM.EMPTY
         self.__axis_labels__ = []
         self.__axis_units__ = []
@@ -39,16 +80,19 @@ class SOM(list):
         self.attr_list = attribute.AttributeList()
         self.dst = None
 
-    """
-    def __repr__(self):
-        return self.__str__()
-
-    def __str__(self):
-        return str(list)
-        #return \"Title: \"+self.__title__+'\n'+str(list)
-    """
-
     def __eq__(self, other):
+        """
+        This method checks to see if the incoming C{SOM} object and the
+        current one are equal.
+
+        @param other: Object to check for equality
+        @type other: C{SOM}
+
+
+        @return: I{True} if the C{SOM} objects are equal, I{False} if they
+                 are not
+        @rtype: C{boolean}
+        """
         try:
             if self.__title__ != other.getTitle():
                 return False
@@ -80,9 +124,32 @@ class SOM(list):
         return True
 
     def __ne__(self, other):
+        """
+        This method checks to see if the incoming C{SOM} object and the
+        current one are not equal.
+
+        @param other: Object to check for equality
+        @type other: C{SOM}
+
+
+        @return: I{True} if the C{SOM} objects are not equal, I{False} if they
+                 are
+        @rtype: C{boolean}
+        """
         return not self.__eq__(other)
         
     def copyAttributes(self, other, add_nxpars=False):
+        """
+        This method copies attributes from another C{SOM}. If parameters need
+        to be added, a flag is used to obtain this behavior.
+
+        @param other: Object to copy attributes from
+        @type other: C{SOM}
+
+        @param add_nxpars: Flag for using addition feature on L{NxParameter}s.
+                           The default value is I{False}.
+        @type add_nxpars: C{boolean}
+        """
         import copy
         
         self.setTitle(other.getTitle())
@@ -114,62 +181,132 @@ class SOM(list):
                 self.attr_list[key_to_get] = \
                                        copy.copy(other.attr_list[key_to_get])
 
-    def axisUnitsAt(self,units):
+    def axisUnitsAt(self, units):
+        """
+        This method returns the axis index (starting from zero) according to
+        the units requested.
+
+        @param units: The units to search for in the independent axes.
+        @type units: C{string}
+
+
+        @return: The index of the independent axis with the requested units. If
+                 more than one axis has the same units, the first one found
+                 will be returned.
+        @rtype: C{int}
+        """
         return self.__axis_units__.index(units)
     
     def getAllAxisLabels(self):
+        """
+        This method returns all of the independent axis labels.
+
+        @return: The labels of the independent axes
+        @rtype: C{list} of C{string}s
+        """
         import copy
         return copy.copy(self.__axis_labels__)
 
     def getAllAxisUnits(self):
+        """
+        This method returns all of the independent axis units.
+
+        @return: The units of the independent axes
+        @rtype: C{list} of C{string}s
+        """
         import copy
         return copy.copy(self.__axis_units__)
 
-    def getAxisLabel(self,dim=0):
+    def getAxisLabel(self, dim=0):
+        """
+        This method returns the independent axis label at the requested index.
+
+        @param dim: The index to request the independent axis label.
+        @type dim: C{int}
+
+        @return: The label of the independent axis at the requested index
+        @rtype: C{string}
+        """
         return self.__axis_labels__[dim]
     
-    def getAxisUnits(self,dim=0):
+    def getAxisUnits(self, dim=0):
+        """
+        This method returns the independent axis units at the requested index.
+
+        @param dim: The index to request the independent axis units.
+        @type dim: C{int}
+
+        @return: The units of the independent axis at the requested index
+        @rtype: C{string}
+        """        
         return self.__axis_units__[dim]
 
     def getDataSetType(self):
+        """
+        This method returns the dataset type of this C{SOM}.
+
+        @return: The dataset type
+        @rtype: C{string}
+        """
         return self.__data_set_type__
 
     def getDimension(self):
+        """
+        This method returns the number of independent axes in the C{SOM}.
+
+        @return: The number of independent axes
+        @rtype: C{int}
+        """
         return len(self.__axis_labels__)
 
     def getTitle(self):
+        """
+        This method returns the title associated with the dataset.
+
+        @return: The title of the dataset
+        @rtype: C{string}
+        """
         return self.__title__
 
     def getYLabel(self):
+        """
+        This method returns the dependent axis label.
+
+        @return: The dependent axis label
+        @rtype: C{string}
+        """        
         return self.__y_label__
 
     def getYUnits(self):
+        """
+        This method returns the dependent axis units.
+
+        @return: The dependent axis units
+        @rtype: C{string}
+        """                
         return self.__y_units__
 
-    def hasAxisUnits(self,unit):
+    def hasAxisUnits(self, unit):
         """
         This function checks the array of primary axes for the requested units.
         If there are duplicate units, it will always find the first.
         
-        Parameters:
-        ----------
-        -> unit is the string containg the name of the units to be searched for
+        @param unit: The name of the units to be searched for
+        @type unit: C{string}
         
-        Returns:
-        -------
-        <- a boolean which is True if the units exist, False if it does not
-        """
 
+        @return: A determination if the units exist
+        @rtype: C{boolean}
+        """
         return self.__axis_units__.__contains__(unit)
 
     def rekeyNxPars(self, dataset_tag):
         """
-        This function prepends a dataset tag to the keys of NxParameters in
-        the SOMs attribute list.
+        This function prepends a dataset tag to the keys of L{NxParameter}s in
+        the L{SOM}s attribute list.
 
-        Parameters:
-        ----------
-        -> dataset_tag is a string containing the name to prepend to the key
+        @param dataset_tag: The name to prepend to the key
+        @type dataset_tag: C{string}
         """
         nxpar_keys = [item[0] for item in self.attr_list.items() \
                       if isinstance(item[1], NxParameter)]
@@ -182,37 +319,93 @@ class SOM(list):
         for nxpar_rekeyed in itertools.izip(nxpar_keys, nxpar_values):
             self.attr_list[dataset_tag+"-"+nxpar_rekeyed[0]] = nxpar_rekeyed[1]
             
-    def setAllAxisLabels(self,labels):
+    def setAllAxisLabels(self, labels):
+        """
+        This method sets all of the labels for the independent axes.
+
+        @param labels: The labels for all of the independent axes
+        @type labels: C{list} of C{string}s
+        """
         self.__axis_labels__ = labels
 
     def setAllAxisUnits(self,units):
+        """
+        This method sets all of the units for the independent axes.
+
+        @param units: The units for all of the independent axes
+        @type units: C{list} of C{string}s
+        """        
         self.__axis_units__ = units
 
-    def setAxisLabel(self,dim,label):
+    def setAxisLabel(self, dim, label):
+        """
+        This method sets the label for the independent axis at the requested
+        index.
+
+        @param dim: The index to request the independent axis label.
+        @type dim: C{int}
+        
+        @param label: The label for the independent axis
+        @type label: C{string}
+        """        
         try:
             self.__axis_labels__[dim] = label
         except IndexError:
             self.__axis_labels__.append(label)            
     
-    def setAxisUnits(self,dim,units):
+    def setAxisUnits(self, dim, units):
+        """
+        This method sets the units for the independent axis at the requested
+        index.
+
+        @param dim: The index to request the independent axis units.
+        @type dim: C{int}
+        
+        @param units: The units for the independent axis
+        @type units: C{string}
+        """        
         try:
             self.__axis_units__[dim] = units
         except IndexError:
             self.__axis_units__.append(units)            
 
-    def setDataSetType(self,type):
+    def setDataSetType(self, type):
+        """
+        This method sets the dataset type for the C{SOM}.
+
+        @param type: The name of the dataset type for the associated data.
+                     The accepted values are I{histogram}, I{density} and
+                     I{coordinate}.
+        @type type: C{string}
+        """
         self.__data_set_type__ = type
 
-    def setTitle(self,title):
+    def setTitle(self, title):
+        """
+        This method sets the title for the associated data in the C{SOM}.
+
+        @param title: The title for the data
+        @type title: C{string}
+        """
         self.__title__ = title
 
-    def setYLabel(self,label):
+    def setYLabel(self, label):
+        """
+        This method sets the label for the dependent axis.
+
+        @param label: The label for the dependent axis
+        @type label: C{string}
+        """
         self.__y_label__ = label
 
-    def setYUnits(self,units):
+    def setYUnits(self, units):
+        """
+        This method sets the units for the dependent axis.
+
+        @param units: The units for the dependent axis
+        @type units: C{string}
+        """        
         self.__y_units__ = units
-
-
         
 if __name__ == "__main__":
     import so
@@ -227,7 +420,7 @@ if __name__ == "__main__":
     so1.axis[0].var.extend([1.0,2.0,3.0])
     so1.y.extend([40.0,55.0])
     so1.var_y.extend([40.0,55.0])
-    so1.id="Pixel 1"
+    so1.id = "Pixel 1"
 
     axis_labels = ["Extent"]
     axis_units = ["centimeters"]
@@ -253,7 +446,7 @@ if __name__ == "__main__":
     so2.axis[0].var.extend([1.0,2.0,3.0])
     so2.y.extend([40.0,55.0])
     so2.var_y.extend([40.0,55.0])
-    so2.id="Pixel 1"
+    so2.id = "Pixel 1"
 
     axis_labels = ["Extent"]
     axis_units = ["centimeters"]

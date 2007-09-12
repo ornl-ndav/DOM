@@ -24,6 +24,7 @@
 
 # $Id$
 
+from distutils.cmd import Command
 from distutils.core import setup, Extension
 import os
 import sys
@@ -112,7 +113,59 @@ def setupSnsNapiExt(locations):
                       library_dirs = libdir_list,
                       libraries = lib_list_all)]
 
+class build_doc(Command):
+    """
+    This class is responsible for creating the API documentation via the
+    epydoc system.
+    """
+    description = "Build the Python API documentation"
+    user_options = []
+    
+    def initialize_options(self):
+        pass
+    
+    def finalize_options(self):
+        pass
+    
+    def run(self):
+        try:
+            epydoc_conf = os.path.join('doc', 'config.epy')
+            
+            from epydoc import cli
+            old_argv = sys.argv[1:]
+            
+            sys.argv[1:] = [
+                "--config=%s" % epydoc_conf,
+                "--verbose"
+                ]
+            cli.cli()
+            
+            sys.argv[1:] = old_argv
 
+        except ImportError:
+            print "Epydoc is needed to create API documentation. Skipping.."
+
+        # Make SNS NAPI documentation via doxygen
+        doxygen_conf = os.path.join('doc', 'config.dox')
+
+        doxygen_cmd = "doxygen " + doxygen_conf
+
+        fout = os.popen(doxygen_cmd)
+        output = fout.readlines()
+        status = fout.close()
+
+        if status is not None:
+            status = status >> 8
+            if status == 127:
+                print "Doxygen is needed to create SNAPI docmentation. "\
+                      +"Skipping.."
+            else:
+                print "Doxygen execution failed with code %d" % status
+        else:
+            # Everything went fine with doxygen, show the output
+            print "Running doxygen....."
+            print "".join(output)
+                                
 if __name__ == "__main__":
     pythonVersionCheck()
     file_locations = parseCommandLine()
@@ -122,7 +175,8 @@ if __name__ == "__main__":
           version=VERSION,
           extra_path=PACKAGE,
           packages=package_list,
-          ext_modules=sns_napi_ext)
+          ext_modules=sns_napi_ext,
+          cmdclass = {'build_doc': build_doc})
 
         
 

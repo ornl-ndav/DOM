@@ -20,39 +20,81 @@
 # its use would not infringe privately owned rights.
 #
 
-###############################################################################
-#
-# This class creates a GSAS ASCII file.
-#
 # $Id$
-#
-###############################################################################
 
 import dst_base
 
 class GsasDST(dst_base.DST_BASE):
-    MIME_TYPE="text/GSAS"
-    EMPTY=""
-    SPACE=" "
+    """
+    This class creates a GSAS ASCII file.
+
+    @cvar MIME_TYPE: The MIME-TYPE of the class
+    @type MIME_TYPE: C{string}
+    
+    @cvar EMPTY: Variable for holding an empty string
+    @type EMPTY: C{string}
+    
+    @cvar SPACE: Variable for holding a space
+    @type SPACE: C{string}
+
+    @ivar __file: The handle to the output data file
+    @type __file: C{file}    
+    """
+    
+    MIME_TYPE = "text/GSAS"
+    EMPTY = ""
+    SPACE = " "
 
     ########## DST_BASE functions
 
     def __init__(self, resource, *args, **kwargs):
+        """
+        Object constructor
+
+        @param resource: The handle to the output data file
+        @type resource: C{file}
+
+        @param args: Argument objects that the class accepts (UNUSED)
+
+        @param kwargs: A list of keyword arguments that the class accepts:
+        """        
         self.__file = resource
 
     def release_resource(self):
+        """
+        This method closes the file handle to the output file.
+        """        
         self.__file.close()
 
-    def writeSO(self,so):
+    def writeSO(self, so):
+        """
+        This method writes the L{SOM.SO} information to the output file.
+
+        @param so: The object to have its information written to file.
+        @type so: L{SOM.SO}
+        """        
         self.writeData(so)
 
-    def writeSOM(self,som):
+    def writeSOM(self, som):
+        """
+        This method writes the L{SOM.SOM} information to the output file.
+
+        @param som: The object to have its information written to file.
+        @type som: L{SOM.SOM}
+        """        
         self.writeHeader(som)
         self.writeData(som[0])
 
     ########## Special functions
 
-    def writeHeader(self,som):
+    def writeHeader(self, som):
+        """
+        This method writes the information in the L{SOM.SOM} to the file
+        header.
+
+        @param som: The object containing the information for the header 
+        @type som: L{SOM.SOM}
+        """
         nchan = len(som[0]) + 1
         nrec = int(nchan / 10) + 1
         
@@ -63,7 +105,14 @@ class GsasDST(dst_base.DST_BASE):
         print >> self.__file, "BANK 1 %d %d CONST %f %f 0 0 STD" % \
               (nchan, nrec, offset, binwidth)
 
-    def writeData(self,so):
+    def writeData(self, so):
+        """
+        This method is responsible for writing the actual data contained within
+        the L{SOM.SO}s to the attached file. 
+
+        @param so: Object containing data to be written to file
+        @type so: L{SOM.SO}
+        """        
         counter = 0
         values = []
         format_str = "%8d%8d%8d%8d%8d%8d%8d%8d%8d%8d"

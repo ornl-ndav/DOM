@@ -19,13 +19,17 @@
 # information, apparatus, product, or process disclosed, or represents that
 # its use would not infringe privately owned rights.
 #
+"""
+This module contains classes that serve as data containers for instrument geometry, extra
+instrument information and scientific data and metadata. It also contains utility classes
+used in conjunction with the data containers.
+"""
 
 from attribute import AttributeList
 from information import Information, CompositeInformation
 from instrument import Instrument
 from comp_instrument import CompositeInstrument
 from asg_instrument import ASG_Instrument
-from igs_instrument import IGS_Instrument
 from indexselector import *
 from nxparameter import NxParameter
 from sample import Sample

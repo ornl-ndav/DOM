@@ -24,15 +24,18 @@
 
 class ParameterMap:
     """
-    This is a simple class that has an internal hash table that keeps Parameter
-    objects in it. The Parameter objects contain the end path location of the
-    information in the NeXus file. 
+    This is a simple class that has an internal hash table that keeps
+    L{Parameter} objects in it. The L{Parameter} objects contain the end path
+    location of the information in the NeXus file.
+
+    @ivar __pmap: Hash table for C{Parameter} objects
+    @type __pmap: C{dict}
     """
+    
     def __init__(self):
         """
         Class constructor. Initializes all of the currently mapped parameters.
         """
-        
         self.__pmap = {}
 
         self.__pmap["proton_charge"] = Parameter("proton_charge", "float")
@@ -41,57 +44,63 @@ class ParameterMap:
 
     def getPathAndType(self, name):
         """
-        Function that returns a tuple containing NeXus path and the type
-        (float, int, string etc.) that the information should be presented as.
+        Method that returns a tuple containing NeXus path and the type
+        (C{float}, C{int}, C{string} etc.) that the information should be
+        presented as.
 
-        Parameters:
-        ----------
-        -> name is a string containing the key name that the parameter map
-           will use to return the path and type
+        @param name: The key name that the parameter map will use to return
+                     the path and type.
+        @type name: C{string}
 
-        Returns:
-        -------
-        <- A tuple containing the path and type for the parameter
+
+        @returns: The path and type for the parameter
+        @rtype: C{tuple}
         """
         return (self.__pmap[name].getPath(),
                 self.__pmap[name].getType())
-
 
 class Parameter:
     """
     This is a simple class that contains two pieces of information about a
     given parameter. The pieces of information are the path in the NeXus file
     of the parameter data and the primitive type of the parameter.
+
+    @ivar __path: The final element of the NeXus path for the parameter
+    @type __path: C{string}
+
+    @ivar __type: The classification of the parameter value type. This can
+                  be C{float}, C{int}, C{string} etc.
+    @type __type: C{string}
     """
+    
     def __init__(self, path, type):
         """
         Class constructor
 
-        Parameters:
-        ----------
-        -> path is a string containing the NeXus path for the parameter
-        -> type is a string containing the type of the parameter
+        @param path: The NeXus path for the parameter
+        @type path: C{string}
+        
+        @param type: The type of the parameter
+        @type type: C{string}
         """
         self.__path = path
         self.__type = type
 
     def getPath(self):
         """
-        Function that returns the NeXus path
+        Method that returns the NeXus path
 
-        Returns:
-        -------
-        <- A string containing the NeXus path
+        @returns: The NeXus path
+        @rtype: C{string}
         """
         return self.__path
 
     def getType(self):
         """
-        Function that returns the parameter type
+        Method that returns the parameter type
 
-        Returns:
-        -------
-        <- A string containing the type for the parameter
+        @returns: The type for the parameter
+        @rtype: C{string}
         """
         return self.__type
 

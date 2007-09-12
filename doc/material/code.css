@@ -1,0 +1,14 @@
+.cli {font-size: 16px; font-weight: bold; color: Darkorange; 
+      background-color: black; padding: 5px 5px 5px 5px}
+
+.cmd {color: blue; font-style: italic}
+
+.dir {color:Firebrick; font-style: italic}
+
+.text {color:black; font-style: italic}
+
+.uid {color:Maroon; font-style: italic}
+
+.grp {color:gray; font-weight: bold}
+
+.button {background-color:gray; color: black}

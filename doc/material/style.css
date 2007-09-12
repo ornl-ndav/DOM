@@ -1,0 +1,26 @@
+body {font-family: "Arial", "Helvitica", sans-serif; background: white}
+
+h1 {font-size: 26px; color: green}
+
+h2 {font-size: 22px; color: red}
+
+h3 {font-size: 20px; color: purple}
+
+h4 {font-size: 18px; color: red}
+
+p {font-size: 16px; color: blue; text-indent: 20px}
+
+ul {font-size: 16px; color: teal}
+
+ol {font-size: 16px; color: teal}
+
+a:link {font-weight: bold; color: maroon}
+
+a:visited {font-weight: bold; color: navy}
+
+a:hover {font-weight: bold; color: #cc00ff}
+
+table {border: thick double blue; width: 100}
+
+.disclaim {font-size: 26 px; color: red; font-style: italic;
+	font-weight: bold; text-decoration: blink}

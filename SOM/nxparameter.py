@@ -30,6 +30,15 @@ class NxParameter(object):
     will be a key feature of this class. The values of the C{NxParameter}
     class are designed to be C{string}s, C{float}s or C{int}s. The class does
     not understand how to deal with anything else.
+
+    @ivar __value: The value for a given NeXus parameter
+    @type __value: C{string}, C{float} or C{int}
+
+    @ivar __units: The units for the NeXus parameter
+    @type __units: C{string}
+
+    @ivar __val_type: The primitive type for the NeXus parameter
+    @type __val_type: C{string}
     """
 
     def __init__(self, value, units=None):
@@ -37,7 +46,7 @@ class NxParameter(object):
         Object constructor
 
         @param value: Value to be stored
-        @type value: C{string}, C{float}or C{int}
+        @type value: C{string}, C{float} or C{int}
         @param units: The associated units for the value (can be C{None})
         @type units: C{string} or C{None}
         """

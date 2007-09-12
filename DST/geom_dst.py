@@ -28,11 +28,42 @@ import nexus_file
 import SOM
 
 class GeomDST(dst_base.DST_BASE):
-    MIME_TYPE="application/x-NxsGeom"
+    """
+    This class creates a NeXus geometry DST which can subsequently be passed
+    into a L{SOM.SOM} with an existing geometry. The file format for the
+    geometry information is based on the
+    U{NeXus<http://www.nexusformat.org>} format specification.
 
-    def __init__(self, resource, data_group_path=None, signal=1,
-                 *args, **kwargs):
+    @cvar MIME_TYPE: The MIME-TYPE of the class
+    @type MIME_TYPE: C{string}
 
+    @ivar __nexus: The handle to the NeXus geometry file
+    @type __nexus: L{nexus_file.NeXusFile}
+
+    @ivar __tree: A list of key-value pairs from the file structure of the
+                  NeXus geometry file.
+    @type __tree: C{dict}
+
+    @ivar __inst_info: Instrument geometry information
+    @type __inst_info: C{dict} of C{NeXusInstrument}s
+
+    @ivar __sns_info: Instrument information that is not geometry related
+    @type __sns_info: C{dict} of C{SnsInformation}s
+    """
+    
+    MIME_TYPE = "application/x-NxsGeom"
+
+    def __init__(self, resource, *args, **kwargs):
+        """
+        Object constructor
+
+        @param resource: The handle to the input NeXus geometry file
+        @type resource: C{file}
+
+        @param args: Argument objects that the class accepts (UNUSED)
+
+        @param kwargs: A list of keyword arguments that the class accepts:
+        """
         self.__nexus = nexus_file.NeXusFile(resource)
         self.__tree = self.__build_tree()
 
@@ -43,6 +74,17 @@ class GeomDST(dst_base.DST_BASE):
                                                    self.__inst_info.getName())
 
     def setGeometry(self, som_id, som):
+        """
+        This method reads in a geometry from the associated file and places
+        that geometry into the incoming L{SOM.SOM}. This overrides the
+        geometry that was currently present.
+
+        @param som_id: The NeXus path IDs of the geometry information
+        @type som_id: C{string} or C{list} of C{string}s
+
+        @param som: The object being provided a replacement geometry
+        @type som: L{SOM.SOM}
+        """
         id_list = []
         try:
             som_id.reverse()
@@ -88,46 +130,77 @@ class GeomDST(dst_base.DST_BASE):
         return
 
     def release_resource(self):
+        """
+        This method closes the file handle to the output file.
+        """        
         del self.__nexus
         del self.__tree
         del self.__inst_info
         del self.__sns_info
 
     def __list_level(self):
-        listing={}
+        """
+        This method provides a listing of the directory tree structure of the
+        NeXus geometry file.
+
+        @return: The listing of the directory tree
+        @rtype: C{dict}
+        """
+        listing = {}
         self.__nexus.initgroupdir()
-        name="blah"
-        while name!=None:
-            (name,type)=self.__nexus.getnextentry()
-            if (name!=None) and (type!="CDF0.0"):
-                listing[name]=type
+        name = "blah"
+        while name is not None:
+            (name, type) = self.__nexus.getnextentry()
+            if (name is not None) and (type != "CDF0.0"):
+                listing[name] = type
         return listing
 
-    def __prepend_parent(self,parent,listing):
-        my_list={}
+    def __prepend_parent(self, parent, listing):
+        """
+        This method restructures an incoming file structure listing by
+        prepending the specified parent node information.
+
+        @param parent: The parent node for prepending
+        @type parent: C{atring}
+
+        @param listing: The file directory structure listing
+        @type listing: C{dict}
+        """
+        my_list = {}
         for key in listing.keys():
-            my_list[("%s/%s" % (parent,key))]=listing[key]
+            my_list[("%s/%s" % (parent, key))] = listing[key]
         return my_list
 
-    def __build_tree(self,listing={}):
+    def __build_tree(self, listing={}):
+        """
+        This method builds a path tree from the NeXus geometry file.
+
+        @param listing: Placeholder for the file directory structure listing
+        @type listing: C{dict}
+
+
+        @return: The file directory structure listing
+        @rtype: C{dict}
+        """
         # set up result
-        my_listing=listing.copy()
+        my_listing = listing.copy()
 
         # get a listing for each element in the tree
-        if(listing!=None) and (len(listing)>0):
+        if(listing is not None) and (len(listing) > 0):
             for parent in listing.keys():
-                if(not listing[parent]=="SDS"):
+                if(not listing[parent] == "SDS"):
                     self.__nexus.openpath(parent)
-                    level_listing=self.__list_level()
-                    level_listing=self.__prepend_parent(parent,level_listing)
+                    level_listing = self.__list_level()
+                    level_listing = self.__prepend_parent(parent,
+                                                          level_listing)
                     for inner in level_listing.keys():
-                        my_listing[inner]=level_listing[inner]
+                        my_listing[inner] = level_listing[inner]
         # or start at the beginning
         else:
-            my_listing=self.__prepend_parent("",self.__list_level())
+            my_listing = self.__prepend_parent("", self.__list_level())
 
         # recurse if the list has changed
-        if len(my_listing)>len(listing):
+        if len(my_listing) > len(listing):
             return self.__build_tree(my_listing)
         else:
             return my_listing

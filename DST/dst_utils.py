@@ -25,37 +25,32 @@
 def make_ISO8601(now=None):
     """
     This function takes an optional argument of a UNIX time and converts that
-    time to an ISO-8601 standard time string. If no UNIX time is given, the
-    default is to use the current time.
+    time to an U{ISO-8601<http://www.w3.org/TR/NOTE-datetime>} standard time
+    string. If no UNIX time is given, the default is to use the current time.
 
-    Parameters:
-    ----------
-    -> now (OPTIONAL) is a UNIX time (number of seconds after Jan 1, 1970)
-
-    Returns:
-    -------
-    <- a time string in ISO-8601 standard format
-    """
+    @param now: (OPTIONAL) A UNIX time (number of seconds after Jan 1, 1970)
+    @type now: C{int}
     
+
+    @returns: A time string in ISO-8601 standard format
+    @rtype: C{string}
+    """
     import datetime
     import ltz
     Local = ltz.LocalTimezone()
 
-    if now != None:
+    if now is not None:
         return datetime.datetime(2006,1,1).fromtimestamp(now,Local).isoformat()
     else:
         return datetime.datetime(2006,1,1).now(Local).isoformat()
-
 
 def make_magic_key():
     """
     This function creates a unique key for SNS created files.
 
-    Returns:
-    -------
-    <- a unique key
+    @returns: A unique key
+    @rtype: C{int}
     """
-
     import random
     import time
 
@@ -64,112 +59,44 @@ def make_magic_key():
 
     adders = random.randint(1,10)
 
-    for i in range(adders):
+    counter = 0
+    while counter < adders:
         len_s = len(key)
         ins = random.randint(0,len_s)
         val = random.randint(0,9)
         key = key[0:ins]+str(val)+key[ins:]
+        counter += 1
     
     return key
 
 def write_spec_header(ofile, epoch, som):
     """
     This function writes a header based on the Spec file format.
-    http://www.certif.com/spec_manual/user_1_4_1.html
+    U{http://www.certif.com/spec_manual/user_1_4_1.html}
 
-    Parameters:
-    ----------
-    -> ofile is the handle to the output file
-    -> epoch is the UNIX time at creation
-    -> som is the associated data
+    @param ofile: The handle to the output file
+    @type ofile: C{file}
+    
+    @param epoch: The UNIX time at creation
+    @type epoch: C{float}
+    
+    @param som: The associated data
+    @type som: L{SOM.SOM}
     """
-
-    file_keys = [key for key in som.attr_list.keys() \
-                 if key.find("-filename") != -1]
-    if len(file_keys):
-        for file_key in file_keys:
-            tag = file_key.split('-')[0]
-            try:
-                som.attr_list[file_key].reverse()
-                som.attr_list[file_key].reverse()
-                for file in som.attr_list[file_key]:
-                    print >> ofile, "#F %s: %s" % (tag, file)
-            except AttributeError:
-                print >> ofile, "#F %s: %s" % (tag, som.attr_list[file_key])
-    else:
-        print >> ofile, "#F", som.attr_list["filename"]
+    write_dataset_tags(ofile, "-filename", "#F %s: %s", "#F", som)
 
     print >> ofile, "#E", epoch
     print >> ofile, "#D", make_ISO8601(epoch)
 
-    run_number_keys = [key for key in som.attr_list.keys() \
-                   if key.find("-run_number") != -1]
+    write_dataset_tags(ofile, "-run_number", "#C %s Run Number: %s",
+                       "#C Run Number:", som)
 
-    if len(run_number_keys):
-        for run_number_key in run_number_keys:
-            tag = run_number_key.split('-')[0]
-            try:
-                som.attr_list[run_number_key].reverse()
-                som.attr_list[run_number_key].reverse()
-                for run_number in som.attr_list[run_number_key]:
-                    print >> ofile, "#C %s Run Number: %s" % (tag, run_number)
-            except AttributeError:
-                print >> ofile, "#C %s Run Number: %s" \
-                      % (tag, som.attr_list[run_number_key])
-    else:
-        if som.attr_list.has_key("run_number"):
-            print >> ofile, "#C Run Number:",som.attr_list["run_number"]
+    write_dataset_tags(ofile, "-title", "#C %s Title: %s", "#C Title:", som)
 
-    title_keys = [key for key in som.attr_list.keys() \
-                   if key.find("-title") != -1]
+    write_dataset_tags(ofile, "-notes", "#C %s Notes: %s", "#C Notes:", som)  
 
-    if len(title_keys):
-        for title_key in title_keys:
-            tag = title_key.split('-')[0]
-            try:
-                som.attr_list[title_key].reverse()
-                som.attr_list[title_key].reverse()
-                for title in som.attr_list[title_key]:
-                    print >> ofile, "#C %s Title: %s" % (tag, title)
-            except AttributeError:
-                print >> ofile, "#C %s Title: %s" \
-                      % (tag, som.attr_list[title_key])
-    else:
-        print >> ofile, "#C Title:",som.getTitle()
-
-    notes_keys = [key for key in som.attr_list.keys() \
-                 if key.find("-notes") != -1]
-    if len(notes_keys):
-        for notes_key in notes_keys:
-            tag = notes_key.split('-')[0]
-            try:
-                som.attr_list[notes_key].reverse()
-                som.attr_list[notes_key].reverse()
-                for notes in som.attr_list[notes_key]:
-                    print >> ofile, "#C %s Notes: %s" % (tag, notes)
-            except AttributeError:
-                print >> ofile, "#C %s Notes: %s" % (tag,
-                                                     som.attr_list[notes_key])
-    else:
-        if som.attr_list.has_key("notes"):
-            print >> ofile, "#C Notes:", som.attr_list["notes"]
-
-    dt_over_t_keys = [key for key in som.attr_list.keys() \
-                 if key.find("-dt_over_t") != -1]
-    if len(dt_over_t_keys):
-        for dt_over_t_key in dt_over_t_keys:
-            tag = dt_over_t_key.split('-')[0]
-            try:
-                som.attr_list[dt_over_t_key].reverse()
-                som.attr_list[dt_over_t_key].reverse()
-                for dt_over_t in som.attr_list[dt_over_t_key]:
-                    print >> ofile, "#C %s dt/t: %f" % (tag, dt_over_t)
-            except AttributeError:
-                print >> ofile, "#C %s dt/t: %f" % (tag,
-                                              som.attr_list[dt_over_t_key])
-    else:
-        if som.attr_list.has_key("dt_over_t"):
-            print >> ofile, "#C Notes:", som.attr_list["dt_over_t"]
+    write_dataset_tags(ofile, "-dt_over_t", "#C %s dt/t: %f", "#C dt/t: %f",
+                       som)
     
     if som.attr_list.has_key("username"):
         print >> ofile, "#C User:",som.attr_list["username"]
@@ -196,23 +123,67 @@ def write_spec_header(ofile, epoch, som):
     else:
         pass
 
-    proton_keys = [key for key in som.attr_list.keys() \
-                   if key.find("-proton_charge") != -1]
+    write_dataset_tags(ofile, "-proton_charge", "#C %s Proton Charge: %s",
+                       "#C Proton Charge:", som)
 
-    if len(proton_keys):
-        for proton_key in proton_keys:
-            tag = proton_key.split('-')[0]
+    write_dataset_tags(ofile, "-slit1_size", "#C %s Slit1 Size: %s",
+                       "#C Slit1 Size:", som)
+
+    write_dataset_tags(ofile, "-slit2_size", "#C %s Slit2 Size: %s",
+                       "#C Slit2 Size:", som)
+
+    write_dataset_tags(ofile, "-slit12_distance",
+                       "#C %s Slit1-Slit2 Distance: %s",
+                       "#C Slit1-Slit2 Distance:", som)
+
+    write_dataset_tags(ofile, "-delta_theta", "#C %s dtheta: %s",
+                       "#C dtheta: %d", som)
+
+    write_dataset_tags(ofile, "-theta", "#C %s theta: %s", "#C theta: %d", som)
+
+    write_dataset_tags(ofile, "-dtheta_over_theta",
+                       "#C %s dtheta_over_theta: %.10f",
+                       "#C dtheta_over_theta: %.10f", som)
+    
+def write_dataset_tags(ofile, tag, format_multi, format_one, som):
+    """
+    This function searches a L{SOM.SOM} for a particular tag that has dataset
+    dependent instances and writes that information to a file with the given
+    formatting string.
+
+    @param ofile: The handle to an output file.
+    @type ofile: C{file}
+
+    @param tag: The name of the tag holding the desired information. This
+                includes the - but not the dataset tag.
+    @type tag: C{string}
+
+    @param format_multi: The desired formatting definition for the dataset
+                         dependent information.
+    @type format_multi: C{string}
+
+    @param format_one: The desired formatting definition if the information is
+                       not dataset dependent.
+    @type format_one: C{string}    
+
+    @param som: The object containing the information for search and retreival.
+    @type som: L{SOM.SOM}
+    """
+    info_keys = [key for key in som.attr_list.keys() if key.find(tag) != -1]
+
+    if len(info_keys):
+        for info_key in info_keys:
+            tag = info_key.split('-')[0]
             try:
-                som.attr_list[proton_key].reverse()
-                som.attr_list[proton_key].reverse()
-                for proton in som.attr_list[proton_key]:
-                    print >> ofile, "#C %s Proton Charge: %s" % (tag, proton)
+                som.attr_list[info_key].reverse()
+                som.attr_list[info_key].reverse()
+                for info in som.attr_list[info_key]:
+                    print >> ofile, format_multi % (tag, info)
             except AttributeError:
-                print >> ofile, "#C %s Proton Charge: %s" \
-                      % (tag, som.attr_list[proton_key])
+                print >> ofile, format_multi % (tag, som.attr_list[info_key])
     else:
-        if som.attr_list.has_key("proton_charge"):
-            print >> ofile, "#C Proton Charge:",\
-                  str(som.attr_list["proton_charge"])
+        tag = tag.lstrip('-')
+        if som.attr_list.has_key(tag):
+            print >> ofile, format_one, som.attr_list[tag]
 
-
+    

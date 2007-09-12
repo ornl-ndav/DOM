@@ -19,6 +19,10 @@
 # information, apparatus, product, or process disclosed, or represents that
 # its use would not infringe privately owned rights.
 #
+"""
+This module contains classes that handle reading and writing various file types and
+utilities that support those functions.
+"""
 
 from ascii3col_dst import Ascii3ColDST
 from dave2d_dst import Dave2dDST

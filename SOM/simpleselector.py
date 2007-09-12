@@ -30,26 +30,29 @@ class ISelector(indexselector.IndexSelectorBase):
     with the slowest varying position index.
     """
 
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
+        """
+        C{ISelector} constructor
+        """
         pass
 
     def getIndex(self, id):
         """
         Return the slowest varying pixel position index
 
-        Parameters:
-        ----------
-        -> id is a NeXus spectrum ID
-
-        Returns:
-        -------
-        <- The slowest varying pixel position index
-        """
+        @param id: A NeXus spectrum ID. See L{IndexSelectorBase} for format.
+        @type id: C{tuple}
         
+
+        @return: The slowest varying pixel position index
+        @rtype: C{int}
+        """
         return id[1][0]
 
-
     def __str__(self):
+        """
+        This method provides the string representation of the C{ISelector}.
+        """
         return "ISelector"
 
 class JSelector(indexselector.IndexSelectorBase):
@@ -58,25 +61,29 @@ class JSelector(indexselector.IndexSelectorBase):
     with the fastest varying position index.
     """
 
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
+        """
+        C{JSelector} constructor
+        """        
         pass
 
     def getIndex(self, id):
         """
         Return the fastest varying pixel position index
 
-        Parameters:
-        ----------
-        -> id is a NeXus spectrum ID
+        @param id: A NeXus spectrum ID. See L{IndexSelectorBase} for format.
+        @type id: C{tuple}
 
-        Returns:
-        -------
-        <- The fastest varying pixel position index
+        
+        @returns: The fastest varying pixel position index
+        @rtype: C{int}
         """
-
         return id[1][1]
 
     def __str__(self):
+        """
+        This method provides the string representation of the C{JSelector}.
+        """        
         return "JSelector"
 
 class ZSelector(indexselector.IndexSelectorBase):
@@ -84,34 +91,48 @@ class ZSelector(indexselector.IndexSelectorBase):
     This class always returns zero from the getIndex function
     """
 
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
+        """
+        C{ZSelector} constructor
+        """                
         pass
 
     def getIndex(self, id):
         """
-        Always return zero not matter what the index is
+        Always return zero no matter what the index is.
 
-        Parameters:
-        ----------
-        -> id is a NeXus spectrum ID
+        @param id: A NeXus spectrum ID. See L{IndexSelectorBase} for format.
+        @type id: C{tuple}
 
-        Returns:
-        -------
-        <- 0
+        @returns: 0
+        @rtype: C{int}
         """
-
         return 0
 
     def __str__(self):
+        """
+        This method provides the string representation of the C{ZSelector}.
+        """                
         return "ZSelector"
 
 class IJSelector(indexselector.IndexSelectorBase):
     """
     This class takes a NeXus spectrum ID and returns the index associated
     with the slowest varying position index.
-    """
 
-    def __init__(self,**kwargs):
+    @ivar __N_j: The maximum value of the fastest varying index
+    @type __N_j: C{int}
+    """
+    
+    def __init__(self, **kwargs):
+        """
+        C{IJSelector} constructor
+
+        @param kwargs: A list of keyword arguments that the class accepts
+
+        @keyword Nj: The maximum value of the fastest running index
+        @type Nj: C{int}
+        """                
         try:
             input = kwargs["Nj"]
             if input is None:
@@ -119,24 +140,25 @@ class IJSelector(indexselector.IndexSelectorBase):
             else:
                 self.__N_j = int(input)
         except KeyError:
-           raise RuntimeError, "Need to provide the number of pixels for the "\
-                 +"fastest running index"
-    
+            raise RuntimeError("Need to provide the number of pixels for the "\
+                               +"fastest running index")
 
     def getIndex(self, id):
         """
         Return the slowest varying pixel position index
 
-        Parameters:
-        ----------
-        -> id is a NeXus spectrum ID
+        @param id: A NeXus spectrum ID. See L{IndexSelectorBase} for format.
+        @type id: C{tuple}
 
-        Returns:
-        -------
-        <- The slowest varying pixel position index
+        
+        @returns: The slowest varying pixel position index
+        @rtype: C{int}
         """
         
         return id[1][1] + self.__N_j * id[1][0]
 
     def __str__(self):
+        """
+        This method provides the string representation of the C{ZSelector}.
+        """                        
         return "IJSelector (Nj=%d)" % self.__N_j

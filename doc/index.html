@@ -1,0 +1,59 @@
+<!--$Id$-->
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+<head>
+<title>Data Object Model Documentation Main Page</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link href="material/style.css" rel="stylesheet" type="text/css">
+<link href="material/code.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<center>
+<img src="images/NScD-logo.png" />
+</center>
+
+<h1>Data Object Model Documentation</h1>
+
+<h2>Interface Documentation (Version: 1.0.0itc6)</h2>
+<a href="html/index.html"><h3>API</h3></a>
+<a href="html_snapi/index.html"><h3>SNS-NAPI</h3></a>
+
+<h2>Usage Issues</h2>
+<p>
+The API documentation presented in the link above provides a slightly 
+misleading interpretation of how to use the functions and classes in 
+<span class="text">DST</span> and <span class="text">SOM</span> from a Python 
+interpreter session or from within a Python script/module. From the 
+documentation, one might get the impression that the proper usage is:
+</p>
+<p>
+<pre class="cli"> >>> SOM.som.SOM </pre>
+</p>
+<p>
+or
+</p>
+<p>
+<pre class="cli"> >>> SOM.som </pre>
+</p>
+<p>
+which is <span class="text">package_name.file_name.function_name</span> or 
+<span class="text">package_name.file_name</span>. However, due to the way the 
+package is configured to install, the correct usage is:
+</p>
+<p>
+<pre class="cli"> >>> SOM.SOM </pre>
+</p>
+<p>
+No file name is present in the correct usage scenario.
+</p>
+<p>
+The SNS NeXus API is accessed via the <span class="text">sns_napi</span> 
+module. 
+</p>
+</body>
+<iframe src="material/security.html" frameborder=0 width=100% height=150>
+</iframe>
+</html>

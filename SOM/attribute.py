@@ -23,27 +23,56 @@
 # $Id$
 
 class AttributeList(dict):
-    def __init__(self,**kwargs):
+    """
+    This class is the container for the scientific metadata. The class is
+    dervied from C{dict} which gives it a hash table capability that will
+    provide extensibility for the metadata. The instrument geometry and sample
+    information are held separately and can be accessed without the use of
+    dictionary keys.
+
+    @ivar instrument: This variable contains the instrument geometry
+                      information.
+    @type instrument: L{CompositeInstrument} or L{Instrument}
+
+    @ivar sample: This variable contains the sample information.
+    @type sample: L{Sample}
+    """
+    
+    def __init__(self, **kwargs):
         """
-        Parameters:
-        -----------
-        ->kwargs is a list of key word arguments that the function accepts:
-             instrument = the instrument for the AttributeList to hold
-             sample     = the sample for the AttributeList to hold
+        Object constructor
+        
+        @param kwargs: A list of key word arguments that the function accepts
+        
+        @keyword instrument: The instrument for the C{AttributeList} to hold
+        @type instrument:  L{CompositeInstrument} or L{Instrument}
+        
+        @keyword sample: The sample for the C{AttributeList} to hold
+        @type sample: L{Sample}
         """
+        try:
+            self.instrument = kwargs["instrument"]
+        except KeyError:
+            self.instrument = None
 
         try:
-            self.instrument=kwargs["instrument"]
+            self.sample = kwargs["sample"]
         except KeyError:
-            self.instrument=None
-
-        try:
-            self.sample=kwargs["sample"]
-        except KeyError:
-            self.sample=None
-
+            self.sample = None
 
     def __eq__(self, other):
+        """
+        This method checks to see if the incoming C{AttributeList} object and
+        the current one are equal.
+
+        @param other: Object to check for equality
+        @type other: C{AttributeList}
+
+
+        @return: I{True} if the C{AttributeList} objects are equal, I{False}
+                 if they are not
+        @rtype: C{boolean}
+        """        
         try:
 
             if self.instrument != other.instrument:
@@ -58,4 +87,16 @@ class AttributeList(dict):
         return True
 
     def __ne__(self, other):
+        """
+        This method checks to see if the incoming C{AttributeList} object and
+        the current one are not equal.
+
+        @param other: Object to check for equality
+        @type other: C{AttributeList}
+
+
+        @return: I{True} if the C{AttributeList} objects are not equal,
+                 I{False} if they are
+        @rtype: C{boolean}
+        """        
         return not self.__eq__(other)

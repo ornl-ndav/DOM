@@ -23,7 +23,15 @@
 # $Id$
 
 class Sample:
-    """This is an abstract base class representing important
-    information about the sample."""
+    """
+    This is an abstract base class representing important information about
+    the sample.
+
+    @ivar name: The name of the sample
+    @type name: C{string}
+    """
     def __init__(self):
-        self.name=""
+        """
+        Object constructor
+        """
+        self.name = ""

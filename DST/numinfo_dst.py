@@ -27,13 +27,78 @@ import dst_utils
 import math
 
 class NumInfoDST(dst_base.DST_BASE):
-    MIME_TYPE="text/num-info"
-    EMPTY=""
-    SPACE=" "
+    """
+    This class writes a 3 column ASCII file based on the
+    U{spec<http://www.certif.com/spec_manual/user_1_4_1.html>} file format.
+    The columns in this case are restricted to a pixel ID, a value and its
+    associated uncertainty.
+
+    @cvar MIME_TYPE: The MIME-TYPE of the class
+    @type MIME_TYPE: C{string}
+    
+    @cvar EMPTY: Variable for holding an empty string
+    @type EMPTY: C{string}
+    
+    @cvar SPACE: Variable for holding a space
+    @type SPACE: C{string}
+
+    @ivar __file: The handle to the output data file
+    @type __file: C{file}
+
+    @ivar __epoch: The epoch (UNIX time) when the object was instantiated.
+                   This is used as the creation time of the file information.
+    @type __epoch: C{string}
+
+    @ivar __doc: The handle to the XML document object (UNUSED)
+    @type __doc: C{xml.dom.minidom.Document}
+
+    @ivar __line_wrap_num: The parameter specifying the number of values to
+    keep on a single line in a XML file. (UNUSED)
+    @type __line_wrap_num: C{int}
+
+    @ivar __tag: The label for the values being written to file.
+    @type __tag: C{string}
+
+    @ivar __units: The units for the values being written to file.
+    @type __units: C{string}
+
+    @ivar __comments: Comments to add to the file header.
+    @type __comments: C{list} of C{string}s
+    """
+    
+    MIME_TYPE = "text/num-info"
+    EMPTY = ""
+    SPACE = " "
 
     ########## DST_BASE functions
 
     def __init__(self, resource, *args, **kwargs):
+        """
+        Object constructor
+
+        @param resource: The handle to the output data file
+        @type resource: C{file}
+
+        @param args: Argument objects that the class accepts (UNUSED)
+
+        @param kwargs: A list of keyword arguments that the class accepts:
+
+        @keyword line_wrap_num: The parameter specifying the number of values
+                                to keep on a single line in a XML file. The
+                                default value is I{4}. (UNUSED)
+        @type line_wrap_num: C{int}
+
+        @keyword tag: The label for the values being written to file. The
+                      default is I{Integral}.
+        @type tag: C{string}
+        
+        @keyword units: The units for the values being written to file. The
+                        default is I{counts}.
+        @type units: C{string}
+        
+        @keyword comments: Comments to add to the file header.
+        @type comments: C{list} of C{string}s
+        """        
         import time
         import xml.dom.minidom
 
@@ -62,12 +127,27 @@ class NumInfoDST(dst_base.DST_BASE):
             self.__comments = None
         
     def release_resource(self):
+        """
+        This method closes the file handle to the output file.
+        """                
         self.__file.close()
 
-    def writeSO(self,so):
+    def writeSO(self, so):
+        """
+        This method writes the L{SOM.SO} information to the output file.
+
+        @param so: The object to have its information written to file.
+        @type so: L{SOM.SO}
+        """        
         self.writeData(so)
 
-    def writeSOM(self,som):
+    def writeSOM(self, som):
+        """
+        This method writes the L{SOM.SOM} information to the output file.
+
+        @param som: The object to have its information written to file.
+        @type som: L{SOM.SOM}
+        """        
         dst_utils.write_spec_header(self.__file, self.__epoch, som)
 
         if self.__comments is not None:
@@ -86,6 +166,13 @@ class NumInfoDST(dst_base.DST_BASE):
     ########## Special functions
 
     def writeData(self, so):
+        """
+        This method is responsible for writing the actual data contained within
+        the L{SOM.SO}s to the attached file. 
+
+        @param so: Object containing data to be written to file
+        @type so: L{SOM.SO}
+        """        
         try:
             variance = math.sqrt(so.var_y)
         except OverflowError:
@@ -94,9 +181,15 @@ class NumInfoDST(dst_base.DST_BASE):
         print >> self.__file, so.id, so.y, variance
 
     def prepareContents(self, som):
+        """
+        Unused method.
+        """
         self.__parseContentsForXml(values, errors, ids)
 
     def __parseContentsForXml(self, values, errors, ids):
+        """
+        Unused method.
+        """        
         # NOT VALID, NEEDS TO BE REDONE IF XML IS DESIRED
         value_string_bank_list = []
         error_string_bank_list = []
@@ -170,6 +263,9 @@ class NumInfoDST(dst_base.DST_BASE):
         self.__doc.appendChild(mainnode)        
 
     def writeFile(self):
+        """
+        Unused method.
+        """        
         import xml.dom.ext
 
         xml.dom.ext.PrettyPrint(self.__doc, self.__file)
