@@ -197,7 +197,7 @@ class Ascii3ColDST(dst_base.DST_BASE):
                                                     som[0], names, result)
 
         # Add y and var_y axis format positions
-        result.append("%s(%s) Sigma(%s)")
+        result.append("%s(%s)  Sigma(%s)")
         names.append(som.getYLabel())
         names.append(som.getYUnits())
         names.append(som.getYUnits())
@@ -235,12 +235,12 @@ class Ascii3ColDST(dst_base.DST_BASE):
         # Add primary axis format positions
         for i in range(dim):
             self.__columns += 1
-            result.append("%s(%s)")
+            result.append("%s(%s) ")
             names.append(som.getAxisLabel(i))
             names.append(som.getAxisUnits(i))
             if so.axis[i].var != None:
                 self.__columns += 1
-                result.append("Sigma(%s)")
+                result.append("Sigma(%s) ")
                 names.append(som.getAxisUnits(i))
 
         return (names, result)
