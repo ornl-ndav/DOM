@@ -103,9 +103,9 @@ def write_spec_header(ofile, epoch, som):
     else:
         pass
     
-    if som.attr_list.has_key("detector_angle"):
-        print >> ofile, "#C Detector Angle:",\
-              som.attr_list["detector_angle"]
+    if som.attr_list.has_key("angle_offset"):
+        print >> ofile, "#C Polar Angle Offset:",\
+              som.attr_list["angle_offset"]
     else:
         pass
     
