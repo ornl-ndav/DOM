@@ -94,7 +94,7 @@ class Information(object):
         try:
             val = self.__value__[offset]
         except TypeError, e:
-            if str(e) == "unsubscriptable object":
+            if "unscriptable" in str(e) or "unsubscriptable" in str(e):
                 val = self.__value__
             else:
                 raise RuntimeError("Do not have information for value")
@@ -102,7 +102,7 @@ class Information(object):
         try:
             err2 = self.__err2__[offset]
         except TypeError, e:
-            if str(e) == "unscriptable object":
+            if "unscriptable" in str(e) or "unsubscriptable" in str(e):
                 err2 = self.__err2__
             else:
                 err2 = 0.0
