@@ -103,7 +103,10 @@ class Information(object):
             err2 = self.__err2__[offset]
         except TypeError, e:
             if "unscriptable" in str(e) or "unsubscriptable" in str(e):
-                err2 = self.__err2__
+                if self.__err2__ is not None:
+                    err2 = self.__err2__
+                else:
+                    err2 = 0.0
             else:
                 err2 = 0.0
 
