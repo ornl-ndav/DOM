@@ -1210,12 +1210,9 @@ class SnsInformation:
         self.__tree = tree
         self.__inst_name = inst_name
 
-        self.__entry_locations = self.__list_type(tree, "NXentry")
         self.__det_locations = self.__list_type(tree, "NXdetector")
         self.__det_data = {}
 
-        self.__head_tag = self.__entry_locations[-1] + self.__tag
-        
         if self.__inst_name == "BSS":
 
             self.__det_locations.extend(self.__list_type(tree, "NXcrystal"))
