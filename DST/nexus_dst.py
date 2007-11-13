@@ -959,13 +959,10 @@ class NeXusInstrument:
         except KeyError:
             from_saf = False
 
-        self.__tag = "/instrument"
         self.__nexus = filehandle
         self.__tree = tree
-        if from_saf:
-            self.__entry_locations = self.__list_type(tree,"NXinstrument")
-        else:
-            self.__entry_locations = self.__list_type(tree,"NXentry")
+
+        self.__entry_locations = self.__list_type(tree,"NXinstrument")
         self.__det_locations = self.__list_type(tree,"NXdetector")
         self.__mon_locations = self.__list_type(tree,"NXmonitor")
 
@@ -975,19 +972,14 @@ class NeXusInstrument:
         self.__det_info = ["secondary_flight_path", "polar_angle",
                            "azimuthal_angle", "distance"]
 
-        if not from_saf:
-            self.__head_tag = self.__entry_locations[-1] + self.__tag
-        else:
-            self.__head_tag = self.__entry_locations[-1]
-
         try:
-            self.__nexus.openpath(self.__head_tag + "/name")
+            self.__nexus.openpath(self.__entry_locations[-1] + "/name")
             self.__inst_name = self.__nexus.getattr("short_name","")
         except IOError:
             self.__inst_name = None
 
         try:
-            self.__beamline = self.__get_val_as_str(self.__head_tag
+            self.__beamline = self.__get_val_as_str(self.__entry_locations[-1]
                                                     + "/beamline")
         except IOError:
             self.__beamline = None
@@ -1006,16 +998,16 @@ class NeXusInstrument:
             path = location + "/distance"
             self.__mon_data[label] = self.__get_value(path)
 
-        self.__primary = self.__get_value(self.__head_tag +
-                                          "/moderator/distance")
-
+        self.__moderator_locations =  self.__list_type(tree,"NXmoderator")
+        self.__primary = self.__get_value(self.__moderator_locations[-1] +
+                                          "/distance")
         # Remake tuple with primary with |distance|
         try:
             self.__primary = (math.fabs(self.__primary[0]), self.__primary[1],
                               self.__primary[2])
         except TypeError:
             self.__primary = (float('nan'), float('nan'))
-            
+
     def __get_value(self, path):
         try:
             self.__tree[path]
