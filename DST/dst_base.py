@@ -117,6 +117,9 @@ def getInstance(mime_type, resource, *args, **kwargs):
 
     @return: A concrete DST instance
     @rtype: Concrete L{DST_BASE}
+
+
+    @raise Exception: The mime-type does not correspond to an allowed DST
     """
     # prepare the arguments
     my_args = [resource]
@@ -133,18 +136,18 @@ def getInstance(mime_type, resource, *args, **kwargs):
 
     # do the factory stuff
     if mime_type == nexus_dst.NeXusDST.MIME_TYPE:
-        return apply(nexus_dst.NeXusDST, my_args, kwargs)
+        return nexus_dst.NeXusDST(*my_args, **kwargs)
     elif mime_type == ascii3col_dst.Ascii3ColDST.MIME_TYPE:
-        return apply(ascii3col_dst.Ascii3ColDST, my_args, kwargs)
+        return ascii3col_dst.Ascii3ColDST(*my_args, **kwargs)
     elif mime_type == dave2d_dst.Dave2dDST.MIME_TYPE:
-        return apply(dave2d_dst.Dave2dDST, my_args, kwargs)
+        return dave2d_dst.Dave2dDST(*my_args, **kwargs)
     elif mime_type == gsas_dst.GsasDST.MIME_TYPE:
-        return apply(gsas_dst.GsasDST, my_args, kwargs)
+        return gsas_dst.GsasDST(*my_args, **kwargs)
     elif mime_type == geom_dst.GeomDST.MIME_TYPE:
-        return apply(geom_dst.GeomDST, my_args, kwargs)
+        return geom_dst.GeomDST(*my_args, **kwargs)
     elif mime_type == mdw_dst.MdwDST.MIME_TYPE:
-        return apply(mdw_dst.MdwDST, my_args, kwargs)
+        return mdw_dst.MdwDST(*my_args, **kwargs)
     elif mime_type == numinfo_dst.NumInfoDST.MIME_TYPE:
-        return apply(numinfo_dst.NumInfoDST, my_args, kwargs)
+        return numinfo_dst.NumInfoDST(*my_args, **kwargs)
     else:
-        raise Exception("something wrong")
+        raise Exception("Cannot create DST for type %s" % mime_type)

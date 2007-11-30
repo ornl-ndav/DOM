@@ -165,7 +165,7 @@ class SOM(list):
             self.attr_list.sample = copy.copy(other.attr_list.sample)
 
             if add_nxpars:
-                nxpar_keys = [item[0] for item in self.attr_list.items() \
+                nxpar_keys = [item[0] for item in self.attr_list.iteritems() \
                               if isinstance(item[1], NxParameter)]
 
                 for nxpar_key in nxpar_keys:
@@ -174,8 +174,8 @@ class SOM(list):
                 # Do nothing
                 pass
                     
-            keys_to_get = [other_key for other_key in other.attr_list.keys() \
-                           if other_key not in self.attr_list.keys()]
+            keys_to_get = [other_key for other_key in other.attr_list \
+                           if other_key not in self.attr_list]
                 
             for key_to_get in keys_to_get:
                 self.attr_list[key_to_get] = \
@@ -308,7 +308,7 @@ class SOM(list):
         @param dataset_tag: The name to prepend to the key
         @type dataset_tag: C{string}
         """
-        nxpar_keys = [item[0] for item in self.attr_list.items() \
+        nxpar_keys = [item[0] for item in self.attr_list.iteritems() \
                       if isinstance(item[1], NxParameter)]
         
         nxpar_values = []

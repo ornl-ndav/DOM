@@ -132,9 +132,16 @@ def write_spec_header(ofile, epoch, som):
     write_dataset_tags(ofile, "-slit2_size", "#C %s Slit2 Size: %s",
                        "#C Slit2 Size:", som)
 
+    write_dataset_tags(ofile, "-slit3_size", "#C %s Slit3 Size: %s",
+                       "#C Slit3 Size:", som)    
+
     write_dataset_tags(ofile, "-slit12_distance",
                        "#C %s Slit1-Slit2 Distance: %s",
                        "#C Slit1-Slit2 Distance:", som)
+
+    write_dataset_tags(ofile, "-slit13_distance",
+                       "#C %s Slit1-Slit3 Distance: %s",
+                       "#C Slit1-Slit3 Distance:", som)    
 
     write_dataset_tags(ofile, "-delta_theta", "#C %s dtheta: %s",
                        "#C dtheta: %d", som)
@@ -169,7 +176,7 @@ def write_dataset_tags(ofile, tag, format_multi, format_one, som):
     @param som: The object containing the information for search and retreival.
     @type som: L{SOM.SOM}
     """
-    info_keys = [key for key in som.attr_list.keys() if key.find(tag) != -1]
+    info_keys = [key for key in som.attr_list if key.find(tag) != -1]
 
     if len(info_keys):
         for info_key in info_keys:

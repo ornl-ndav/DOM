@@ -27,6 +27,9 @@ class Instrument:
     This is an abstract base class representing important geometrical
     information about the instrument.
 
+    @ivar __inst__: The instrument short name
+    @type __inst__: C{string}
+
     @ivar __L0: The instrument's primary (moderator to sample) flight path.
     @type __L0: C{tuple}
 
@@ -64,7 +67,21 @@ class Instrument:
     @ivar __secondary_selector__: The appropriate index selection for
                                   retrieving the instrument's detector pixel
                                   secondary flight paths.
-    @type __secondary_selector__: L{IndexSelectorBase}    
+    @type __secondary_selector__: L{IndexSelectorBase}
+
+    @ivar __diff_geom__: A dictionary holding the differential geometry
+                         information for the instrument. Each dictionary entry
+                         will have a key name based on the particular
+                         parameter. The value for the associated key will be
+                         a C{tuple} of the following: a C{nessi_list.NessiList}
+                         of values, a C{nessi_list.NessiList} of error^2s,
+                         units of the parameter (C{string}) and a concrete
+                         instance of a C{IndexSelectorBase}.
+    @type __diff_geom__: C{dict}
+
+    @ivar __diff_geom_keys__: A cache of the keys for the differential geometry
+                              information.
+    @type __diff_geom_keys__: C{list}
     """
 
     def __init__(self, **kwargs):
@@ -112,6 +129,10 @@ class Instrument:
         @keyword extra: The maximum value for the fastest running index. This
                         is necessary if the L{IJSelector} is used.
         @type extra: C{int}
+
+        @keyword diff_geom: A dictionary containing the differential geometry
+                            for the instrument.
+        @type diff_geom: C{dict}
         """
         # primary flight path
         try:
@@ -126,7 +147,7 @@ class Instrument:
             self.__secondary__ = None
         try:
             self.__secondary_err2__ = kwargs["secondary_err2"]
-            if self.__secondary__==None:
+            if self.__secondary__ is None:
                 self.__secondary_err2__ = None
         except KeyError:
             self.__secondary_err2__ = None
@@ -138,7 +159,7 @@ class Instrument:
             self.__polar__ = None;
         try:
             self.__polar_err2__ = kwargs["polar_err2"]
-            if self.__polar__==None:
+            if self.__polar__ is None:
                 self.__polar_err2__ = None
         except KeyError:
             self.__polar_err2__ = None
@@ -150,68 +171,47 @@ class Instrument:
             self.__azimuthal__ = None;
         try:
             self.__azimuthal_err2__ = kwargs["azimuthal_err2"]
-            if self.__azimuthal__==None:
+            if self.__azimuthal__ is None:
                 self.__azimuthal_err2__ = None
         except KeyError:
             self.__azimuthal_err2__ = None
 
-        # the instrument name decides what selectors to chose
+        # set the instrument short name
         try:
-            inst = kwargs["instrument"]
+            self.__inst__ = kwargs["instrument"]
             try:
-                #keys on uppercase version of instrument name
-                inst =inst.upper()
+                # uppercase version of instrument name
+                self.__inst__ = self.__inst__.upper()
 
             except AttributeError:
-                pass # errors will be picked up below
+                self.__inst__ = ""
         except KeyError:
-            inst = None
+            self.__inst__ = ""
 
         try:
             extra = kwargs["extra"]
         except KeyError:
             extra = None
 
-        # use the instrument name to set the selectors
-        from indexselector import getIndexSelector
-        if inst==None:
-            self.__azimuthal_selector__ = None
-            self.__polar_selector__     = None
-            self.__secondary_selector__ = None
-        elif inst=="BSS":
-            self.__azimuthal_selector__ = None
-            self.__polar_selector__     = getIndexSelector("IJSelector",
-                                                           Nj=extra)
-            self.__secondary_selector__ = getIndexSelector("JSelector")
-        elif inst=="BSS_DIFF":
-            self.__azimuthal_selector__ = getIndexSelector("IJSelector",
-                                                           Nj=extra)
-            self.__polar_selector__     = getIndexSelector("IJSelector",
-                                                           Nj=extra)
-            self.__secondary_selector__ = getIndexSelector("IJSelector",
-                                                           Nj=extra)
-        elif inst == "REF_M":
-            self.__azimuthal_selector__ = getIndexSelector("JSelector")
-            self.__secondary_selector__ = getIndexSelector("IJSelector",
-                                                           Nj=extra)
-            self.__polar_selector__     = getIndexSelector("IJSelector",
-                                                           Nj=extra)        
-        elif inst == "REF_L":
-            self.__azimuthal_selector__ = getIndexSelector("ISelector")
-            self.__secondary_selector__ = getIndexSelector("IJSelector",
-                                                           Nj=extra)
-            self.__polar_selector__     = getIndexSelector("IJSelector",
-                                                           Nj=extra)         
-        elif inst == "GLAD":
-            self.__azimuthal_selector__ = getIndexSelector("JSelector")
-            self.__polar_selector__     = getIndexSelector("IJSelector",
-                                                           Nj=extra)
-            self.__secondary_selector__ = getIndexSelector("IJSelector",
-                                                           Nj=extra)
-            
-        else:
-            raise RuntimeError,"Do not understand instrument: \""+inst+"\""
+        # Set the instrument differential geometry dictionary (if present)
+        try:
+            self.__diff_geom__ = kwargs["diff_geom"]
+            if self.__diff_geom__ is not None:
+                self.__diff_geom_keys__ = self.__diff_geom__.keys()
+            else:
+                self.__diff_geom_keys__ = None                
+        except KeyError:
+            self.__diff_geom__ = None
+            self.__diff_geom_keys__ = None
 
+        # set the selectors
+        from indexselector import getIndexSelector
+
+        self.__azimuthal_selector__ = getIndexSelector("IJSelector", Nj=extra)
+        self.__polar_selector__     = getIndexSelector("IJSelector", Nj=extra)
+        self.__secondary_selector__ = getIndexSelector("IJSelector", Nj=extra)
+
+        # override capability mainly for backwards compatibility
         try:
             az_sel_name = kwargs["azimuthal_selector"]
             if az_sel_name is not None:
@@ -253,7 +253,6 @@ class Instrument:
         try:
             if utils.compare(self.__L0, other.get_primary()) != 0: 
                 return False
-
         except:
             return False
 
@@ -273,6 +272,15 @@ class Instrument:
         @rtype: C{boolean}
         """        
         return not self.__eq__(other)
+
+    def get_name(self):
+        """
+        This function obtains the instrument short name.
+
+        @returns: The instrument short name
+        @rtype: C{string}
+        """
+        return self.__inst__
     
     def get_primary(self, id=None, **kwargs):
         """
@@ -292,12 +300,13 @@ class Instrument:
         units=__get_units__(kwargs, "meter")
 
         # return the result
-        if self.__L0==None:
-            raise RuntimeError,"Primary flight path is not defined"
-        if(units=="meter"):
+        if self.__L0 is None:
+            raise RuntimeError("Primary flight path is not defined")
+        
+        if units == "meter":
             return self.__L0
         else:
-            raise RuntimeError,"Do not know how to convert to \"%s\"" % units
+            raise RuntimeError("Do not know how to convert to \"%s\"" % units)
 
     def set_primary(self, distance, **kwargs):
         """
@@ -311,8 +320,9 @@ class Instrument:
         """
         # fix the units
         units = __get_units__(kwargs, "meter")
-        if units!="meter":
-            raise RuntimeError,"Do not understand units \"%s\"" % units
+        
+        if units != "meter":
+            raise RuntimeError("Do not understand units \"%s\"" % units)
 
         # fix the value
         distance = __standardize_value__(distance)
@@ -338,14 +348,14 @@ class Instrument:
         try:
             offset = self.__secondary_selector__.getIndex(id)
         except AttributeError:
-            raise RuntimeError,"Do not have information for selecting " \
-                  +"correct secondary flight path"
+            raise RuntimeError("Do not have information for selecting " \
+                               +"correct secondary flight path")
 
         try:
             val = self.__secondary__[offset]
         except TypeError:
-            raise RuntimeError,"Do not have information for secondary " \
-                  +"flight path"
+            raise RuntimeError("Do not have information for secondary " \
+                               +"flight path")
         
         try:
             err2 = self.__secondary_err2__[offset]
@@ -391,13 +401,13 @@ class Instrument:
         try:
             offset = self.__polar_selector__.getIndex(id)
         except AttributeError:
-            raise RuntimeError,"Do not have information for selecting " \
-                  +"correct polar angle"
+            raise RuntimeError("Do not have information for selecting " \
+                               +"correct polar angle")
 
         try:
             val = self.__polar__[offset]
         except TypeError:
-            raise RuntimeError,"Do not have information for polar angle"
+            raise RuntimeError("Do not have information for polar angle")
         
         try:
             err2 = self.__polar_err2__[offset]
@@ -423,20 +433,71 @@ class Instrument:
         try:
             offset = self.__azimuthal_selector__.getIndex(id)
         except AttributeError:
-            raise RuntimeError,"Do not have information for selecting " \
-                  +"correct azimuthal angle"
+            raise RuntimeError("Do not have information for selecting " \
+                               +"correct azimuthal angle")
 
         try:
             val = self.__azimuthal__[offset]
         except TypeError:
-            raise RuntimeError,"Do not have information for azumuthal angle"
+            raise RuntimeError("Do not have information for azumuthal angle")
         
         try:
             err2 = self.__azimuthal_err2__[offset]
             return (val, err2)
         except TypeError:
             return (val, 0.)
+    
+    def get_diff_geom(self, key, id=None, **kwargs):
+        """
+        This method retrieves the differential geometry value and error^2 for
+        the given pixel ID.
 
+        @param key: The name of the differential geometry parameter to retrieve
+        @type key: C{string}
+
+        @param id: The object containing the pixel ID
+        @type id: L{SOM.SO}
+        
+        @param kwargs: A list of keyword arguments that this function accepts
+        and that internal functions will use.
+
+
+        @returns: The differential geometry parameter value for the given
+                  detector pixel 
+        @rtype: C{tuple}
+        """
+        try:
+            try:
+                offset = self.__diff_geom__[key][-1].getIndex(id)
+            except AttributeError:
+                raise RuntimeError("Do not have information for selecting " \
+                                   +"correct differential geometry parameter "\
+                                   +"%s" % key)
+            try:
+                val = self.__diff_geom__[key][0][offset]
+            except TypeError:
+                raise RuntimeError("Do not have information for differential "\
+                                   +"geometry parameter %s" % key)
+            try:
+                err2 = self.__diff_geom__[key][1][offset]
+                return (val, err2)
+            except TypeError:
+                return (val, 0.)
+        except KeyError:
+            raise RuntimeError("Differential geometry key %s not found in "\
+                               +"the following list: %s" % \
+                               (key, " ".join(self.__diff_geom_keys__)))
+        
+    def get_diff_geom_keys(self):
+        """
+        This method retrieves the list of parameter names (keys) for the
+        differential geometry information.
+        
+        @returns: The stored names of the differential geometry parameters
+        @rtype: C{list}
+        """
+        return self.__diff_geom_keys__
+                               
 def __standardize_units__(units, default_units):
     """
     This is a private helper function which standardizes certain unit name
@@ -507,8 +568,8 @@ def __standardize_value__(thing):
     @rtype: C{tuple}
     """
     try:
-        if len(thing)!=2:
-            raise RuntimeError,"Cannot set value \"%s\"",str(thing)
+        if len(thing) != 2:
+            raise RuntimeError("Cannot set value \"%s\"", str(thing))
         value = float(thing[0])
         err2 = float(thing[1])
         return (value, err2)

@@ -40,7 +40,7 @@ package_list = ['', 'DST', 'SOM']
 def pythonVersionCheck():
     # Minimum version of Python
     PYTHON_MAJOR = 2
-    PYTHON_MINOR = 2
+    PYTHON_MINOR = 3
     
     if sys.version_info < (PYTHON_MAJOR, PYTHON_MINOR):
             print >> sys.stderr, 'You need at least Python %d.%d for %s %s' \
@@ -87,7 +87,7 @@ def parseCommandLine():
 
 def setupSnsNapiExt(locations):
 
-    if locations == None:
+    if locations is None:
         nexus_incdir = '/usr/local/include'
         nexus_libdir = '/usr/local/lib'
     else:

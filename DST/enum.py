@@ -110,7 +110,7 @@ class Enum:
         @return: A dictionary of key names and equivalent integer values
         @rtype: C{dict}
         """
-        for (var, val) in entries.items():
+        for (var, val) in entries.iteritems():
             self.set(var, val)
         return self
 
@@ -122,7 +122,7 @@ class Enum:
         @rtype: C{int}
         """
         try:
-            return max([x for x in vars(self).values() \
+            return max([x for x in vars(self).itervalues() \
                         if type(x) == type(0)]) + 1
         except ValueError:
             return 0

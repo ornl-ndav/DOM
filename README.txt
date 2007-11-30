@@ -22,7 +22,9 @@ Installation Instructions
        b. MXML	       - 2.2.2
        c. HDF4	       - 4.2r1
     2. Python          - 2.3.4
-    3. GCC	       - 3.4.6
+    3. GCC	       - 3.4.6    
+    4. Epydoc          - 3.0beta1
+    5. Doxygen         - 1.4.6
 
   Installation
   ------------
@@ -41,6 +43,13 @@ Installation Instructions
 
     1. --with-nexus=/path/to/install
     2. --with-nexus=/path/to/includes/include,/path/to/libs/lib
+
+  Documentation
+  -------------
+
+  To (re)create the package documentation, run the following command:
+
+  python setup.py build_doc
 
 
 $Id$

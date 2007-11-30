@@ -238,7 +238,7 @@ class Ascii3ColDST(dst_base.DST_BASE):
             result.append("%s(%s) ")
             names.append(som.getAxisLabel(i))
             names.append(som.getAxisUnits(i))
-            if so.axis[i].var != None:
+            if so.axis[i].var is not None:
                 self.__columns += 1
                 result.append("Sigma(%s) ")
                 names.append(som.getAxisUnits(i))

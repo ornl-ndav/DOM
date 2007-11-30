@@ -108,6 +108,17 @@ class CompositeInstrument(instrument.Instrument):
         """
         return self.__inst_hash[key]
 
+    def get_name(self):
+        """
+        This function obtains the instrument short name from the first
+        instrument stored in the hash.
+
+        @returns: The instrument short name
+        @rtype: C{string}
+        """
+        tag = self.__inst_hash.keys()[0]
+        return self.__inst_hash[tag].get_name()
+
     def get_primary(self, id=None, **kwargs):
         """
         This function obtains the primary flight path from the instrument
@@ -125,7 +136,7 @@ class CompositeInstrument(instrument.Instrument):
         requested instrument
         @rtype: C{tuple}
         """
-        if id == None:
+        if id is None:
             tag = self.__inst_hash.keys()[0]
         else:
             tag = id[0]
@@ -201,3 +212,35 @@ class CompositeInstrument(instrument.Instrument):
         @rtype: C{tuple}
         """
         return self.__inst_hash[id[0]].get_azimuthal(id, **kwargs)
+
+    def get_diff_geom(self, key, id, **kwargs):
+        """
+        This method obtains the specified differential geometry parameter from
+        the instrument object
+
+        @param key: The name of the differential geometry parameter to retrieve
+        @type key: C{string}
+
+        @param id: The object containing the pixel ID
+        @type id: L{SOM.SO}
+
+        @param kwargs: A list of keyword arguments that this function accepts
+        and that internal functions will use.
+
+
+        @returns: The differential geometry parameter value for the given
+                  detector pixel
+        @rtype: C{tuple}
+        """
+        return self.__inst_hash[id[0]].get_diff_geom(key, id, **kwargs)
+
+    def get_diff_geom_keys(self):
+        """
+        This method retrieves the list of parameter names (keys) for the
+        differential geometry information.
+
+        @returns: The stored names of the differential geometry parameters
+        @rtype: C{list}
+        """
+        tag = self.__inst_hash.keys()[0]
+        return self.__inst_hash[tag].get_diff_geom_keys()

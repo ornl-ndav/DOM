@@ -287,7 +287,7 @@ class NeXusDST(dst_base.DST_BASE):
         result.setYUnits(data.data_units)
 
         attrs = self.__get_attr_list(data.location)
-        for key in attrs.keys():
+        for key in attrs:
             result.attr_list[key] = attrs[key]
 
         min_id = data.get_id_min()
@@ -525,7 +525,7 @@ class NeXusDST(dst_base.DST_BASE):
 
     def __prepend_parent(self, parent, listing):
         my_list = {}
-        for key in listing.keys():
+        for key in listing:
             my_list[("%s/%s" % (parent, key))] = listing[key]
         return my_list
 
@@ -535,13 +535,13 @@ class NeXusDST(dst_base.DST_BASE):
 
         # get a listing for each element in the tree
         if(listing is not None) and (len(listing) > 0):
-            for parent in listing.keys():
+            for parent in listing:
                 if(not listing[parent] == "SDS"):
                     self.__nexus.openpath(parent)
                     level_listing = self.__list_level()
                     level_listing = self.__prepend_parent(parent,
                                                           level_listing)
-                    for inner in level_listing.keys():
+                    for inner in level_listing:
                         my_listing[inner] = level_listing[inner]
         # or start at the beginning
         else:
@@ -561,7 +561,7 @@ class NeXusDST(dst_base.DST_BASE):
 
         # get the list of SDS in the data group
         SDS_list = []
-        for key in self.__tree.keys():
+        for key in self.__tree:
             if self.__tree[key] == "SDS":
                 if key.startswith(data_group):
                     SDS_list.append(key)
@@ -577,7 +577,7 @@ class NeXusDST(dst_base.DST_BASE):
         children = self.__get_data_children(data_group)
 
         signal_list = []
-        for child in children.keys():
+        for child in children:
             for key in children[child]:
                 value = children[child][key]
                 if key == "signal":
@@ -587,7 +587,7 @@ class NeXusDST(dst_base.DST_BASE):
 
     def list_type(self, type):
         my_list = []
-        for key in self.__tree.keys():
+        for key in self.__tree:
             if self.__tree[key] == type:
                 my_list.append(key)
         return my_list
@@ -628,7 +628,7 @@ class NeXusData:
         # now start pushing through attributes
         children = self.__get_data_children(tree, path)
         axes = {}
-        for child in children.keys():
+        for child in children:
             for key in children[child]:
                 value = children[child][key]
                 if key == "signal": # look for the data
@@ -649,7 +649,7 @@ class NeXusData:
         # look for the axes as an attribute to the signal data
         # also find the units
         counts_attrlist = children[self.__data]
-        for key in counts_attrlist.keys():
+        for key in counts_attrlist:
             if key == "axes":
                 inner_list = (counts_attrlist[key]).split(",")
                 for i in range(len(inner_list)):
@@ -890,7 +890,7 @@ class NeXusData:
 
         # get the list of SDS in the data group
         SDS_list = []
-        for key in tree.keys():
+        for key in tree:
             if tree[key] == "SDS":
                 if key.startswith(data_group):
                     SDS_list.append(key)
@@ -984,6 +984,15 @@ class NeXusInstrument:
         except IOError:
             self.__beamline = None
 
+        # Add differential geometry items
+        if self.__inst_name == "BSS":
+            self.__det_info.append("dlf_dh")
+            self.__det_info.append("dt_dtd")
+            self.__det_info.append("dt_dh")
+            self.__det_info.append("dp_dh")
+            self.__det_info.append("dp_dtd")
+            self.__det_info.append("dh")
+
         for location in self.__det_locations:
             label = location.split('/')[-1]
             info_list = []
@@ -1062,7 +1071,7 @@ class NeXusInstrument:
         
     def __list_type(self, tree, type):
         my_list = []
-        for key in tree.keys():
+        for key in tree:
             if tree[key] == type:
                 my_list.append(key)
         return my_list
@@ -1072,6 +1081,57 @@ class NeXusInstrument:
         self.__nexus.openpath(path)
         return str(self.__nexus.getdata())
 
+    def __make_diff_geom_dict(self, geometry, extra_stuff, btype, label):
+        """
+        This method constructs the dictionary containing the differential
+        geometry information for the instrument.
+
+        @param geometry: All of the geoetry data for the instrument
+        @type geometry: C{list} of C{tuple}s
+
+        @param extra_stuff: The size of the fastest running index for the
+                            geometry data
+        @type extra_stuff: C{int}
+
+        @param btype: A label that handles the starting point for the NeXus
+                      path construction if dimensions for the geometry
+                      information need to be found.
+        @type btype: C{string}
+
+        @param label: This is the current bank being generated
+        @type label: C{string}
+        
+
+        @return: The key/value pairs for the differential geometry
+        @rtype: C{dict}
+        """
+        diff_geom = {}
+
+        # Starting point in data list for differential geometry
+        diff_geom_start = 4
+
+        # Handle differential geometry stuff
+        if extra_stuff is None:
+            dg_path = btype + "/" + label + "/dh"
+            self.__nexus.openpath(dg_path)
+            dims = self.__nexus.getdims()
+            extra_stuff = dims[0][1]
+
+        # Create the index selector for 2D data
+        from SOM.indexselector import getIndexSelector
+        ijsel = getIndexSelector("IJSelector", Nj=extra_stuff)
+
+        # Slice and dice the geometry values and keys
+        diff_geom_data = geometry[diff_geom_start:]
+        diff_geom_keys = self.__det_info[diff_geom_start:]
+        import itertools
+        for diff_geom_tuple in itertools.izip(diff_geom_keys, diff_geom_data):
+            diff_geom[diff_geom_tuple[0]] = (diff_geom_tuple[1][0],
+                                             diff_geom_tuple[1][1],
+                                             diff_geom_tuple[1][2],
+                                             ijsel)
+
+        return diff_geom
 
     def getName(self):
         return self.__inst_name
@@ -1090,6 +1150,9 @@ class NeXusInstrument:
         
         label = path.split('/')[-1]
 
+        # Set a differential geometry holder to None
+        diff_geom_dict = None
+        
         # Check the monitor list
         flag = False
         try:
@@ -1127,43 +1190,67 @@ class NeXusInstrument:
                 if label == "bank3":
                     instname = "BSS_diff"
                     if from_saf:
-                        dis_path = "/instrument-diffraction/"+label+"/distance"
-                        pol_path = "/instrument-diffraction/"+label\
-                                   +"/polar_angle"
-                        az_path = "/instrument-diffraction/"+label\
-                                   +"/azimuthal_angle"                        
+                        btype = "/instrument-diffraction"
                     else:
-                        dis_path = "/entry-diff/instrument/"+label+"/distance"
-                        pol_path = "/entry-diff/instrument/"+label\
-                                   +"/polar_angle"
-                        az_path = "/entry-diff/instrument/"+label\
-                                   +"/azimuthal_angle"                        
+                        btype = "/entry-diff"
+                else:
+                    instname = self.__inst_name
+                    if from_saf:
+                        btype = "/instrument-inelastic"
+                    else:
+                        btype = "/entry"
 
-                    self.__nexus.openpath(dis_path)
-                    dims = self.__nexus.getdims()
+                dis_path = btype + "/" + label + "/distance"
+                pol_path = btype + "/" + label + "/polar_angle"
+                az_path = btype + "/" + label + "/azimuthal_angle"
+
+                self.__nexus.openpath(dis_path)
+                dims = self.__nexus.getdims()
+                if len(dims[0]) < 2:
+                    sec_selector = "JSelector"
+                else:
                     extra_stuff = dims[0][1]
-                    self.__nexus.openpath(pol_path)
-                    dims = self.__nexus.getdims()
-                    if len(dims[0]) < 2:
-                        pol_selector = "ISelector"
+                self.__nexus.openpath(pol_path)
+                dims = self.__nexus.getdims()
+                if len(dims[0]) < 2:
+                    pol_selector = "ISelector"
+                else:
+                    extra_stuff = dims[0][1]                    
+
+                # Only read azimuthal angles for diffraction bank
+                if label == "bank3":
                     self.__nexus.openpath(az_path)
                     dims = self.__nexus.getdims()
                     if len(dims[0]) < 2:
                         az_selector = "JSelector"
-                    
+                    else:
+                        extra_stuff = dims[0][1]                        
+
+                # Create the differential geometry dictionary for BSS
+                diff_geom_dict = self.__make_diff_geom_dict(geometry,
+                                                            extra_stuff,
+                                                            btype,
+                                                            label)
+                                   
+            elif self.__inst_name == "REF_M" or self.__inst_name == "GLAD":
+                instname = self.__inst_name
+                if from_saf:
+                    dis_path = "/instrument/"+label+"/distance"
+                    az_path = "/instrument/"+label+"/azimuthal_angle"
                 else:
-                    if from_saf:
-                        path = "/instrument-inelastic/"+label+"/polar_angle"
-                    else:
-                        path = "/entry/instrument/"+label+"/polar_angle"
-                    self.__nexus.openpath(path)
-                    dims = self.__nexus.getdims()
-                    if len(dims[0]) < 2:
-                        pol_selector = "ISelector"
-                    else:
-                        extra_stuff = dims[0][1]
-            elif self.__inst_name == "REF_M" or self.__inst_name == "REF_L"\
-                     or self.__inst_name == "GLAD":
+                    dis_path = "/entry/instrument/"+label+"/distance"
+                    az_path = "/entry/instrument/"+label+"/azimuthal_angle"
+                    
+                self.__nexus.openpath(dis_path)
+                dims = self.__nexus.getdims()
+                extra_stuff = dims[0][1]
+
+                self.__nexus.openpath(az_path)
+                dims = self.__nexus.getdims()
+                if len(dims[0]) < 2:
+                    az_selector = "JSelector"
+                
+            else:
                 instname = self.__inst_name
                 if from_saf:
                     path = "/instrument/"+label+"/distance"
@@ -1171,9 +1258,7 @@ class NeXusInstrument:
                     path = "/entry/instrument/"+label+"/distance"
                 self.__nexus.openpath(path)
                 dims = self.__nexus.getdims()
-                extra_stuff = dims[0][1]
-            else:
-                pass
+                extra_stuff = dims[0][1]                
 
             return SOM.Instrument(instrument=instname,
                                   primary=(self.__primary[0],
@@ -1187,7 +1272,8 @@ class NeXusInstrument:
                                   azimuthal=geometry[2][0],
                                   azimuthal_err2=geometry[2][1],
                                   azimuthal_selector=az_selector,
-                                  extra=extra_stuff)
+                                  extra=extra_stuff,
+                                  diff_geom=diff_geom_dict)
         except KeyError:
             flag = True
 
@@ -1210,35 +1296,56 @@ class SnsInformation:
             self.__det_locations.extend(self.__list_type(tree, "NXcrystal"))
             SOM_keys = {"analyzer" : ["Wavelength_final"]}
             data_loc = {"analyzer" : ["wavelength"]}
-            index_sel = {"analyzer" : ["JSelector"]}
+            index_sel = {"analyzer" : ["IJSelector"]}
 
             self.__get_data(SOM_keys, data_loc, index_sel)
 
         elif self.__inst_name == "REF_L" or self.__inst_name == "REF_M":
             self.__det_locations.extend(self.__list_type(tree, "NXaperture"))
 
-            SOM_keys = {"aperture1" : ["Slit1_distance", "Slit1_top",
-                                       "Slit1_bottom"],
-                        "aperture2" : ["Slit2_distance", "Slit2_top",
-                                       "Slit2_bottom"],
-                        "bank1" : ["Theta", "TwoTheta"]}
-
-            index_sel = {"aperture1" : ["ZSelector", "ZSelector", "ZSelector"],
-                         "aperture2" : ["ZSelector", "ZSelector", "ZSelector"],
-                         "bank1" : ["ZSelector", "ZSelector"]}
-
             if self.__inst_name == "REF_L":
+                SOM_keys = {"aperture1" : ["Slit1_distance", "Slit1_top",
+                                           "Slit1_bottom"],
+                            "aperture2" : ["Slit2_distance", "Slit2_top",
+                                           "Slit2_bottom"],
+                            "bank1" : ["Theta", "TwoTheta"]}
+                
+                index_sel = {"aperture1" : ["ZSelector", "ZSelector",
+                                            "ZSelector"],
+                             "aperture2" : ["ZSelector", "ZSelector",
+                                            "ZSelector"],
+                             "bank1" : ["ZSelector", "ZSelector"]}
+                
                 data_loc = {"aperture1" : ["distance", "s1t/value",
                                            "s1b/value"],
                             "aperture2" : ["distance", "s2t/value",
                                            "s2b/value"],
                             "bank1" : ["Theta/readback", "TwoTheta/readback"]}
             else:
+                self.__det_locations.extend(self.__list_type(tree,
+                                                             "NXpositioner"))
+                self.__det_locations.extend(self.__list_type(tree,
+                                                             "NXsample"))
+                SOM_keys = {"aperture1" : ["Slit1_distance", "Slit1_top",
+                                           "Slit1_bottom"],
+                            "aperture3" : ["Slit3_distance", "Slit3_top",
+                                           "Slit3_bottom"],
+                            "bank1" : ["TwoTheta"],
+                            "sample" : ["Theta"]}
+                
+                index_sel = {"aperture1" : ["ZSelector", "ZSelector",
+                                            "ZSelector"],
+                             "aperture3" : ["ZSelector", "ZSelector",
+                                            "ZSelector"],
+                             "bank1" : ["ZSelector"],
+                             "sample" : ["ZSelector"]}
+                
                 data_loc = {"aperture1" : ["distance", "TSlit1/value",
                                            "BSlit1/value"],
-                            "aperture2" : ["distance", "TSlit2/value",
-                                           "BSlit2/value"],
-                            "bank1" : ["Omega/readback", "TwoTheta/readback"]}
+                            "aperture3" : ["distance", "TSlit3/value",
+                                           "BSlit3/value"],
+                            "bank1" : ["TwoTheta/readback"],
+                            "sample" : ["Omega/readback"]}
 
             self.__get_data(SOM_keys, data_loc, index_sel, get_number=False)
 
@@ -1262,6 +1369,12 @@ class SnsInformation:
             else:
                 pass
 
+            if self.__inst_name == "REF_M":
+                if location == "/entry/TSlit1":
+                    label = "aperture1"
+                elif location == "/entry/TSlit3":
+                    label = "aperture3"
+
             if get_number:
                 value = myre.split(label)[0]
                 number = label.split(value)[-1]
@@ -1272,19 +1385,28 @@ class SnsInformation:
             try:
                 for key, dpath, sel in map(None, keys[value], data[value],
                                            selectors[value]):
-                    
+
                     if not self.__det_data.has_key(key):
                         self.__det_data[key] = []
                     else:
                         pass
-                    
+
                     path = location + "/" + dpath
                     info = (self.__get_value(path))
+                    if self.__inst_name == "REF_M":
+                        if key == "Theta":
+                            path = "/entry/instrument/bank1/" + dpath
+                        elif "Slit1" in key or "Slit3" in key:
+                            path = "/entry/" + dpath
+
+                        if info[0] is None:
+                            info = (self.__get_value(path))
+                            
                     if get_number:
                         data_label = "bank" + number
                     else:
                         data_label = value
-                    
+
                     self.__det_data[key].append(data_label)
 
                     if sel == "IJSelector":
@@ -1300,7 +1422,16 @@ class SnsInformation:
                                                 sel,
                                                 Nj=dim))
                             except IndexError:
-                                self.__det_data[key].append(None)
+                                # Need this for backwards compatibility
+                                if self.__inst_name == "BSS" and \
+                                       dpath == "wavelength":
+                                    self.__det_data[key].append(\
+                                        SOM.Information(info[0],
+                                                        info[1],
+                                                        info[2],
+                                                        "JSelector"))
+                                else:
+                                    self.__det_data[key].append(None)
                             
                         except IOError:
                             self.__det_data[key].append(None)
@@ -1365,7 +1496,7 @@ class SnsInformation:
         
     def __list_type(self, tree, type):
         my_list = []
-        for key in tree.keys():
+        for key in tree:
             if tree[key] == type:
                 my_list.append(key)
         return my_list

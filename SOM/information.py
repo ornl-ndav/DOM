@@ -242,7 +242,7 @@ class CompositeInformation(Information):
 
         result = []
 
-        for key in self.__info_hash.keys():
+        for key in self.__info_hash:
             result.append("%s: %s" % (key, str(self.__info_hash[key])))
 
         return os.linesep.join(result)
@@ -258,10 +258,10 @@ if __name__ == "__main__":
 
     info1 = Information(val, None, "meter", "ZSelector")
 
-    print "Info:",info1
+    print "Info:", info1
 
     info2 = Information(val, err2, "meter", "ZSelector")
 
     comp = CompositeInformation("bank1", info1, "bank2", info2)
 
-    print "CompInfo:",comp
+    print "CompInfo:", comp

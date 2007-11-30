@@ -167,7 +167,7 @@ class GeomDST(dst_base.DST_BASE):
         @type listing: C{dict}
         """
         my_list = {}
-        for key in listing.keys():
+        for key in listing:
             my_list[("%s/%s" % (parent, key))] = listing[key]
         return my_list
 
@@ -187,13 +187,13 @@ class GeomDST(dst_base.DST_BASE):
 
         # get a listing for each element in the tree
         if(listing is not None) and (len(listing) > 0):
-            for parent in listing.keys():
+            for parent in listing:
                 if(not listing[parent] == "SDS"):
                     self.__nexus.openpath(parent)
                     level_listing = self.__list_level()
                     level_listing = self.__prepend_parent(parent,
                                                           level_listing)
-                    for inner in level_listing.keys():
+                    for inner in level_listing:
                         my_listing[inner] = level_listing[inner]
         # or start at the beginning
         else:

@@ -103,7 +103,7 @@ class MdwDST(dst_base.DST_BASE):
         mainnode = self.__doc.createElement("config")
         self.__doc.appendChild(mainnode)
 
-        for key, value in config.__dict__.items():
+        for key, value in config.__dict__.iteritems():
 
             if value is not False and value is not None:
                 snode = self.__doc.createElement(key)
