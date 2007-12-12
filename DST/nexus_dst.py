@@ -987,10 +987,10 @@ class NeXusInstrument:
         # Add differential geometry items
         if self.__inst_name == "BSS":
             self.__det_info.append("dlf_dh")
-            self.__det_info.append("dt_dtd")
-            self.__det_info.append("dt_dh")
-            self.__det_info.append("dp_dh")
-            self.__det_info.append("dp_dtd")
+            self.__det_info.append("dpol_dtd")
+            self.__det_info.append("dpol_dh")
+            self.__det_info.append("dazi_dh")
+            self.__det_info.append("dazi_dtd")
             self.__det_info.append("dh")
 
         for location in self.__det_locations:
@@ -1326,10 +1326,10 @@ class SnsInformation:
                                                              "NXpositioner"))
                 self.__det_locations.extend(self.__list_type(tree,
                                                              "NXsample"))
-                SOM_keys = {"aperture1" : ["Slit1_distance", "Slit1_top",
-                                           "Slit1_bottom"],
-                            "aperture3" : ["Slit3_distance", "Slit3_top",
-                                           "Slit3_bottom"],
+                SOM_keys = {"aperture1" : ["Slit1_distance", "Slit1_left",
+                                           "Slit1_right"],
+                            "aperture3" : ["Slit3_distance", "Slit3_left",
+                                           "Slit3_right"],
                             "bank1" : ["TwoTheta"],
                             "sample" : ["Theta"]}
                 
@@ -1340,10 +1340,10 @@ class SnsInformation:
                              "bank1" : ["ZSelector"],
                              "sample" : ["ZSelector"]}
                 
-                data_loc = {"aperture1" : ["distance", "TSlit1/value",
-                                           "BSlit1/value"],
-                            "aperture3" : ["distance", "TSlit3/value",
-                                           "BSlit3/value"],
+                data_loc = {"aperture1" : ["distance", "LSlit1/value",
+                                           "RSlit1/value"],
+                            "aperture3" : ["distance", "LSlit3/value",
+                                           "RSlit3/value"],
                             "bank1" : ["TwoTheta/readback"],
                             "sample" : ["Omega/readback"]}
 
