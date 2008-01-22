@@ -992,6 +992,7 @@ class NeXusInstrument:
             self.__det_info.append("dazi_dh")
             self.__det_info.append("dazi_dtd")
             self.__det_info.append("dh")
+            self.__det_info.append("dtd")
 
         for location in self.__det_locations:
             label = location.split('/')[-1]
@@ -1008,8 +1009,11 @@ class NeXusInstrument:
             self.__mon_data[label] = self.__get_value(path)
 
         self.__moderator_locations =  self.__list_type(tree,"NXmoderator")
-        self.__primary = self.__get_value(self.__moderator_locations[-1] +
-                                          "/distance")
+        try:
+            self.__primary = self.__get_value(self.__moderator_locations[-1] +
+                                              "/distance")
+        except IndexError:
+            self.__primary = None
         # Remake tuple with primary with |distance|
         try:
             self.__primary = (math.fabs(self.__primary[0]), self.__primary[1],
