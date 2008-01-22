@@ -1,1 +1,1 @@
-version='1.0.0iqc7'
+version='1.0.0'
