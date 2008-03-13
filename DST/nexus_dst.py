@@ -1195,18 +1195,22 @@ class NeXusInstrument:
                     instname = "BSS_diff"
                     if from_saf:
                         btype = "/instrument-diffraction"
+                        middle_dir = "/"
                     else:
                         btype = "/entry-diff"
+                        middle_dir = "/instrument/"
                 else:
                     instname = self.__inst_name
                     if from_saf:
                         btype = "/instrument-inelastic"
+                        middle_dir = "/"
                     else:
                         btype = "/entry"
+                        middle_dir = "/instrument/"
 
-                dis_path = btype + "/" + label + "/distance"
-                pol_path = btype + "/" + label + "/polar_angle"
-                az_path = btype + "/" + label + "/azimuthal_angle"
+                dis_path = btype + middle_dir + label + "/distance"
+                pol_path = btype + middle_dir + label + "/polar_angle"
+                az_path = btype + middle_dir + label + "/azimuthal_angle"
 
                 self.__nexus.openpath(dis_path)
                 dims = self.__nexus.getdims()
