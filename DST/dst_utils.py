@@ -181,20 +181,6 @@ def write_spec_header(ofile, epoch, som):
     else:
         pass
     
-    if som.attr_list.has_key("operations"):
-        for op in som.attr_list["operations"]:
-            print >> ofile, "#C Operation",op
-    else:
-        pass
-    
-    if som.attr_list.has_key("parents"):
-        print >> ofile, "#C Parent Files"
-        pdict = som.attr_list["parents"]
-        for key in pdict:
-            print >> ofile, "#C %s: %s" % (key, pdict[key]) 
-    else:
-        pass
-
     write_dataset_tags(ofile, "-proton_charge", "#C %s Proton Charge: %s",
                        "#C Proton Charge:", som)
 
