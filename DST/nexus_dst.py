@@ -196,7 +196,11 @@ class NeXusDST(dst_base.DST_BASE):
         for id in id_list:
             bank_id = id[0].split('/')[-1]
             inst_keys.append(bank_id)
-            inst_keys.append(self.__inst_info.getInstrument(id[0]))
+            try:
+                inst_keys.append(self.__inst_info.getInstrument(id[0]))
+            except IOError:
+                # Geometry information doesn't exist
+                inst_keys.append(None)
 
             data = self.__avail_data[id]
             # Construct keywords if necessary
