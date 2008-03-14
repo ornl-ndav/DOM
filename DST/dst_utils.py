@@ -224,6 +224,20 @@ def write_spec_header(ofile, epoch, som):
                        "#C %s dtheta_over_theta: %.10f",
                        "#C dtheta_over_theta: %.10f", som)
     
+    # Write out software version numbers
+    import common_lib
+    import DST
+    import utils
+
+    # HLR
+    print >> ofile, "#C HLR Version -", common_lib.__version__
+
+    # DOM
+    print >> ofile, "#C DOM Version -", DST.__version__
+
+    # SCL
+    print >> ofile, "#C SCL Version -", utils.__version__    
+    
 def write_dataset_tags(ofile, tag, format_multi, format_one, som):
     """
     This function searches a L{SOM.SOM} for a particular tag that has dataset
