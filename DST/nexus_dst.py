@@ -191,7 +191,7 @@ class NeXusDST(dst_base.DST_BASE):
             len_id_1 = True
         else:
             len_id_1 = False
-
+        
         count = 0
         for id in id_list:
             bank_id = id[0].split('/')[-1]
@@ -1013,13 +1013,13 @@ class NeXusInstrument:
             self.__primary = self.__get_value(self.__moderator_locations[-1] +
                                               "/distance")
         except IndexError:
-            self.__primary = None
+            self.__primary = (float('nan'), float('nan'), "")
         # Remake tuple with primary with |distance|
         try:
             self.__primary = (math.fabs(self.__primary[0]), self.__primary[1],
                               self.__primary[2])
         except TypeError:
-            self.__primary = (float('nan'), float('nan'))
+            self.__primary = (float('nan'), float('nan'), "")
 
     def __get_value(self, path):
         try:
