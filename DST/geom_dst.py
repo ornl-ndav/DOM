@@ -114,6 +114,8 @@ class GeomDST(dst_base.DST_BASE):
         else:
             som.attr_list.instrument = inst_keys[1]
 
+        som.attr_list["instrument_name"] = som.attr_list.instrument.get_name()
+
         info_keys = self.__sns_info.getKeys()
         for key in info_keys:
             pair_list = self.__sns_info.getInformation(key)
