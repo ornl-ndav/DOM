@@ -69,6 +69,58 @@ def make_magic_key():
     
     return key
 
+def parse_spec_header(ifile):
+    """
+    This function reads through a Spec file parsing the header (or footer
+    in the case of Dave2d) information and creating a dictionary from that
+    information.
+
+    @param ifile: The input file resource containing the Spec header
+    @type ifile: C{file}
+
+
+    @return: The gathered information from the Spec header
+    @rtype: C{dict}
+    """
+    import os
+
+    import SOM
+    
+    SPEC_HEADER_FLAGS = ["#F", "#C", "#E", "#D"]
+    
+    header_lines = {}
+    for line in ifile.xreadlines():
+        key = line[:2]
+        if key in SPEC_HEADER_FLAGS:
+            try:
+                header_lines[key].append(line.lstrip(key).rstrip(os.linesep))
+            except KeyError:
+                header_lines[key] = [line.lstrip(key).rstrip(os.linesep)]
+        else:
+            break
+
+    DATASET_TYPES = ["data", "normalization", "norm", "dsbackground",
+                     "background", "empty_can"]
+
+    attr_list = SOM.AttributeList()
+
+    # Parse the files
+    for file_line in header_lines[SPEC_HEADER_FLAGS[0]]:
+        if ":" in file_line:
+            parts = file_line.split(':')
+            key = parts[0].strip() + "-filename"
+            try:
+                attr_list[key].append(parts[1].strip())
+            except KeyError:
+                attr_list[key] = [parts[1].strip()]
+        else:
+            try:
+                attr_list["filename"].append(file_line.strip())
+            except KeyError:
+                attr_list["filename"] = [file_line.strip()]
+
+    return attr_list
+
 def write_spec_header(ofile, epoch, som):
     """
     This function writes a header based on the Spec file format.
