@@ -92,10 +92,8 @@ def parse_spec_header(ifile):
     for line in ifile.xreadlines():
         key = line[:2]
         if key in SPEC_HEADER_FLAGS:
-            try:
-                header_lines[key].append(line.lstrip(key).rstrip(os.linesep))
-            except KeyError:
-                header_lines[key] = [line.lstrip(key).rstrip(os.linesep)]
+            __update_dictionary(header_lines, key,
+                                line.lstrip(key).rstrip(os.linesep), "str")
         else:
             break
 
@@ -103,15 +101,14 @@ def parse_spec_header(ifile):
                      "background", "empty_can"]
 
     HEADER_KEYS = {
-        "Title": "title",
-        "Notes": "notes",
-        "Run Number": "run_number",
-        "dt/t": "dt_over_t",
-        "User": "username",
-        "Polar Angle Offset": "angle_offset",
-        "Proton Charge": "proton_charge",
+        "Title": ["title", "str"],
+        "Notes": ["notes", "str"],
+        "Run Number": ["run_number", "int"],
+        "dt/t": ["dt_over_t", "tuple"],
+        "User": ["username", "str"],
+        "Polar Angle Offset": ["angle_offset", "tuple"],
+        "Proton Charge": ["proton_charge", "tuple"],
         }
-
 
     attr_list = SOM.AttributeList()
 
@@ -120,27 +117,46 @@ def parse_spec_header(ifile):
         if ":" in file_line:
             parts = file_line.split(':')
             key = parts[0].strip() + "-filename"
-            try:
-                attr_list[key].append(parts[1].strip())
-            except KeyError:
-                attr_list[key] = [parts[1].strip()]
+            __update_dictionary(attr_list, key, parts[1], "str")
         else:
-            try:
-                attr_list["filename"].append(file_line.strip())
-            except KeyError:
-                attr_list["filename"] = [file_line.strip()]
+            __update_dictionary(attr_list, "filename", file_line, "str")
 
     # Parse the comments for information
     for comment_line in header_lines[SPEC_HEADER_FLAGS[1]]:
         parts = comment_line.split(':')
         for data_set in DATASET_TYPES:
-            if data_set in part[0]:
+            if data_set in parts[0]:
                 pass
             else:
                 pass
 
     return attr_list
 
+def __update_dictionary(idict, key, info, itype):
+    """
+    This private function updates a given dictionary with the information
+    provided. The information is adjusted according to the type given.
+
+    @param idict: The dictionary to be modified
+    @type idict: C{dict}
+
+    @param key: The key for the information
+    @type key: C{string}
+
+    @param info: The information to update the dictionary with
+    @type info: C{string}
+
+    @param itype: The data type for information conversion
+    @type itype: C{string}
+    """
+    if itype == "str":
+        item = info.strip()
+    
+    try:
+        idict[key].append(item)
+    except KeyError:
+        idict[key] = [item]
+    
 def write_spec_header(ofile, epoch, som):
     """
     This function writes a header based on the Spec file format.
