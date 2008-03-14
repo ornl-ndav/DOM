@@ -102,6 +102,17 @@ def parse_spec_header(ifile):
     DATASET_TYPES = ["data", "normalization", "norm", "dsbackground",
                      "background", "empty_can"]
 
+    HEADER_KEYS = {
+        "Title": "title",
+        "Notes": "notes",
+        "Run Number": "run_number",
+        "dt/t": "dt_over_t",
+        "User": "username",
+        "Polar Angle Offset": "angle_offset",
+        "Proton Charge": "proton_charge",
+        }
+
+
     attr_list = SOM.AttributeList()
 
     # Parse the files
@@ -118,6 +129,15 @@ def parse_spec_header(ifile):
                 attr_list["filename"].append(file_line.strip())
             except KeyError:
                 attr_list["filename"] = [file_line.strip()]
+
+    # Parse the comments for information
+    for comment_line in header_lines[SPEC_HEADER_FLAGS[1]]:
+        parts = comment_line.split(':')
+        for data_set in DATASET_TYPES:
+            if data_set in part[0]:
+                pass
+            else:
+                pass
 
     return attr_list
 
