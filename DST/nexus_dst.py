@@ -1167,7 +1167,10 @@ class NeXusInstrument:
             geometry = self.__mon_data[label]
             # Add monitor distance to |moderator distance| to get correct
             # distance and recreate tuple
-            geometry = (self.__primary[0] + geometry[0], geometry[1])
+            try:
+                geometry = (self.__primary[0] + geometry[0], geometry[1])
+            except TypeError:
+                geometry = (float('nan'), float('nan'))
             return SOM.Instrument(primary=geometry)
         except KeyError:
             flag = True
