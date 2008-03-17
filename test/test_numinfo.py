@@ -28,22 +28,22 @@ import DST
 import SOM
 import hlr_utils
 
-filename = "numinfo.xml"
-tagname = "normalization_efficiency"
+filename = "numinfo.dat"
 
 som = SOM.SOM()
 so1 = SOM.SO()
 so1.id = ("bank1", (0, 0))
+so1.y = 111.0
+so1.var_y = 23.0
 som.append(so1)
 so2 = SOM.SO()
 so2.id = ("bank2", (0, 0))
+so2.y = 143.0
+so2.var_y = 27.0
 som.append(so2)
-
-num_list = [(111.0, 23.0), (143.0, 27.0)]
-som.attr_list[tagname] = num_list
 
 ofile = open(filename, "w")
 
-nif = DST.NumInfoDST(ofile, tagname)
+nif = DST.NumInfoDST(ofile)
 nif.writeSOM(som)
 nif.release_resource()
