@@ -163,6 +163,19 @@ def parse_spec_header(ifile):
 
     return attr_list
 
+def units_from_string(ustr):
+    """
+    This function returns the units from a string of the form C{(units)}.
+
+    @param ustr: The object to retrieve the units from
+    @type ustr: C{string}
+
+
+    @return: The units
+    @rtype: C{string}
+    """
+    return ustr.lstrip('(').rstrip(')')
+
 def __update_dictionary(idict, key, info, itype):
     """
     This private function updates a given dictionary with the information
