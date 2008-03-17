@@ -144,6 +144,17 @@ class NumInfoDST(dst_base.DST_BASE):
 
         som.attr_list = dst_utils.parse_spec_header(self.__file)
 
+        # Reset file read to not miss #L line
+        fname = self.__file.name
+        self.release_resource
+        self.__file = open(fname, "r")
+
+        for line in self.__file:
+            if line.startswith("#L"):
+                self.readSOM(som, line)
+            elif line.startswith("("):
+                self.readSO(som, line)
+
         return som
 
     def writeSO(self, so):
@@ -178,6 +189,26 @@ class NumInfoDST(dst_base.DST_BASE):
         #self.writeFile()
 
     ########## Special functions
+
+    def readSO(self, som, dline):
+        pass
+
+    def readSOM(self, som, lline):
+        """
+        This method reads the #L line and sets up some initial information in
+        the L{SOM.SOM}.
+
+        @param som: The object to have its information read from file.
+        @type som: L{SOM.SOM}
+
+        @param lline: The line from the file containing the information to set
+        @type lline: C{string}
+        """
+        parts = lline.split()
+        # Fourth entry is the y axis label
+        som.setYLabel(parts[3])
+        # Fifth entry is the y axis units
+        som.setYUnits(dst_utils.units_from_string(parts[4]))
 
     def writeData(self, so):
         """
