@@ -124,15 +124,35 @@ def parse_spec_header(ifile):
     # Parse the comments for information
     for comment_line in header_lines[SPEC_HEADER_FLAGS[1]]:
         parts = comment_line.split(':')
+        print "A:", parts
+        found_data_set = [False, None]
         for data_set in DATASET_TYPES:
             if data_set in parts[0]:
-                pass
-            else:
-                pass
+                found_data_set[0] = True
+                found_data_set[1] = data_set
+                break
+
+        if found_data_set[0]:
+            pkey = parts[0].lstrip(found_data_set[1]).strip()
+            print "B:", pkey
+            akey = found_data_set[1] + "-" + HEADER_KEYS[pkey][0]
+            print "C:", akey
+            __update_dictionary(attr_list, akey, parts[1],
+                                HEADER_KEYS[pkey][1], True)
+        else:
+            pkey = parts[0].strip()
+            try:
+                __update_dictionary(attr_list, HEADER_KEYS[pkey][0], parts[1],
+                                    HEADER_KEYS[pkey][1], True)
+            except KeyError:
+                # We've encountered something we don't know, write the info
+                # in as is
+                nkey = pkey.lower().replace(' ', '-')
+                __update_dictionary(attr_list, nkey, parts[1], "str", True)
 
     return attr_list
 
-def __update_dictionary(idict, key, info, itype):
+def __update_dictionary(idict, key, info, itype, multi=False):
     """
     This private function updates a given dictionary with the information
     provided. The information is adjusted according to the type given.
@@ -149,13 +169,22 @@ def __update_dictionary(idict, key, info, itype):
     @param itype: The data type for information conversion
     @type itype: C{string}
     """
-    if itype == "str":
-        item = info.strip()
+
+    if multi:
+        items = info.strip().split('/')
+    else:
+        items = [info.strip()]
+
+    for item in items:
+        if itype == "str":
+            item = item.strip()
+        elif itype == "int":
+            item = int(item.strip())
     
-    try:
-        idict[key].append(item)
-    except KeyError:
-        idict[key] = [item]
+        try:
+            idict[key].append(item)
+        except KeyError:
+            idict[key] = [item]
     
 def write_spec_header(ofile, epoch, som):
     """
