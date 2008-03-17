@@ -50,13 +50,6 @@ class NumInfoDST(dst_base.DST_BASE):
                    This is used as the creation time of the file information.
     @type __epoch: C{string}
 
-    @ivar __doc: The handle to the XML document object (UNUSED)
-    @type __doc: C{xml.dom.minidom.Document}
-
-    @ivar __line_wrap_num: The parameter specifying the number of values to
-    keep on a single line in a XML file. (UNUSED)
-    @type __line_wrap_num: C{int}
-
     @ivar __tag: The label for the values being written to file.
     @type __tag: C{string}
 
@@ -84,11 +77,6 @@ class NumInfoDST(dst_base.DST_BASE):
 
         @param kwargs: A list of keyword arguments that the class accepts:
 
-        @keyword line_wrap_num: The parameter specifying the number of values
-                                to keep on a single line in a XML file. The
-                                default value is I{4}. (UNUSED)
-        @type line_wrap_num: C{int}
-
         @keyword tag: The label for the values being written to file. The
                       default is I{Integral}.
         @type tag: C{string}
@@ -101,16 +89,9 @@ class NumInfoDST(dst_base.DST_BASE):
         @type comments: C{list} of C{string}s
         """        
         import time
-        import xml.dom.minidom
 
-        self.__doc = xml.dom.minidom.Document()
         self.__file = resource
         self.__epoch = time.time()
-
-        try:
-            self.__line_wrap_num = kwargs["line_wrap_num"]
-        except KeyError:
-            self.__line_wrap_num = 4
 
         try:
             self.__tag = kwargs["tag"]
@@ -184,9 +165,6 @@ class NumInfoDST(dst_base.DST_BASE):
                                                    self.__units)
         for so in som:
             self.writeData(so)
-        
-        #self.prepareContents(som)
-        #self.writeFile()
 
     ########## Special functions
 
@@ -258,95 +236,3 @@ class NumInfoDST(dst_base.DST_BASE):
             variance = float('inf')
         
         print >> self.__file, so.id, so.y, variance
-
-    def prepareContents(self, som):
-        """
-        Unused method.
-        """
-        self.__parseContentsForXml(values, errors, ids)
-
-    def __parseContentsForXml(self, values, errors, ids):
-        """
-        Unused method.
-        """        
-        # NOT VALID, NEEDS TO BE REDONE IF XML IS DESIRED
-        value_string_bank_list = []
-        error_string_bank_list = []
-        bank_list = []
-
-        bank_check = True
-        bank_id = ids[0][0]
-        bank_list.append(bank_id)
-        counter = 0
-
-        import os
-        
-        value_substring = []
-        value_bank_string = os.linesep
-        error_substring = []
-        error_bank_string = os.linesep
-
-        make_substring = False
-        
-        for j in xrange(som_size):
-            if bank_id == ids[j][0]:
-                pass
-            else:
-                value_bank_string += " ".join(value_substring)+os.linesep
-                value_string_bank_list.append(value_bank_string)
-                error_bank_string += " ".join(error_substring)+os.linesep
-                error_string_bank_list.append(error_bank_string)
-
-                bank_id = ids[j][0]
-                bank_list.append(bank_id)
-                counter = 0
-                value_substring = []
-                value_bank_string = os.linesep
-                error_substring = []
-                error_bank_string = os.linesep                
-                
-            if counter == self.__line_wrap_num:
-                counter = 0
-                value_bank_string += " ".join(value_substring)+os.linesep
-                value_substring = []
-                error_bank_string += " ".join(error_substring)+os.linesep
-                error_substring = []
-                make_substring = True
-            else:
-                pass
-
-            value_substring.append("%.3f" % values[j])
-            error_substring.append("%.3f" % errors[j])
-            counter += 1                
-
-        value_bank_string += " ".join(value_substring)+os.linesep
-        error_bank_string += " ".join(error_substring)+os.linesep
-        value_string_bank_list.append(value_bank_string)
-        error_string_bank_list.append(error_bank_string)
-        
-        mainnode = self.__doc.createElement(self.__attr_name)
-        mainnode.setAttribute("created", dst_utils.makeIS08601(self.__epoch))
-
-        for k in range(len(value_string_bank_list)):
-            banknode = self.__doc.createElement(bank_list[k])
-            valuenode = self.__doc.createElement("value")
-            valuetnode = self.__doc.createTextNode(value_string_bank_list[k])
-            valuenode.appendChild(valuetnode)
-            errornode = self.__doc.createElement("error")
-            errortnode = self.__doc.createTextNode(error_string_bank_list[k])
-            errornode.appendChild(errortnode)
-            banknode.appendChild(valuenode)
-            banknode.appendChild(errornode)
-            mainnode.appendChild(banknode)
-
-        self.__doc.appendChild(mainnode)        
-
-    def writeFile(self):
-        """
-        Unused method.
-        """        
-        import xml.dom.ext
-
-        xml.dom.ext.PrettyPrint(self.__doc, self.__file)
-
-    
