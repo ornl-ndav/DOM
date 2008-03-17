@@ -222,6 +222,37 @@ class NxParameter(object):
 
         return self
 
+    def fromString(cls, istr):
+        """
+        This method provides an alternative constructor method for creating a
+        C{NxParameter} from a C{string} of either \"(value, units)\" or
+        \"value, units\".
+        
+        @param obj: Object containing a value and units.
+        @type obj: C{string}
+
+        
+        @return: A new object with the information from the C{string}
+        @rtype: C{SOM.NxParameter}
+        """
+        parts = istr.lstrip('(').rstrip(')').split(',')
+        vpart = parts[0].strip()
+        if len(parts) < 2:
+            upart = None
+        else:
+            upart = parts[1].strip().strip('\'')
+        try:
+            value = int(vpart)
+        except ValueError:
+            try:
+                value = float(vpart)
+            except ValueError:
+                value = vpart
+
+        return NxParameter(value, upart)
+
+    fromString = classmethod(fromString)
+
 def fromTuple(obj):
     """
     This method provides an alternative constructor method for creating a
@@ -245,6 +276,8 @@ if __name__ == "__main__":
     par4 = NxParameter(1.0, "crowns")
     par5 = NxParameter(2.0, "crowns")
     par6 = NxParameter(3.0, "pence")
+    par7 = NxParameter.fromString("(1.032, seconds)")
+    par8 = NxParameter.fromString("Testing")
 
     print "*************************"
     print "par1:", par1
@@ -253,6 +286,8 @@ if __name__ == "__main__":
     print "par4:", par4
     print "par5:", par5
     print "par6:", par6
+    print "par7:", par7
+    print "par8:", par8
     
     print "par1+par2:", par1+par2
     print "par3+par1:", par3+par1
