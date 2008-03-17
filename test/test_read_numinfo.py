@@ -24,9 +24,10 @@
 
 # $Id$
 
+import sys
 import DST
 
-filename = "/SNS/users/2zr/data/test/BSS/20071005/BSS_126.norm"
+filename = sys.argv[1]
 
 ifile = open(filename, "r")
 
