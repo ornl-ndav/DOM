@@ -253,20 +253,23 @@ class NxParameter(object):
 
     fromString = classmethod(fromString)
 
-def fromTuple(obj):
-    """
-    This method provides an alternative constructor method for creating a
-    C{NxParameter} from a C{tuple} of the following form C{(value, units)}. A
-    C{tuple} may be specified as following: C{(value, None)}.
+    def fromTuple(cls, obj):
+        """
+        This method provides an alternative constructor method for creating a
+        C{NxParameter} from a C{tuple} of the following form
+        C{(value, units)}. A C{tuple} may be specified as following:
+        C{(value, None)}.
+        
+        @param obj: Object containing a value and units.
+        @type obj: C{tuple}
+        
+        
+        @return: A new object with the information from the C{tuple}
+        @rtype: C{SOM.NxParameter}
+        """
+        return NxParameter(obj[0], obj[1])
 
-    @param obj: Object containing a value and units.
-    @type obj: C{tuple}
-
-
-    @return: A new object with the information from the C{tuple}
-    @rtype: C{SOM.NxParameter}
-    """
-    return NxParameter(obj[0], obj[1])
+    fromTuple = classmethod(fromTuple)
 
 if __name__ == "__main__":
     
