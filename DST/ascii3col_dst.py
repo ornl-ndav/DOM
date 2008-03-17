@@ -103,9 +103,30 @@ class Ascii3ColDST(dst_base.DST_BASE):
         @param som_id: The name of the SOM. The default value is C{None}. This
         retrieves all information. 
         """
+        import os
+        
         som = SOM.SOM()
 
         som.attr_list = dst_utils.parse_spec_header(self.__file)
+
+        # Setup somethings for working through the data
+        got_columns = False
+        got_header = False
+        nexus_id = None
+        data_lines = []
+
+        for line in self.__file:
+            if line.startswith("#S"):
+                self.__readSO(data_lines, nexus_id, som)
+                data_lines = []
+                parts = line.split()
+                nexus_id = SOM.NeXusId.fromList(parts[4:])
+            elif not got_header and line.startswith("#L"):
+                self.__readSOM(som, line.lstrip("#L "))
+            elif not got_columns and line.startswith("#N"):
+                self.__columns = int(line.split()[-1].strip())
+            else:
+                data_lines.append(line)
 
         return som
 
@@ -218,6 +239,40 @@ class Ascii3ColDST(dst_base.DST_BASE):
         self.__columns += 2
 
         return (self.SPACE.join(result), tuple(names))
+
+    def __readSO(self, dlines, nx_id, som):
+        """
+
+        @param nx_id: The NeXus pixel ID
+        @type nx_id: L{SOM.NeXusId}
+
+        @param som: The object to have its information read from file.
+        @type som: L{SOM.SOM}
+        """
+        pass
+
+    def __readSOM(self, som, lline):
+        """
+        This method reads the #L line and sets up some initial information in
+        the L{SOM.SOM}.
+
+        @param som: The object to have its information read from file.
+        @type som: L{SOM.SOM}
+
+        @param lline: The line from the file containing the information to set
+        @type lline: C{string}
+        """
+        parts = lline.split()
+        # Find the units
+        units = []
+        count = 0
+        for part in parts:
+            if "(" in part:
+                units.append(count)
+            count += 1
+
+        x_axes = self.__columns - 2
+        
 
     def __setPrimaryAxisInfo(self, dim, som, so, names, result):
         """
