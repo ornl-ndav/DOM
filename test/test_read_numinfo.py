@@ -38,4 +38,6 @@ som = nif.getSOM()
 nif.release_resource()
 
 print som.attr_list
+print som.getYLabel()
+print som.getYUnits()
 print som
