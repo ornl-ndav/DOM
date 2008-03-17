@@ -31,6 +31,7 @@ from instrument import Instrument
 from comp_instrument import CompositeInstrument
 from asg_instrument import ASG_Instrument
 from indexselector import *
+from nexus_id import NeXusId
 from nxparameter import NxParameter
 from sample import Sample
 from simpleselector import *
