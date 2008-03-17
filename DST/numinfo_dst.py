@@ -205,10 +205,19 @@ class NumInfoDST(dst_base.DST_BASE):
         @type lline: C{string}
         """
         parts = lline.split()
-        # Fourth entry is the y axis label
-        som.setYLabel(parts[3])
-        # Fifth entry is the y axis units
-        som.setYUnits(dst_utils.units_from_string(parts[4]))
+        # Find the units
+        units = []
+        count = 0
+        for part in parts:
+            if part.startswith("("):
+                units.append(count)
+            count += 1
+        
+        # Between thrid entry and first units is the y axis label
+        label = parts[3:units[0]]
+        som.setYLabel(" ".join(label))
+        # Next entry after that is the y axis units
+        som.setYUnits(dst_utils.units_from_string(parts[units[0]]))
 
     def writeData(self, so):
         """
