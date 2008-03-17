@@ -56,19 +56,28 @@ class NeXusId(object):
 
     def getDetId(self):
         """
+        This method returns the detector ID.
 
+        @return: The detector ID
+        @rtype: C{string}
         """
         return self.__det_id
 
     def getXindex(self):
         """
+        This method returns the x index of the detector ID.
 
+        @return: The x index
+        @rtype: C{int}
         """
         return self.__x_index
 
     def getYindex(self):
         """
+        This method returns the y index of the detector ID.
 
+        @return: The y index
+        @rtype: C{int}
         """
         return self.__y_index    
 
@@ -83,7 +92,19 @@ class NeXusId(object):
 
     def fromList(cls, ilist):
         """
+        This method creates a L{NeXusId} object from a list containing the
+        detector ID and the x and y pixel indicies.
+        
+        @param ilist: The object containing the detector ID and the x and y
+        pixel indicies.
+        @type ilist: C{list}
 
+
+        @return: A NeXus pixel ID
+        @rtype: L{NeXusId}
+
+
+        @raise RuntimeError: If the list is not of length 3.
         """
         if len(ilist) != 3:
             raise RuntimeError("Cannot create NeXus ID from %s. Must have "\
@@ -100,9 +121,24 @@ class NeXusId(object):
 
     def fromString(cls, istr):
         """
+        This method creates a L{NeXusId} object from a string containing the
+        detector ID and the x and y pixel indicies. The format of the string
+        is \"('bank1', (0, 0))\".
+        
+        @param istr: The object containing the detector ID and the x and y
+        pixel indicies.
+        @type istr: C{string}
 
+
+        @return: A NeXus pixel ID
+        @rtype: L{NeXusId}
         """
-        parts = istr.split()
+        if "(" in istr:
+            parts = istr.split()
+        elif "," in istr:
+            parts = istr.split(',')
+        elif "_" in istr:
+            parts = istr.split('_')
         return NeXusId.fromList(parts)
 
     fromString = classmethod(fromString)
