@@ -179,20 +179,16 @@ class NumInfoDST(dst_base.DST_BASE):
         @param dline: The line from the file containing the data
         @type dline: C{string}        
         """
-        import nessi_list
-        
         parts = dline.split()
 
         so = SOM.SO()
-        so.y = nessi_list.NessiList()
-        so.var_y = nessi_list.NessiList()
 
         # The spectrum ID is the first three slots
         so.id = SOM.NeXusId.fromList(parts[0:3]).toTuple()
         # Get the value
-        so.y.append(float(parts[-2]))
+        so.y = float(parts[-2])
         # Need to square the error since we carry around error^2
-        so.var_y.append(float(parts[-1]) * float(parts[-1]))
+        so.var_y = (float(parts[-1]) * float(parts[-1]))
 
         som.append(so)
 
