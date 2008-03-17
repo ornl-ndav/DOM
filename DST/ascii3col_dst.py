@@ -25,6 +25,7 @@
 import dst_base
 import dst_utils
 import math
+import SOM
 
 class Ascii3ColDST(dst_base.DST_BASE):
     """
@@ -94,6 +95,19 @@ class Ascii3ColDST(dst_base.DST_BASE):
         This method closes the file handle to the output file.
         """
         self.__file.close()
+
+    def getSOM(self, som_id=None):
+        """
+        This method parses the resource and creates a SOM from the information.
+
+        @param som_id: The name of the SOM. The default value is C{None}. This
+        retrieves all information. 
+        """
+        som = SOM.SOM()
+
+        som.attr_list = dst_utils.parse_spec_header(self.__file)
+
+        return som
 
     def writeSO(self, so):
         """
