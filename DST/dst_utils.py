@@ -22,6 +22,8 @@
 
 # $Id$
 
+import SOM
+
 def make_ISO8601(now=None):
     """
     This function takes an optional argument of a UNIX time and converts that
@@ -83,31 +85,39 @@ def parse_spec_header(ifile):
     @rtype: C{dict}
     """
     import os
-
-    import SOM
     
     SPEC_HEADER_FLAGS = ["#F", "#C", "#E", "#D"]
-    
+
     header_lines = {}
     for line in ifile.xreadlines():
         key = line[:2]
         if key in SPEC_HEADER_FLAGS:
             __update_dictionary(header_lines, key,
-                                line.lstrip(key).rstrip(os.linesep), "str")
+                                line.lstrip(key).rstrip(os.linesep), "lstr")
         else:
             break
 
     DATASET_TYPES = ["data", "normalization", "norm", "dsbackground",
                      "background", "empty_can"]
 
+    DR_PACKAGES = ["HLR", "DOM", "SCL"]
+    
     HEADER_KEYS = {
         "Title": ["title", "str"],
         "Notes": ["notes", "str"],
-        "Run Number": ["run_number", "int"],
-        "dt/t": ["dt_over_t", "tuple"],
+        "Run Number": ["run_number", "str"],
+        "dt/t": ["dt_over_t", "nxpar"],
         "User": ["username", "str"],
-        "Polar Angle Offset": ["angle_offset", "tuple"],
-        "Proton Charge": ["proton_charge", "tuple"],
+        "Polar Angle Offset": ["angle_offset", "nxpar"],
+        "Proton Charge": ["proton_charge", "nxpar"],
+        "Slit1 Size": ["slit1_size", "nxpar"],
+        "Slit2 Size": ["slit2_size", "nxpar"],
+        "Slit3 Size": ["slit3_size", "nxpar"],
+        "Slit1-Slit2 Distance": ["slit12_distance", "nxpar"],
+        "Slit1-Slit3 Distance": ["slit13_distance", "nxpar"],
+        "theta": ["theta", "nxpar"],
+        "dtheta": ["delta_theta", "nxpar"],
+        "dtheta_over_theta": ["dtheta_over_theta", "nxpar"],
         }
 
     attr_list = SOM.AttributeList()
@@ -117,14 +127,17 @@ def parse_spec_header(ifile):
         if ":" in file_line:
             parts = file_line.split(':')
             key = parts[0].strip() + "-filename"
-            __update_dictionary(attr_list, key, parts[1], "str")
+            __update_dictionary(attr_list, key, parts[1], "lstr")
         else:
-            __update_dictionary(attr_list, "filename", file_line, "str")
+            __update_dictionary(attr_list, "filename", file_line, "lstr")
 
     # Parse the comments for information
     for comment_line in header_lines[SPEC_HEADER_FLAGS[1]]:
         parts = comment_line.split(':')
-        print "A:", parts
+
+        if parts[0][:3] in DR_PACKAGES:
+            continue
+
         found_data_set = [False, None]
         for data_set in DATASET_TYPES:
             if data_set in parts[0]:
@@ -134,25 +147,23 @@ def parse_spec_header(ifile):
 
         if found_data_set[0]:
             pkey = parts[0].lstrip(found_data_set[1]).strip()
-            print "B:", pkey
             akey = found_data_set[1] + "-" + HEADER_KEYS[pkey][0]
-            print "C:", akey
             __update_dictionary(attr_list, akey, parts[1],
-                                HEADER_KEYS[pkey][1], True)
+                                HEADER_KEYS[pkey][1])
         else:
             pkey = parts[0].strip()
             try:
                 __update_dictionary(attr_list, HEADER_KEYS[pkey][0], parts[1],
-                                    HEADER_KEYS[pkey][1], True)
+                                    HEADER_KEYS[pkey][1])
             except KeyError:
                 # We've encountered something we don't know, write the info
                 # in as is
                 nkey = pkey.lower().replace(' ', '-')
-                __update_dictionary(attr_list, nkey, parts[1], "str", True)
+                __update_dictionary(attr_list, nkey, parts[1], "str")
 
     return attr_list
 
-def __update_dictionary(idict, key, info, itype, multi=False):
+def __update_dictionary(idict, key, info, itype):
     """
     This private function updates a given dictionary with the information
     provided. The information is adjusted according to the type given.
@@ -169,22 +180,18 @@ def __update_dictionary(idict, key, info, itype, multi=False):
     @param itype: The data type for information conversion
     @type itype: C{string}
     """
+    item = info.strip()
 
-    if multi:
-        items = info.strip().split('/')
-    else:
-        items = [info.strip()]
+    if itype == "nxpar":
+        item = SOM.NxParameter.fromString(item)
 
-    for item in items:
-        if itype == "str":
-            item = item.strip()
-        elif itype == "int":
-            item = int(item.strip())
-    
+    if itype == "lstr":
         try:
             idict[key].append(item)
         except KeyError:
             idict[key] = [item]
+    else:
+        idict[key] = item
     
 def write_spec_header(ofile, epoch, som):
     """
