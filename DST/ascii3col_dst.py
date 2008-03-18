@@ -109,7 +109,7 @@ class Ascii3ColDST(dst_base.DST_BASE):
 
         som.attr_list = dst_utils.parse_spec_header(self.__file)
 
-        # Setup somethings for working through the data
+        # Setup some things for working through the data
         got_columns = False
         got_header = False
         nexus_id = None
@@ -123,10 +123,16 @@ class Ascii3ColDST(dst_base.DST_BASE):
                 nexus_id = SOM.NeXusId.fromList(parts[4:])
             elif not got_header and line.startswith("#L"):
                 self.__readSOM(som, line.lstrip("#L "))
+                got_header = True
             elif not got_columns and line.startswith("#N"):
                 self.__columns = int(line.split()[-1].strip())
+                got_columns = True
             else:
                 data_lines.append(line)
+
+        # One spectrum or final spectrum won't get processed in the above
+        # so we must force processing
+        self.__readSO(data_lines, nexus_id, som)
 
         return som
 
@@ -242,6 +248,11 @@ class Ascii3ColDST(dst_base.DST_BASE):
 
     def __readSO(self, dlines, nx_id, som):
         """
+        This method handles parsing the data into the respective spectrum
+        objects.
+
+        @param dlines: The lines from the file containing the data information
+        @type dlines: C{list} of C{string}s
 
         @param nx_id: The NeXus pixel ID
         @type nx_id: L{SOM.NeXusId}
@@ -249,7 +260,38 @@ class Ascii3ColDST(dst_base.DST_BASE):
         @param som: The object to have its information read from file.
         @type som: L{SOM.SOM}
         """
-        pass
+        len_dlines = len(dlines)
+        if not len_dlines or nx_id is None:
+            return
+
+        if not len(som.getDataSetType()):
+            if len(dlines[-1].split()) == self.__columns:
+                som.setDataSetType("density")
+            else:
+                som.setDataSetType("histogram")
+
+        so = SOM.SO(construct=True, id=nx_id.toTuple(), dim=self.__x_axes)
+
+        if som.getDataSetType() == "histogram":
+            num_lines = len_dlines - 1
+        else:
+            num_lines = len_dlines
+
+        for i in xrange(num_lines):
+            parts = dlines[i].split()
+
+            for j in xrange(self.__x_axes):
+                so.axis[j].val.append(float(parts[j]))
+
+            so.y.append(float(parts[-2]))
+            so.var_y.append(float(parts[-1]) * float(parts[-1]))
+
+        if som.getDataSetType() == "histogram":
+            parts = dlines[-1].split()
+            for j in xrange(self.__x_axes):
+                so.axis[j].val.append(float(parts[j]))
+
+        som.append(so)
 
     def __readSOM(self, som, lline):
         """
@@ -271,7 +313,7 @@ class Ascii3ColDST(dst_base.DST_BASE):
                 units.append(count)
             count += 1
 
-        x_axes = self.__columns - 2
+        self.__x_axes = self.__columns - 2
         
 
     def __setPrimaryAxisInfo(self, dim, som, so, names, result):
