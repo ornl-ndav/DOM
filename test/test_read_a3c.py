@@ -36,8 +36,11 @@ a3c = DST.Ascii3ColDST(ifile)
 som = a3c.getSOM()
 
 a3c.release_resource()
-
+index = 79
 print som.attr_list
 print "Y Label:", som.getYLabel()
 print "Y Units:", som.getYUnits()
+print "X Labels:", som.getAllAxisLabels()
+print "X Units:", som.getAllAxisUnits()
 print som
+print "Data:", som[0].axis[0].val[index], som[0].y[index], som[0].var_y[index]
