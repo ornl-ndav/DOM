@@ -304,17 +304,22 @@ class Ascii3ColDST(dst_base.DST_BASE):
         @param lline: The line from the file containing the information to set
         @type lline: C{string}
         """
-        parts = lline.split()
-        # Find the units
-        units = []
-        count = 0
-        for part in parts:
-            if "(" in part:
-                units.append(count)
-            count += 1
-
+        # Set the number of x axes
         self.__x_axes = self.__columns - 2
-        
+
+        # The -1 spot is empty, the -2 spot is the y axis error information
+        parts = lline.split(')')
+
+        # Go through x axes
+        for i in xrange(self.__x_axes):
+            (label, units) = parts[i].split('(')
+            som.setAxisLabel(i, label.strip())
+            som.setAxisUnits(i, units.strip())
+
+        # The -3 spot is the y axis information
+        (label, units) = parts[-3].split('(')
+        som.setYLabel(label.strip())
+        som.setYUnits(units.strip())
 
     def __setPrimaryAxisInfo(self, dim, som, so, names, result):
         """
