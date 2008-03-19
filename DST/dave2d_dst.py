@@ -25,6 +25,7 @@
 import dst_base
 import dst_utils
 import math
+import SOM
 
 class Dave2dDST(dst_base.DST_BASE):
     """
@@ -76,6 +77,23 @@ class Dave2dDST(dst_base.DST_BASE):
         This method closes the file handle to the output file.
         """        
         self.__file.close()
+
+    def getSOM(self, som_id=None):
+        """
+        This method parses the resource and creates a SOM from the information.
+
+        @param som_id: The name of the SOM. The default value is C{None}. This
+        retrieves all information. 
+        """
+        som = SOM.SOM()
+        som.setDataSetType("density")
+
+        self.__set_axes(som)
+        self.__readData(som)
+
+        #som.attr_list = dst_utils.parse_spec_header(self.__file)
+
+        return som
 
     def writeSO(self, so):
         """
@@ -149,3 +167,37 @@ class Dave2dDST(dst_base.DST_BASE):
             for (y, var_y) in map(None, slice_y, slice_var_y):
                 print >> self.__file, y, self.SPACE, \
                       math.sqrt(math.fabs(var_y))
+
+    def __create_axis(self, num_vals):
+        # Add unit information for axis
+        self.__som_info.append(self.__file.readline().rstrip(os.linesep))
+
+    def __readData(self, som):
+        pass
+
+    def __set_axes(self, som):
+        """
+        This method sets up the x and y axes for the spectrum object
+
+        @param som: The object to have its information written to file.
+        @type som: L{SOM.SOM}
+        """
+        import os
+        # Need the top four lines of the file to get the number of axis
+        # elements
+        for i in xrange(4):
+            line = self.__file.readline().rstrip(os.linesep)
+            if i == 1:
+                self.__ny = int(line)
+            elif i == 3:
+                self.__nx = int(line)
+
+        print "A:", self.__nx, self.__ny
+
+        self.__som_info = []
+
+        so = SOM.SO(dim=2)
+
+        som.append(so)
+        
+        
