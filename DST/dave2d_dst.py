@@ -47,7 +47,20 @@ class Dave2dDST(dst_base.DST_BASE):
 
     @ivar __epoch: The epoch (UNIX time) when the object was instantiated.
                    This is used as the creation time of the file information.
-    @type __epoch: C{string} 
+    @type __epoch: C{string}
+
+    @ivar __nx: The number of x axis (slowest running) elements. This is used
+                during file read in.
+    @type __nx: C{int}
+
+    @ivar __ny: The number of y axis (slowest running) elements. This is used
+                during file read in.
+    @type __ny: C{int}
+
+    @ivar __axis_info: This is used to store the axis label and unit
+                       information across internal function calls. This is
+                       used during file read in.
+    @type __axis_info: C{list} of C{string}s
     """
     
     MIME_TYPE = "text/Dave2d"
@@ -179,6 +192,17 @@ class Dave2dDST(dst_base.DST_BASE):
                       math.sqrt(math.fabs(var_y))
 
     def __create_axis(self, axis, som):
+        """
+        This method fills in the axis values for a given axis and it also
+        retrieves the label and unit information as well.
+
+        @param axis: The particular axis to set the values for. The values for
+                     this parameter are I{x} or I{y}.
+        @type axis: C{string}
+        
+        @param som: The object to have its information read from file.
+        @type som: L{SOM.SOM}
+        """
         import os
 
         # Add label and unit information for axis
@@ -191,21 +215,41 @@ class Dave2dDST(dst_base.DST_BASE):
         else:
             num_vals = self.__ny
             axis_index = 1
-        
+
+        # Set the axis values
         for i in xrange(num_vals):
             line = self.__file.readline().rstrip(os.linesep)
             som[0].axis[axis_index].val.append(float(line))
 
     def __get_label_units(self, lline):
+        """
+        This method strips out the axis label and units from the provided
+        information.
+
+        @param lline: The object containing the label and unit information.
+        @type lline: C{string}
+
+
+        @return: The axis label and units
+        @rtype: C{tuple} of two C{string}s
+        """
         parts = lline.split()
 
+        # The units sit at -2 in the list
         return (" ".join(parts[1:-2]), dst_utils.units_from_string(parts[-2]))
             
     def __readData(self, som):
+        """
+        This method reads through the data adding the counts and associated
+        squared errors.
+
+        @param som: The object to have its information read from file.
+        @type som: L{SOM.SOM}
+        """
         import os
         for i in xrange(self.__nx):
             for j in xrange(self.__ny):
-                # Skip the group tag
+                # Skip the Group tag
                 if j == 0:
                     lline = self.__file.readline()
                     
@@ -219,7 +263,7 @@ class Dave2dDST(dst_base.DST_BASE):
         """
         This method sets up the x and y axes for the spectrum object
 
-        @param som: The object to have its information written to file.
+        @param som: The object to have its information read from file.
         @type som: L{SOM.SOM}
         """
         import os
@@ -241,6 +285,7 @@ class Dave2dDST(dst_base.DST_BASE):
         self.__create_axis("y", som)
         self.__create_axis("x", som)
 
+        # Get the x and y axis label and units
         som.setAllAxisLabels([self.__axis_info[1][0], self.__axis_info[0][0]])
         som.setAllAxisUnits([self.__axis_info[1][1], self.__axis_info[0][1]])
 
