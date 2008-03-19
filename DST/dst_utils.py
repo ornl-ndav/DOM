@@ -89,7 +89,7 @@ def parse_spec_header(ifile):
     SPEC_HEADER_FLAGS = ["#F", "#C", "#E", "#D"]
 
     header_lines = {}
-    for line in ifile.xreadlines():
+    for line in ifile:
         key = line[:2]
         if key in SPEC_HEADER_FLAGS:
             __update_dictionary(header_lines, key,
