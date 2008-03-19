@@ -91,7 +91,11 @@ class Dave2dDST(dst_base.DST_BASE):
         self.__set_axes(som)
         self.__readData(som)
 
-        #som.attr_list = dst_utils.parse_spec_header(self.__file)
+        som.setYLabel("Counts")
+        uscale = som.getAxisUnits(1) + " " + som.getAxisUnits(0)
+        som.setYUnits("Counts / " + uscale)
+
+        som.attr_list = dst_utils.parse_spec_header(self.__file)
 
         return som
 
@@ -168,9 +172,6 @@ class Dave2dDST(dst_base.DST_BASE):
                 print >> self.__file, y, self.SPACE, \
                       math.sqrt(math.fabs(var_y))
 
-    def __calc_channel(self, x, y):
-        return y + (x * self.__ny)
-
     def __create_axis(self, axis, som):
         import os
 
@@ -195,8 +196,19 @@ class Dave2dDST(dst_base.DST_BASE):
         return (" ".join(parts[1:-1]), "")
             
     def __readData(self, som):
-        pass
+        import os
+        for i in xrange(self.__nx):
+            for j in xrange(self.__ny):
+                # Skip the group tag
+                if j == 0:
+                    lline = self.__file.readline()
+                    
+                lline = self.__file.readline().rstrip(os.linesep)
+                parts = lline.split()
 
+                som[0].y.append(float(parts[0]))
+                som[0].var_y.append(float(parts[1]) * float(parts[1]))
+                
     def __set_axes(self, som):
         """
         This method sets up the x and y axes for the spectrum object
@@ -213,8 +225,6 @@ class Dave2dDST(dst_base.DST_BASE):
                 self.__ny = int(line)
             elif i == 3:
                 self.__nx = int(line)
-
-        print "A:", self.__nx, self.__ny
 
         self.__axis_info = []
 
