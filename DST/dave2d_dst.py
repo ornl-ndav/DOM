@@ -168,10 +168,32 @@ class Dave2dDST(dst_base.DST_BASE):
                 print >> self.__file, y, self.SPACE, \
                       math.sqrt(math.fabs(var_y))
 
-    def __create_axis(self, num_vals):
-        # Add unit information for axis
-        self.__som_info.append(self.__file.readline().rstrip(os.linesep))
+    def __calc_channel(self, x, y):
+        return y + (x * self.__ny)
 
+    def __create_axis(self, axis, som):
+        import os
+
+        # Add label and unit information for axis
+        lline = self.__file.readline().rstrip(os.linesep)
+        self.__axis_info.append(self.__get_label_units(lline))
+        
+        if axis == "x":
+            num_vals = self.__nx
+            axis_index = 0
+        else:
+            num_vals = self.__ny
+            axis_index = 1
+        
+        for i in xrange(num_vals):
+            line = self.__file.readline().rstrip(os.linesep)
+            som[0].axis[axis_index].val.append(float(line))
+
+    def __get_label_units(self, lline):
+        parts = lline.split()
+
+        return (" ".join(parts[1:-1]), "")
+            
     def __readData(self, som):
         pass
 
@@ -194,10 +216,16 @@ class Dave2dDST(dst_base.DST_BASE):
 
         print "A:", self.__nx, self.__ny
 
-        self.__som_info = []
+        self.__axis_info = []
 
-        so = SOM.SO(dim=2)
-
+        so = SOM.SO(id=0, dim=2, construct=True)
         som.append(so)
-        
+
+        # Y axis is fastest runner, so do it first
+        self.__create_axis("y", som)
+        self.__create_axis("x", som)
+
+        som.setAllAxisLabels([self.__axis_info[1][0], self.__axis_info[0][0]])
+        som.setAllAxisUnits([self.__axis_info[1][1], self.__axis_info[0][1]])
+
         
