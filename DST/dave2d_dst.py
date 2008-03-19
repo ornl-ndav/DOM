@@ -199,7 +199,7 @@ class Dave2dDST(dst_base.DST_BASE):
     def __get_label_units(self, lline):
         parts = lline.split()
 
-        return (" ".join(parts[1:-1]), "")
+        return (" ".join(parts[1:-2]), dst_utils.units_from_string(parts[-2]))
             
     def __readData(self, som):
         import os
