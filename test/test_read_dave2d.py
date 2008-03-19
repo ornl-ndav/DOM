@@ -36,11 +36,12 @@ d2d = DST.Dave2dDST(ifile)
 som = d2d.getSOM()
 
 d2d.release_resource()
-x_index = 0
+x_index = 1
 y_index = 31
 N_y = len(som[0].axis[1].val)
 print "N_y:", N_y
 channel = y_index + (x_index * N_y)
+print "channel:", channel
 print som.attr_list
 print "Y Label:", som.getYLabel()
 print "Y Units:", som.getYUnits()
