@@ -48,5 +48,5 @@ print "Y Units:", som.getYUnits()
 print "X Labels:", som.getAllAxisLabels()
 print "X Units:", som.getAllAxisUnits()
 print som
-print "Data:", som[0].axis[0].val[x_index], som[0].axis[1].val[y_index],
-som[0].y[channel], som[0].var_y[channel]
+print "Data:", som[0].axis[0].val[x_index], som[0].axis[1].val[y_index], \
+      som[0].y[channel], som[0].var_y[channel]
