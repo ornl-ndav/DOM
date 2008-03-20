@@ -61,6 +61,11 @@ class Dave2dDST(dst_base.DST_BASE):
                        information across internal function calls. This is
                        used during file read in.
     @type __axis_info: C{list} of C{string}s
+
+    @ivar __axis_ok: This is used to store the flag determining if the
+                     incoming axis information should be written as is. This
+                     is used during file write out.
+    @type __axis_ok: C{boolean}
     """
     
     MIME_TYPE = "text/Dave2d"
@@ -79,11 +84,20 @@ class Dave2dDST(dst_base.DST_BASE):
         @param args: Argument objects that the class accepts (UNUSED)
 
         @param kwargs: A list of keyword arguments that the class accepts:
+
+        @keyword axis_ok: A flag that lets the instance know that the incoming
+        axis information should be taken as is. This is only used during
+        write-out. The default value is I{False}.
+        @type axis_ok: C{boolean}
         """        
         import time
         
         self.__file = resource
         self.__epoch = time.time()
+        try:
+            self.__axis_ok = kwargs["axis_ok"]
+        except KeyError:
+            self.__axis_ok = False
 
     def release_resource(self):
         """
