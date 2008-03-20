@@ -86,8 +86,8 @@ class Dave2dDST(dst_base.DST_BASE):
         @param kwargs: A list of keyword arguments that the class accepts:
 
         @keyword axis_ok: A flag that lets the instance know that the incoming
-        axis information should be taken as is. This is only used during
-        write-out. The default value is I{False}.
+                          axis information should be taken as is. This is only
+                          used during write-out. The default value is I{False}.
         @type axis_ok: C{boolean}
         """        
         import time
@@ -161,9 +161,13 @@ class Dave2dDST(dst_base.DST_BASE):
         @type som: L{SOM.SOM}
         """
         so = som[0]
-        len_x1 = len(so.axis[1].val) - 1
-        len_x2 = len(so.axis[0].val) - 1
-
+        if self.__axis_ok:
+            len_x1 = len(so.axis[1].val)
+            len_x2 = len(so.axis[0].val)
+        else:
+            len_x1 = len(so.axis[1].val) - 1
+            len_x2 = len(so.axis[0].val) - 1
+            
         print >> self.__file, "# Number of", som.getAxisLabel(1), "values"
         print >> self.__file, len_x1
         print >> self.__file, "# Number of", som.getAxisLabel(0), "values"
@@ -174,16 +178,22 @@ class Dave2dDST(dst_base.DST_BASE):
 
         print >> self.__file, fast_axis
         for i in range(len_x1):
-            print >> self.__file, so.axis[1].val[i] + \
-                  (so.axis[1].val[i+1] - so.axis[1].val[i]) / 2.0
+            if self.__axis_ok:
+                print >> self.__file, so.axis[1].val[i]
+            else:
+                print >> self.__file, so.axis[1].val[i] + \
+                      (so.axis[1].val[i+1] - so.axis[1].val[i]) / 2.0
 
         slow_axis = "# %s (%s) Values:" % (som.getAxisLabel(0),
                                            som.getAxisUnits(0))
 
         print >> self.__file, slow_axis
         for i in range(len_x2):
-            print >> self.__file, so.axis[0].val[i] + \
-                  (so.axis[0].val[i+1] - so.axis[0].val[i]) / 2.0
+            if self.__axis_ok:
+                print >> self.__file, so.axis[0].val[i]
+            else:
+                print >> self.__file, so.axis[0].val[i] + \
+                      (so.axis[0].val[i+1] - so.axis[0].val[i]) / 2.0
         
     def writeData(self, so):
         """
