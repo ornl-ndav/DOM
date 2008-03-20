@@ -202,9 +202,13 @@ class Dave2dDST(dst_base.DST_BASE):
 
         @param so: Object containing data to be written to file
         @type so: L{SOM.SO}
-        """        
-        len_x1 = len(so.axis[0].val) - 1
-        len_x2 = len(so.axis[1].val) - 1
+        """
+        if self.__axis_ok:
+            len_x1 = len(so.axis[0].val)
+            len_x2 = len(so.axis[1].val)
+        else:
+            len_x1 = len(so.axis[0].val) - 1
+            len_x2 = len(so.axis[1].val) - 1
 
         for i in range(len_x1):
             print >> self.__file, "# Group", i
