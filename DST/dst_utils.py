@@ -132,35 +132,39 @@ def parse_spec_header(ifile):
             __update_dictionary(attr_list, "filename", file_line, "lstr")
 
     # Parse the comments for information
-    for comment_line in header_lines[SPEC_HEADER_FLAGS[1]]:
-        parts = comment_line.split(':')
+    try:
+        for comment_line in header_lines[SPEC_HEADER_FLAGS[1]]:
+            parts = comment_line.split(':')
 
-        if parts[0][:3] in DR_PACKAGES:
-            continue
+            if parts[0][:3] in DR_PACKAGES:
+                continue
 
-        found_data_set = [False, None]
-        for data_set in DATASET_TYPES:
-            if data_set in parts[0]:
-                found_data_set[0] = True
-                found_data_set[1] = data_set
-                break
+            found_data_set = [False, None]
+            for data_set in DATASET_TYPES:
+                if data_set in parts[0]:
+                    found_data_set[0] = True
+                    found_data_set[1] = data_set
+                    break
 
-        if found_data_set[0]:
-            pkey = parts[0].lstrip(found_data_set[1]).strip()
-            akey = found_data_set[1] + "-" + HEADER_KEYS[pkey][0]
-            __update_dictionary(attr_list, akey, parts[1],
-                                HEADER_KEYS[pkey][1])
-        else:
-            pkey = parts[0].strip()
-            try:
-                __update_dictionary(attr_list, HEADER_KEYS[pkey][0], parts[1],
+            if found_data_set[0]:
+                pkey = parts[0].lstrip(found_data_set[1]).strip()
+                akey = found_data_set[1] + "-" + HEADER_KEYS[pkey][0]
+                __update_dictionary(attr_list, akey, parts[1],
                                     HEADER_KEYS[pkey][1])
-            except KeyError:
-                # We've encountered something we don't know, write the info
-                # in as is
-                nkey = pkey.lower().replace(' ', '-')
-                __update_dictionary(attr_list, nkey, parts[1], "str")
-
+            else:
+                pkey = parts[0].strip()
+                try:
+                    __update_dictionary(attr_list, HEADER_KEYS[pkey][0],
+                                        parts[1], HEADER_KEYS[pkey][1])
+                except KeyError:
+                    # We've encountered something we don't know, write the info
+                    # in as is
+                    nkey = pkey.lower().replace(' ', '-')
+                    __update_dictionary(attr_list, nkey, parts[1], "str")
+    except KeyError:
+        # No comment lines present, do nothing
+        pass
+    
     return attr_list
 
 def units_from_string(ustr):
