@@ -114,14 +114,46 @@ class NumInfoDST(dst_base.DST_BASE):
         """                
         self.__file.close()
 
-    def getSOM(self, som_id=None):
+    def getSOM(self, som_id=None, **kwargs):
         """
         This method parses the resource and creates a SOM from the information.
 
         @param som_id: The name of the SOM. The default value is C{None}. This
-                       retrieves all information.
+                       retrieves all information. If multiple detector IDs are
+                       specified, they should be comma-separated.
         @type som_id: C{string}
+
+        @param kwargs: A list of keyword arguments that the function accepts:
+
+        @keyword roi_file: A list of spectrum IDs to filter the data on
+        @type roi_file: C{string}
         """
+        # Check for list of detector IDs
+        if som_id is not None:
+            if "," in som_id:
+                som_ids = som_id.split(',')
+            else:
+                som_ids = [som_id]
+        # Check to see if an ROI file was passed
+        try:
+            roi_filename = kwargs["roi_file"]
+            try:
+                roi_file = open(roi_filename, "r")
+            except IOError:
+                raise RuntimeError("Cannot open roi file %s" % roi_filename)
+            
+            roi_id_list = []
+            
+            for pixel_id_line in roi_file:
+                if pixel_id_line.startswith("#"):
+                    continue
+                
+                roi_id_list.append(SOM.NeXusId.fromString(\
+                    pixel_id_line.rstrip()))
+                                   
+        except KeyError:
+            roi_file = None
+        
         som = SOM.SOM()
 
         som.attr_list = dst_utils.parse_spec_header(self.__file)
@@ -137,9 +169,21 @@ class NumInfoDST(dst_base.DST_BASE):
             elif line.startswith("("):
                 lparts = line.split()
                 # The spectrum ID is the first three slots
-                so_id = SOM.NeXusId.fromList(lparts[0:3]).toTuple()
-                    
-                self.readSO(som, so_id, lparts)
+                so_id = SOM.NeXusId.fromList(lparts[0:3])
+
+                filter_so = False
+                # Check the list of detector IDs
+                if som_id is not None:
+                    if so_id.getDetId() not in som_ids:
+                        filter_so = True
+
+                # Check the ROI list
+                if roi_file is not None:
+                    if so_id not in roi_id_list:
+                        filter_so = True
+
+                if not filter_so:
+                    self.readSO(som, so_id.toTuple(), lparts)
 
         return som
 
