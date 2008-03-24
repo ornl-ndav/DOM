@@ -192,8 +192,8 @@ class NeXusId(object):
     def fromString(cls, istr):
         """
         This method creates a L{NeXusId} object from a string containing the
-        detector ID and the x and y pixel indicies. The format of the string
-        is \"('bank1', (0, 0))\".
+        detector ID and the x and y pixel indicies. The allowed formats of the
+        string are \"(bank1, (0, 0))\", \"bank1,0,0\" or \"bank1_0_0\".
         
         @param istr: The object containing the detector ID and the x and y
                      pixel indicies.
