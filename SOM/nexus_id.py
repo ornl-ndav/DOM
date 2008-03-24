@@ -65,9 +65,9 @@ class NeXusId(object):
         @return: Whether or not the two L{NeXusId}s are equal
         @rtype: C{boolean}
         """
-        return if self.__det_id == right.getDetId() and \
-               if self.__x_index == right.getXindex() and \
-               if self.__y_index == right.getYindex()
+        return (self.__det_id == right.getDetId() and \
+                self.__x_index == right.getXindex() and \
+                self.__y_index == right.getYindex())
 
     def __neq__(self, right):
         """
@@ -121,7 +121,7 @@ class NeXusId(object):
         @return: Whether or not the detector IDs are equal
         @rtype: C{boolean}
         """
-        return self.__det_id == detid:
+        return self.__det_id == detid
 
     def isXidxEqual(self, xid):
         """
