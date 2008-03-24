@@ -79,7 +79,49 @@ class NeXusId(object):
         @return: The y index
         @rtype: C{int}
         """
-        return self.__y_index    
+        return self.__y_index
+
+    def isDetIdEqual(self, detid):
+        """
+        This method determines if the given detector ID is equal to the one in
+        the current instance.
+
+        @param detid: The given detector ID
+        @type detid: C{string}
+
+
+        @return: Whether or not the detector IDs are equal
+        @rtype: C{boolean}
+        """
+        return self.__det_id == detid:
+
+    def isXidxEqual(self, xid):
+        """
+        This method determines if the given x index is equal to the one in
+        the current instance.
+
+        @param xid: The given x index
+        @type xid: C{string}
+
+
+        @return: Whether or not the x indexes are equal
+        @rtype: C{boolean}
+        """
+        return self.__x_index == xid
+
+    def isYidxEqual(self, yid):
+        """
+        This method determines if the given y index is equal to the one in
+        the current instance.
+
+        @param yid: The given y index
+        @type yid: C{string}
+
+
+        @return: Whether or not the y indexes are equal
+        @rtype: C{boolean}
+        """        
+        return self.__y_index == yid
 
     def toTuple(self):
         """
