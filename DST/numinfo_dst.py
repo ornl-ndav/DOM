@@ -119,7 +119,8 @@ class NumInfoDST(dst_base.DST_BASE):
         This method parses the resource and creates a SOM from the information.
 
         @param som_id: The name of the SOM. The default value is C{None}. This
-        retrieves all information. 
+                       retrieves all information.
+        @type som_id: C{string}
         """
         som = SOM.SOM()
 
@@ -134,7 +135,11 @@ class NumInfoDST(dst_base.DST_BASE):
             if line.startswith("#L"):
                 self.readSOM(som, line)
             elif line.startswith("("):
-                self.readSO(som, line)
+                lparts = line.split()
+                # The spectrum ID is the first three slots
+                so_id = SOM.NeXusId.fromList(lparts[0:3]).toTuple()
+                    
+                self.readSO(som, so_id, lparts)
 
         return som
 
@@ -168,7 +173,7 @@ class NumInfoDST(dst_base.DST_BASE):
 
     ########## Special functions
 
-    def readSO(self, som, dline):
+    def readSO(self, som, so_id, parts):
         """
         This method reads the data lines and creates the appropriate SOs for
         the data.
@@ -176,15 +181,16 @@ class NumInfoDST(dst_base.DST_BASE):
         @param som: The object to have its information set from file.
         @type som: L{SOM.SOM}
 
-        @param dline: The line from the file containing the data
-        @type dline: C{string}        
+        @param so_id: The identifier for the individual spectrum
+        @type so_id: C{tuple}
+        
+        @param parts: The object containing the data
+        @type parts: C{list}
         """
-        parts = dline.split()
-
         so = SOM.SO()
 
-        # The spectrum ID is the first three slots
-        so.id = SOM.NeXusId.fromList(parts[0:3]).toTuple()
+        # Set the spectrum ID
+        so.id = so_id
         # Get the value
         so.y = float(parts[-2])
         # Need to square the error since we carry around error^2
