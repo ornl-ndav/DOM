@@ -166,7 +166,7 @@ class NeXusId(object):
         detector ID and the x and y pixel indicies.
         
         @param ilist: The object containing the detector ID and the x and y
-        pixel indicies.
+                      pixel indicies.
         @type ilist: C{list}
 
 
@@ -196,7 +196,7 @@ class NeXusId(object):
         is \"('bank1', (0, 0))\".
         
         @param istr: The object containing the detector ID and the x and y
-        pixel indicies.
+                     pixel indicies.
         @type istr: C{string}
 
 
