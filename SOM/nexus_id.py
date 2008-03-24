@@ -54,6 +54,34 @@ class NeXusId(object):
         self.__x_index = int(x_idx)
         self.__y_index = int(y_idx)
 
+    def __eq__(self, right):
+        """
+        This method detemines if to L{NeXusId} instances are equal.
+
+        @param right: The other object to check
+        @type right: L{NeXusId}
+
+
+        @return: Whether or not the two L{NeXusId}s are equal
+        @rtype: C{boolean}
+        """
+        return if self.__det_id == right.getDetId() and \
+               if self.__x_index == right.getXindex() and \
+               if self.__y_index == right.getYindex()
+
+    def __neq__(self, right):
+        """
+        This method detemines if to L{NeXusId} instances are not equal.
+
+        @param right: The other object to check
+        @type right: L{NeXusId}
+
+
+        @return: Whether or not the two L{NeXusId}s are not equal
+        @rtype: C{boolean}
+        """
+        return not self.__eq__(right)
+
     def getDetId(self):
         """
         This method returns the detector ID.
