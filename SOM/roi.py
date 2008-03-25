@@ -19,28 +19,20 @@
 # information, apparatus, product, or process disclosed, or represents that
 # its use would not infringe privately owned rights.
 #
-"""
-This module contains classes that serve as data containers for instrument geometry, extra
-instrument information and scientific data and metadata. It also contains utility classes
-used in conjunction with the data containers.
-"""
 
-from attribute import AttributeList
-from information import Information, CompositeInformation
-from instrument import Instrument
-from comp_instrument import CompositeInstrument
-from asg_instrument import ASG_Instrument
-from indexselector import *
-from nexus_id import NeXusId
-from nxparameter import NxParameter
-from roi import Roi
-from sample import Sample
-from simpleselector import *
-from som import SOM
-from so import PrimaryAxis
-from so import SO
+# $Id$
 
-from DOM_version import version as __version__
+class Roi(object):
+    """
+    This class handles collecting region-of-interest (ROI) information from
+    a file and generating a list of L{NeXusId}s.
 
-# version
-__id__ = "$Id$"
+    @ivar __id_list: The list of ROI identifiers
+    @type __id_list: C{list}
+    """
+
+    def __init__(self):
+        """
+        Object constructor
+        """
+        self.__id_list = []
