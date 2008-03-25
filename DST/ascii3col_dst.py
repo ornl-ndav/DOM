@@ -112,7 +112,11 @@ class Ascii3ColDST(dst_base.DST_BASE):
 
         try:
             roi_filename = kwargs["roi_file"]
-            roi = SOM.Roi(roi_filename)
+            try:
+                roi = SOM.Roi(roi_filename)
+            except TypeError:
+                # roi_filename is None
+                roi = None
         except KeyError:
             roi = None
         
