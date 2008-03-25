@@ -31,8 +31,30 @@ class Roi(object):
     @type __id_list: C{list}
     """
 
-    def __init__(self):
+    def __init__(self, filename):
         """
         Object constructor
+
+        @param filename: Name of the ROI file
+        @type filename: C{string}
         """
+        import SOM
+        
         self.__id_list = []
+
+        try:
+            roi_file = open(filename, "r")
+        except IOError:
+            raise RuntimeError("Cannot open roi file %s" % filename)
+
+        for line in roi_file:
+            if line.startswith("#"):
+                continue
+
+            self.__id_list.append(SOM.NeXusId.fromString(line.rstrip()))
+        
+    def __iter__(self):
+        """
+        Iteration method
+        """
+        return self.__id_list.__iter__()
