@@ -37,6 +37,10 @@ class Roi(object):
 
         @param filename: Name of the ROI file
         @type filename: C{string}
+
+
+        @raise TypeError: If kwarg roi_file is None
+        @raise IOError: If file is not found or unreadable
         """
         import SOM
         
@@ -45,7 +49,7 @@ class Roi(object):
         try:
             roi_file = open(filename, "r")
         except IOError:
-            raise RuntimeError("Cannot open roi file %s" % filename)
+            raise IOError("Cannot open roi file %s" % filename)
 
         for line in roi_file:
             if line.startswith("#"):
@@ -56,5 +60,17 @@ class Roi(object):
     def __iter__(self):
         """
         Iteration method
+
+        @return: The next element in the L{NeXusId} list
+        @rtype: L{NeXusId}
         """
         return self.__id_list.__iter__()
+
+    def getIdList(self):
+        """
+        This method returns the list of L{NeXusId}s in the ROI.
+
+        @return: The L{NeXusId}s associated with the ROI
+        @rtype: C{list}
+        """
+        return self.__id_list
