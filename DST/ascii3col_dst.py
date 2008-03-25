@@ -96,14 +96,25 @@ class Ascii3ColDST(dst_base.DST_BASE):
         """
         self.__file.close()
 
-    def getSOM(self, som_id=None):
+    def getSOM(self, som_id=None, **kwargs):
         """
         This method parses the resource and creates a SOM from the information.
 
         @param som_id: The name of the SOM. The default value is C{None}. This
-        retrieves all information. 
+        retrieves all information.
+
+        @param kwargs: A list of keyword arguments that the function accepts:
+
+        @keyword roi_file: A list of spectrum IDs to filter the data on
+        @type roi_file: C{string}
         """
         import os
+
+        try:
+            roi_filename = kwargs["roi_file"]
+            roi = SOM.Roi(roi_filename)
+        except KeyError:
+            roi = None
         
         som = SOM.SOM()
 
