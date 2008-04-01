@@ -406,6 +406,36 @@ class SOM(list):
         @type units: C{string}
         """        
         self.__y_units__ = units
+
+    def toXY(self, **kwargs):
+        """
+        This method returns the data encapsulated in the L{SOM.SO}s as a set
+        of lists. The positioning of the information goes as follows:
+        I{[(x1_1, sx1_1, x2_1, sx2_1, ... , y_1, sy_1), (x1_2, sx1_2, x2_2,
+        sx2_2, ... , y_2, sy_2) ...]. The variances are controlled by keywords
+        and do not appear in the returned tuples by default. For
+        multidimensional data, the y and sy arrays have the size of the
+        multiplication of the individual axis sizes (axis size - 1 for
+        histogram data).
+
+        param kwargs:
+
+        keyword :
+        type: C{string}
+
+        keyword :
+        type : C{string}
+        """
+        arrays = []
+
+        for so in self:
+            info = []
+            for i in range(len(so.axis)):
+                info.append(so.axis[i].val[:])
+            info.append(so.y[:])
+            arrays.append(tuple(info))
+
+        return arrays
         
 if __name__ == "__main__":
     import so
@@ -415,7 +445,7 @@ if __name__ == "__main__":
     som.setTitle("Test SOM")
     som.setDataSetType("histogram")
     
-    so1 = so.SO(withVar=True)
+    so1 = so.SO(withVar=True, construct=True)
     so1.axis[0].val.extend([1.0,2.0,3.0])
     so1.axis[0].var.extend([1.0,2.0,3.0])
     so1.y.extend([40.0,55.0])
@@ -441,7 +471,7 @@ if __name__ == "__main__":
     som2.setTitle("Test SOM")
     som2.setDataSetType("histogram")
     
-    so2 = so.SO(withVar=True)
+    so2 = so.SO(withVar=True, construct=True)
     so2.axis[0].val.extend([1.0,2.0,3.0])
     so2.axis[0].var.extend([1.0,2.0,3.0])
     so2.y.extend([40.0,55.0])
@@ -464,3 +494,6 @@ if __name__ == "__main__":
         print "SOMs not equal"
     else:
         print "SOMs equal"
+
+    print "SOM1:", som.toXY()
+    print "SOM2:", som2.toXY()
