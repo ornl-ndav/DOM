@@ -228,8 +228,8 @@ class NxParameter(object):
         C{NxParameter} from a C{string} of either \"(value, units)\" or
         \"value, units\".
         
-        @param obj: Object containing a value and units.
-        @type obj: C{string}
+        @param istr: Object containing a value and units.
+        @type istr: C{string}
 
         
         @return: A new object with the information from the C{string}
