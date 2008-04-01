@@ -412,7 +412,7 @@ class SOM(list):
         This method returns the data encapsulated in the L{SOM.SO}s as a set
         of lists. The positioning of the information goes as follows:
         I{[(x1_1, sx1_1, x2_1, sx2_1, ... , y_1, sy_1), (x1_2, sx1_2, x2_2,
-        sx2_2, ... , y_2, sy_2) ...]. The variances are controlled by keywords
+        sx2_2, ... , y_2, sy_2) ...]}. The variances are controlled by keywords
         and do not appear in the returned tuples by default. For
         multidimensional data, the y and sy arrays have the size of the
         multiplication of the individual axis sizes (axis size - 1 for
