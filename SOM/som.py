@@ -416,23 +416,41 @@ class SOM(list):
         and do not appear in the returned tuples by default. For
         multidimensional data, the y and sy arrays have the size of the
         multiplication of the individual axis sizes (axis size - 1 for
-        histogram data).
+        histogram data). If variances are requested but are not filled in the
+        respective L{SOM.SO}s, the I{None} type will be placed in the
+        appropriate location within the tuple.
 
-        param kwargs:
+        @param kwargs: A list of keyword arguments that the function accepts
 
-        keyword :
-        type: C{string}
+        @keyword withXvar: A flag that will add the x-axis variances to the
+                           output tuple.
+        @type withXvar: C{boolean}
 
-        keyword :
-        type : C{string}
+        @keyword withYvar: A flag that will add the y-axis variance to the
+                           output tuple.
+        @type withYvar: C{boolean}
         """
+        try:
+            withXvar = kwargs["withXvar"]
+        except KeyError:
+            withXvar = False
+        
+        try:
+            withYvar = kwargs["withYvar"]
+        except KeyError:
+            withYvar = False
+            
         arrays = []
 
         for so in self:
             info = []
             for i in range(len(so.axis)):
                 info.append(so.axis[i].val[:])
+                if withXvar:
+                    info.append(so.axis[i].var[:])
             info.append(so.y[:])
+            if withYvar:
+                info.append(so.var_y[:])
             arrays.append(tuple(info))
 
         return arrays
@@ -495,5 +513,5 @@ if __name__ == "__main__":
     else:
         print "SOMs equal"
 
-    print "SOM1:", som.toXY()
-    print "SOM2:", som2.toXY()
+    print "SOM1:", som.toXY(withXvar=True)
+    print "SOM2:", som2.toXY(withYvar=True)
