@@ -113,8 +113,8 @@ class Ascii3ColDST(dst_base.DST_BASE):
         @type roi_file: C{string}
 
         @keyword no_sqr: Do not square the error values from the file. This is
-        important if the data will be subsequently plotted. The default value
-        is I{False}.
+                         important if the data will be subsequently plotted.
+                         The default value is I{False}.
         @type no_sqr: C{boolean}
         """
         import os
