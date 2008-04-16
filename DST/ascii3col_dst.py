@@ -107,6 +107,11 @@ class Ascii3ColDST(dst_base.DST_BASE):
 
         @keyword roi_file: A list of spectrum IDs to filter the data on
         @type roi_file: C{string}
+
+        @keyword no_sqr: Do not square the error values from the file. This is
+        important if the data will be subsequently plotted. The default value
+        is I{False}.
+        @type no_sqr: C{boolean}
         """
         import os
 
@@ -119,6 +124,11 @@ class Ascii3ColDST(dst_base.DST_BASE):
                 roi = None
         except KeyError:
             roi = None
+
+        try:
+            self.__no_sqr__ = kwargs["no_sqr"]
+        except KeyError:
+            self.__no_sqr__ = False
         
         som = SOM.SOM()
 
@@ -299,7 +309,10 @@ class Ascii3ColDST(dst_base.DST_BASE):
                 so.axis[j].val.append(float(parts[j]))
 
             so.y.append(float(parts[-2]))
-            so.var_y.append(float(parts[-1]) * float(parts[-1]))
+            if self.__no_sqr__:
+                so.var_y.append(float(parts[-1]))
+            else:
+                so.var_y.append(float(parts[-1]) * float(parts[-1]))
 
         if som.getDataSetType() == "histogram":
             parts = dlines[-1].split()
