@@ -65,6 +65,10 @@ class Ascii3ColDST(dst_base.DST_BASE):
     @ivar __counter: A running index of the number of spectra being written
                      to file.
     @type __counter: C{int}
+
+    @ivar __no_sqr__: A flag determining if the uncertainties will be squared
+                      when they are read in from a file.
+    @type __no_sqr__: C{boolean}
     """
     
     MIME_TYPE = "text/Spec"
