@@ -58,6 +58,10 @@ class NumInfoDST(dst_base.DST_BASE):
 
     @ivar __comments: Comments to add to the file header.
     @type __comments: C{list} of C{string}s
+
+    @ivar __no_sqr__: A flag determining if the uncertainties will be squared
+                      when they are read in from a file.
+    @type __no_sqr__: C{boolean}    
     """
     
     MIME_TYPE = "text/num-info"
@@ -127,6 +131,11 @@ class NumInfoDST(dst_base.DST_BASE):
 
         @keyword roi_file: A list of spectrum IDs to filter the data on
         @type roi_file: C{string}
+
+        @keyword no_sqr: Do not square the error values from the file. This is
+                         important if the data will be subsequently plotted.
+                         The default value is I{False}.
+        @type no_sqr: C{boolean}        
         """
         # Check for list of detector IDs
         if som_id is not None:
@@ -144,6 +153,11 @@ class NumInfoDST(dst_base.DST_BASE):
                 roi = None
         except KeyError:
             roi = None
+
+        try:
+            self.__no_sqr__ = kwargs["no_sqr"]
+        except KeyError:
+            self.__no_sqr__ = False
         
         som = SOM.SOM()
 
@@ -229,7 +243,10 @@ class NumInfoDST(dst_base.DST_BASE):
         # Get the value
         so.y = float(parts[-2])
         # Need to square the error since we carry around error^2
-        so.var_y = (float(parts[-1]) * float(parts[-1]))
+        if self.__no_sqr__:
+            so.var_y = float(parts[-1])
+        else:
+            so.var_y = (float(parts[-1]) * float(parts[-1]))
 
         som.append(so)
 
