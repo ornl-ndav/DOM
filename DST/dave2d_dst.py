@@ -66,6 +66,10 @@ class Dave2dDST(dst_base.DST_BASE):
                      incoming axis information should be written as is. This
                      is used during file write out.
     @type __axis_ok: C{boolean}
+
+    @ivar __no_sqr__: A flag determining if the uncertainties will be squared
+                      when they are read in from a file.
+    @type __no_sqr__: C{boolean}    
     """
     
     MIME_TYPE = "text/Dave2d"
@@ -105,13 +109,25 @@ class Dave2dDST(dst_base.DST_BASE):
         """        
         self.__file.close()
 
-    def getSOM(self, som_id=None):
+    def getSOM(self, som_id=None, **kwargs):
         """
         This method parses the resource and creates a SOM from the information.
 
         @param som_id: The name of the SOM. The default value is C{None}. This
-        retrieves all information. 
+        retrieves all information.
+
+        @param kwargs: A list of keyword arguments that the function accepts:
+
+        @keyword no_sqr: Do not square the error values from the file. This is
+                         important if the data will be subsequently plotted.
+                         The default value is I{False}.
+        @type no_sqr: C{boolean}        
         """
+        try:
+            self.__no_sqr__ = kwargs["no_sqr"]
+        except KeyError:
+            self.__no_sqr__ = False
+        
         som = SOM.SOM()
         som.setDataSetType("density")
 
@@ -285,7 +301,10 @@ class Dave2dDST(dst_base.DST_BASE):
                 parts = lline.split()
 
                 som[0].y.append(float(parts[0]))
-                som[0].var_y.append(float(parts[1]) * float(parts[1]))
+                if self.__no_sqr__:
+                    som[0].var_y.append(float(parts[1]))
+                else:
+                    som[0].var_y.append(float(parts[1]) * float(parts[1]))
                 
     def __set_axes(self, som):
         """
