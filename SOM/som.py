@@ -447,9 +447,15 @@ class SOM(list):
             for i in range(len(so.axis)):
                 if self.__data_set_type__ == "density" or \
                        self.__data_set_type__ == "coordinate":
-                    x = list(so.axis[i].val[:])
+                    try:
+                        x = list(so.axis[i].val[:])
+                    except TypeError:
+                        x = str(so.id)
                 else:
-                    x = list(so.axis[i].val[:-1])
+                    try:
+                        x = list(so.axis[i].val[:-1])
+                    except TypeError:
+                        x = str(so.id)
                 info.append(x)
                 if withXvar:
                     if self.__data_set_type__ == "density" or \
@@ -458,9 +464,15 @@ class SOM(list):
                     else:
                         ex = list(so.axis[i].var[:-1])
                     info.append(ex)
-            info.append(list(so.y[:]))
+            try:
+                info.append(list(so.y[:]))
+            except TypeError:
+                info.append(so.y)
             if withYvar:
-                info.append(list(so.var_y[:]))
+                try:
+                    info.append(list(so.var_y[:]))
+                except TypeError:
+                    info.append(so.var_y)
             arrays.append(tuple(info))
 
         return arrays
