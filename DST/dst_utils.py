@@ -94,6 +94,9 @@ def parse_spec_header(ifile):
         if key in SPEC_HEADER_FLAGS:
             __update_dictionary(header_lines, key,
                                 line.lstrip(key).rstrip(os.linesep), "lstr")
+        # Skip key line for NumInfoDST
+        elif key == "#I":
+            continue
         else:
             break
 
