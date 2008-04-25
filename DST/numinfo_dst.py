@@ -207,7 +207,10 @@ class NumInfoDST(dst_base.DST_BASE):
 
         @param som: The object to have its information written to file.
         @type som: L{SOM.SOM}
-        """        
+        """
+        # Adding a key that will make this a different format
+        print >> self.__file, "#I"
+        
         dst_utils.write_spec_header(self.__file, self.__epoch, som)
 
         if self.__comments is not None:
