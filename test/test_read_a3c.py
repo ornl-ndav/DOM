@@ -37,6 +37,7 @@ som = a3c.getSOM()
 
 a3c.release_resource()
 index = 79
+print "Length:", len(som)
 print som.attr_list
 print "Y Label:", som.getYLabel()
 print "Y Units:", som.getYUnits()
