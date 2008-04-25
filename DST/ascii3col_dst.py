@@ -150,6 +150,10 @@ class Ascii3ColDST(dst_base.DST_BASE):
                 data_lines = []
                 parts = line.split()
                 nexus_id = SOM.NeXusId.fromList(parts[4:])
+                # Check the ROI list
+                if roi is not None:
+                    if nexus_id not in roi:
+                        nexus_id = None
             elif not got_header and line.startswith("#L"):
                 self.__readSOM(som, line.lstrip("#L "))
                 got_header = True
