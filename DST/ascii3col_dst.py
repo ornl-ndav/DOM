@@ -154,12 +154,16 @@ class Ascii3ColDST(dst_base.DST_BASE):
                 if roi is not None:
                     if nexus_id not in roi:
                         nexus_id = None
-            elif not got_header and line.startswith("#L"):
-                self.__readSOM(som, line.lstrip("#L "))
+            elif line.startswith("#L"):
+                if not got_header:
+                    self.__readSOM(som, line.lstrip("#L "))
                 got_header = True
-            elif not got_columns and line.startswith("#N"):
-                self.__columns = int(line.split()[-1].strip())
+            elif line.startswith("#N"):
+                if not got_columns:
+                    self.__columns = int(line.split()[-1].strip())
                 got_columns = True
+            elif line.startswith(os.linesep):
+                continue
             else:
                 data_lines.append(line)
 
