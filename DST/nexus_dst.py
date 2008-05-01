@@ -563,11 +563,16 @@ class NeXusDST(dst_base.DST_BASE):
         if data_group is None:
             return {}
 
+        id = data_group.split('/')[-1]
+        
         # get the list of SDS in the data group
         SDS_list = []
         for key in self.__tree:
             if self.__tree[key] == "SDS":
-                if key.startswith(data_group):
+                # Due to leading /, 0th entry is blank so bank ID is 2nd
+                # element
+                kid = key.split('/')[2]
+                if kid == id:
                     SDS_list.append(key)
 
         # create the list of children with attributes
@@ -892,11 +897,16 @@ class NeXusData:
         if data_group is None:
             return {}
 
+        id = data_group.split('/')[-1]
+
         # get the list of SDS in the data group
         SDS_list = []
         for key in tree:
             if tree[key] == "SDS":
-                if key.startswith(data_group):
+                # Due to leading /, 0th entry is blank so bank ID is 2nd
+                # element
+                kid = key.split('/')[2]
+                if kid == id:
                     SDS_list.append(key)
 
         # create the list of children with attributes
