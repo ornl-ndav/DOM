@@ -410,7 +410,7 @@ class SOM(list):
     def toXY(self, **kwargs):
         """
         This method returns the data encapsulated in the L{SOM.SO}s as a set
-        of lists. The positioning of the information goes as follows:
+        of NumPy arrays. The positioning of the information goes as follows:
         I{[(x1_1, sx1_1, x2_1, sx2_1, ... , y_1, sy_1), (x1_2, sx1_2, x2_2,
         sx2_2, ... , y_2, sy_2) ...]}. The variances are controlled by keywords
         and do not appear in the returned tuples by default. For
@@ -448,30 +448,30 @@ class SOM(list):
                 if self.__data_set_type__ == "density" or \
                        self.__data_set_type__ == "coordinate":
                     try:
-                        x = list(so.axis[i].val[:])
+                        x = so.axis[i].val.toNumPy()
                     except TypeError:
                         x = str(so.id)
                 else:
                     try:
-                        x = list(so.axis[i].val[:-1])
-                    except TypeError:
+                        x = so.axis[i].val.toNumPy(True)
+                    except (TypeError, AttributeError):
                         x = str(so.id)
                 info.append(x)
                 if withXvar:
                     if self.__data_set_type__ == "density" or \
                            self.__data_set_type__ == "coordinate":
-                        ex = list(so.axis[i].var[:])
+                        ex = so.axis[i].var.toNumPy()
                     else:
-                        ex = list(so.axis[i].var[:-1])
+                        ex = so.axis[i].var.toNumPy(True)
                     info.append(ex)
             try:
-                info.append(list(so.y[:]))
-            except TypeError:
+                info.append(so.y.toNumPy())
+            except (TypeError, AttributeError):
                 info.append(so.y)
             if withYvar:
                 try:
-                    info.append(list(so.var_y[:]))
-                except TypeError:
+                    info.append(so.var_y.toNumPy())
+                except (TypeError, AttributeError):
                     info.append(so.var_y)
             arrays.append(tuple(info))
 
