@@ -259,6 +259,20 @@ class SOM(list):
         """
         return len(self.__axis_labels__)
 
+    def getSO(self, pixel_id):
+        """
+        This method returns a C{SOM.SO} based on the provided pixel ID. If the
+        C{SOM.SO} is not found, I{None} is returned.
+
+        @param pixel_id: The identification tag for the pixel
+        @type pixel_id: C{various}
+
+
+        @return: The requested data object.
+        @rtype: C{SOM.SO}
+        """
+        return self[0]
+
     def getTitle(self):
         """
         This method returns the title associated with the dataset.
