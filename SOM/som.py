@@ -271,7 +271,13 @@ class SOM(list):
         @return: The requested data object.
         @rtype: C{SOM.SO}
         """
-        return self[0]
+        pixel_ids = [so.id for so in self]
+        try:
+            index = pixel_ids.index(pixel_id)
+            return self[index]
+        # Pixel ID was not found
+        except ValueError:
+            return None
 
     def getTitle(self):
         """
