@@ -239,7 +239,7 @@ def write_spec_header(ofile, epoch, som):
 
     write_dataset_tags(ofile, "-notes", "#C %s Notes: %s", "#C Notes:", som)  
 
-    write_dataset_tags(ofile, "-dt_over_t", "#C %s dt/t: %f", "#C dt/t: %f",
+    write_dataset_tags(ofile, "-dt_over_t", "#C %s dt/t: %s", "#C dt/t: %s",
                        som)
     
     if som.attr_list.has_key("username"):
@@ -276,11 +276,11 @@ def write_spec_header(ofile, epoch, som):
     write_dataset_tags(ofile, "-delta_theta", "#C %s dtheta: %s",
                        "#C dtheta: %d", som)
 
-    write_dataset_tags(ofile, "-theta", "#C %s theta: %s", "#C theta: %d", som)
+    write_dataset_tags(ofile, "-theta", "#C %s theta: %s", "#C theta: %s", som)
 
     write_dataset_tags(ofile, "-dtheta_over_theta",
-                       "#C %s dtheta_over_theta: %.10f",
-                       "#C dtheta_over_theta: %.10f", som)
+                       "#C %s dtheta_over_theta: %s",
+                       "#C dtheta_over_theta: %s", som)
     
     # Write out software version numbers
     import common_lib
@@ -329,9 +329,10 @@ def write_dataset_tags(ofile, tag, format_multi, format_one, som):
                 som.attr_list[info_key].reverse()
                 som.attr_list[info_key].reverse()
                 for info in som.attr_list[info_key]:
-                    print >> ofile, format_multi % (tag, info)
+                    print >> ofile, format_multi % (tag, str(info))
             except AttributeError:
-                print >> ofile, format_multi % (tag, som.attr_list[info_key])
+                print >> ofile, format_multi % (tag,
+                                                str(som.attr_list[info_key]))
     else:
         tag = tag.lstrip('-')
         if som.attr_list.has_key(tag):
