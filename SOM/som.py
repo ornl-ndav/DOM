@@ -257,7 +257,11 @@ class SOM(list):
         @return: The number of independent axes
         @rtype: C{int}
         """
-        return len(self.__axis_labels__)
+        dim = len(self.__axis_labels__)
+        if dim == 0:
+            # Labels weren't set, so how about the data
+            dim = self[0].dim()
+        return dim
 
     def getSO(self, pixel_id):
         """
