@@ -101,7 +101,7 @@ def parse_spec_header(ifile):
             break
 
     DATASET_TYPES = ["data", "normalization", "norm", "dsbackground",
-                     "background", "empty_can"]
+                     "background", "empty_can", "transmission", "trans_bkg"]
 
     DR_PACKAGES = ["HLR", "DOM", "SCL"]
     
