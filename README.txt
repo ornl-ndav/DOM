@@ -1,5 +1,6 @@
 The DOM (Data Object Model) package is designed for reading raw data NeXus 
-files and writing files from data reduction.
+files and writing files from data reduction. The DOM can also read files 
+produced by running data reduction.
 
 Authors: Michael Reuter <reuterma@ornl.gov>
 	 Peter Peterson <petersonpf@ornl.gov
@@ -17,12 +18,12 @@ Installation Instructions
   under OSX. The following lists the current versions of software that DOM has 
   been known to work under.
 
-    1. NeXus Libraries - 4.0.0
+    1. NeXus Libraries - > 4.0.0
        a. HDF5	       - 1.6.5
        b. MXML	       - 2.2.2
        c. HDF4	       - 4.2r1
-    2. Python          - 2.3.4
-    3. GCC	       - 3.4.6    
+    2. Python          - > 2.3.4
+    3. GCC	       - > 3.4.6    
     4. Epydoc          - 3.0beta1
     5. Doxygen         - 1.4.6
 
