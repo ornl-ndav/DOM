@@ -132,6 +132,19 @@ class build_doc(Command):
             epydoc_conf = os.path.join('doc', 'config.epy')
             
             from epydoc import cli
+
+            # Move __init__.py to init.py before making documentation
+            true_init = "__init__.py"
+            temp_init = "init.py"
+
+            # Take out __init__.pyc file since this causes build problems
+            try:
+                os.remove(true_init + "c")
+            except OSError:
+                # File is not found, do nothing
+                pass
+            os.rename(true_init, temp_init)
+            
             old_argv = sys.argv[1:]
             
             sys.argv[1:] = [
@@ -141,6 +154,8 @@ class build_doc(Command):
             cli.cli()
             
             sys.argv[1:] = old_argv
+
+            os.rename(temp_init, true_init)
 
         except ImportError:
             print "Epydoc is needed to create API documentation. Skipping.."
