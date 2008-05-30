@@ -1192,11 +1192,6 @@ class NeXusInstrument:
             pol_selector = None
             sec_selector = None
 
-            # X and Y pixel offsets have been stored the same way (1D) for all
-            # time.
-            xoff_selector = "ISelector"
-            yoff_selector = "JSelector"
-
             instname = self.__inst_name
             extra_stuff = None
             
