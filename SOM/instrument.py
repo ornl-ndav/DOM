@@ -480,7 +480,57 @@ class Instrument:
             return (val, err2)
         except TypeError:
             return (val, 0.)
-    
+
+    def get_x_pix_offset(self, id=None, **kwargs):
+        """
+        This method returns the x pixel offset for a detector pixel in the
+        instrument.
+
+        @param id: The object containing the pixel ID
+        @type id: L{SOM.SO}
+        
+        @param kwargs: A list of keyword arguments that this function accepts
+        and that internal functions will use.
+
+
+        @returns: The detector x pixel offset
+        @rtype: C{float}
+        """
+        try:
+            offset = self.__xoff_selector__.getIndex(id)
+        except AttributeError:
+            raise RuntimeError("Do not have information for selecting " \
+                               +"correct x pixel offset")
+
+        return self.__x_pix_offset__[offset]
+        except TypeError:
+            raise RuntimeError("Do not have information for x pixel offset")
+
+    def get_y_pix_offset(self, id=None, **kwargs):
+        """
+        This method returns the y pixel offset for a detector pixel in the
+        instrument.
+
+        @param id: The object containing the pixel ID
+        @type id: L{SOM.SO}
+        
+        @param kwargs: A list of keyword arguments that this function accepts
+        and that internal functions will use.
+
+
+        @returns: The detector y pixel offset
+        @rtype: C{float}
+        """
+        try:
+            offset = self.__yoff_selector__.getIndex(id)
+        except AttributeError:
+            raise RuntimeError("Do not have information for selecting " \
+                               +"correct y pixel offset")
+
+        return self.__y_pix_offset__[offset]
+        except TypeError:
+            raise RuntimeError("Do not have information for y pixel offset")
+        
     def get_diff_geom(self, key, id=None, **kwargs):
         """
         This method retrieves the differential geometry value and error^2 for
