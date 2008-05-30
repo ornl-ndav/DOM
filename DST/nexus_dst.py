@@ -984,7 +984,8 @@ class NeXusInstrument:
         self.__mon_data = {}
 
         self.__det_info = ["secondary_flight_path", "polar_angle",
-                           "azimuthal_angle", "distance"]
+                           "azimuthal_angle", "distance", "x_pixel_offset",
+                           "y_pixel_offset"]
 
         try:
             self.__nexus.openpath(self.__entry_locations[-1] + "/name")
