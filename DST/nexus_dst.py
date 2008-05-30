@@ -1299,7 +1299,9 @@ class NeXusInstrument:
                                   azimuthal_err2=geometry[2][1],
                                   azimuthal_selector=az_selector,
                                   extra=extra_stuff,
-                                  diff_geom=diff_geom_dict)
+                                  diff_geom=diff_geom_dict,
+                                  x_pix_offset=geometry[3][0],
+                                  y_pix_offset=geometry[4][0])
         except KeyError:
             flag = True
 
