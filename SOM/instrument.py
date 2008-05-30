@@ -147,6 +147,12 @@ class Instrument:
         @keyword diff_geom: A dictionary containing the differential geometry
                             for the instrument.
         @type diff_geom: C{dict}
+
+        @keyword x_pix_offset: The values of the x pixel offsets.
+        @type x_pix_offset: C{list} of C{tuple}s or C{tuple}
+
+        @keyword y_pix_offset: The values of the y pixel offsets.
+        @type y_pix_offset: C{list} of C{tuple}s or C{tuple}
         """
         # primary flight path
         try:
@@ -218,12 +224,26 @@ class Instrument:
             self.__diff_geom__ = None
             self.__diff_geom_keys__ = None
 
+        # x pixel offsets
+        try:
+            self.__x_pix_offset__ = kwargs["x_pix_offset"]
+        except KeyError:
+            self.__x_pix_offset__ = None;
+
+        # y pixel offsets
+        try:
+            self.__y_pix_offset__ = kwargs["y_pix_offset"]
+        except KeyError:
+            self.__y_pix_offset__ = None;
+            
         # set the selectors
         from indexselector import getIndexSelector
 
         self.__azimuthal_selector__ = getIndexSelector("IJSelector", Nj=extra)
         self.__polar_selector__     = getIndexSelector("IJSelector", Nj=extra)
         self.__secondary_selector__ = getIndexSelector("IJSelector", Nj=extra)
+        self.__xoff_selector__      = getIndexSelector("ISelector")
+        self.__yoff_selector__      = getIndexSelector("JSelector")
 
         # override capability mainly for backwards compatibility
         try:
