@@ -69,6 +69,20 @@ class Instrument:
                                   secondary flight paths.
     @type __secondary_selector__: L{IndexSelectorBase}
 
+    @ivar __x_pix_offset__: The instrument's x detector pixel offset
+    @type __x_pix_offset__: C{list} of C{tuple}s or C{tuple}
+
+    @ivar __xoff_selector__: The appropriate index selection for retrieving
+                             the instrument's x detector pixel offset
+    @type __xoff_selector__: L{IndexSelectorBase}
+    
+    @ivar __y_pix_offset__: The instrument's y detector pixel offset
+    @type __y_pix_offset__: C{list} of C{tuple}s or C{tuple}    
+
+    @ivar __yoff_selector__: The appropriate index selection for retrieving
+                             the instrument's y detector pixel offset
+    @type __yoff_selector__: L{IndexSelectorBase}
+
     @ivar __diff_geom__: A dictionary holding the differential geometry
                          information for the instrument. Each dictionary entry
                          will have a key name based on the particular
