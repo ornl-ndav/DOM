@@ -502,7 +502,8 @@ class Instrument:
             raise RuntimeError("Do not have information for selecting " \
                                +"correct x pixel offset")
 
-        return self.__x_pix_offset__[offset]
+        try:
+            return self.__x_pix_offset__[offset]
         except TypeError:
             raise RuntimeError("Do not have information for x pixel offset")
 
@@ -527,7 +528,8 @@ class Instrument:
             raise RuntimeError("Do not have information for selecting " \
                                +"correct y pixel offset")
 
-        return self.__y_pix_offset__[offset]
+        try:
+            return self.__y_pix_offset__[offset]
         except TypeError:
             raise RuntimeError("Do not have information for y pixel offset")
         
