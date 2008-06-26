@@ -311,7 +311,12 @@ class Ascii3ColDST(dst_base.DST_BASE):
             else:
                 som.setDataSetType("histogram")
 
-        so = SOM.SO(construct=True, id=nx_id.toTuple(), dim=self.__x_axes)
+        try:
+            so_id = nx_id.toTuple()
+        except AttributeError:
+            so_id = nx_id
+
+        so = SOM.SO(construct=True, id=so_id, dim=self.__x_axes)
 
         if som.getDataSetType() == "histogram":
             num_lines = len_dlines - 1
