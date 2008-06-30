@@ -984,8 +984,7 @@ class NeXusInstrument:
         self.__mon_data = {}
 
         self.__det_info = ["secondary_flight_path", "polar_angle",
-                           "azimuthal_angle", "distance", "x_pixel_offset",
-                           "y_pixel_offset"]
+                           "azimuthal_angle", "distance"]
 
         try:
             self.__nexus.openpath(self.__entry_locations[-1] + "/name")
@@ -1299,9 +1298,7 @@ class NeXusInstrument:
                                   azimuthal_err2=geometry[2][1],
                                   azimuthal_selector=az_selector,
                                   extra=extra_stuff,
-                                  diff_geom=diff_geom_dict,
-                                  x_pix_offset=geometry[4][0],
-                                  y_pix_offset=geometry[5][0])
+                                  diff_geom=diff_geom_dict)
         except KeyError:
             flag = True
 

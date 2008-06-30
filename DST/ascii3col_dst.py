@@ -149,7 +149,11 @@ class Ascii3ColDST(dst_base.DST_BASE):
                 self.__readSO(data_lines, nexus_id, som)
                 data_lines = []
                 parts = line.split()
-                nexus_id = SOM.NeXusId.fromList(parts[4:])
+                try:
+                    nexus_id = SOM.NeXusId.fromList(parts[4:])
+                except TypeError:
+                    # ID is not a pixel format
+                    nexus_id = parts[-1]
                 # Check the ROI list
                 if roi is not None:
                     if nexus_id not in roi:
@@ -307,7 +311,12 @@ class Ascii3ColDST(dst_base.DST_BASE):
             else:
                 som.setDataSetType("histogram")
 
-        so = SOM.SO(construct=True, id=nx_id.toTuple(), dim=self.__x_axes)
+        try:
+            so_id = nx_id.toTuple()
+        except AttributeError:
+            so_id = nx_id
+
+        so = SOM.SO(construct=True, id=so_id, dim=self.__x_axes)
 
         if som.getDataSetType() == "histogram":
             num_lines = len_dlines - 1

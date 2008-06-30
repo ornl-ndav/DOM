@@ -69,20 +69,6 @@ class Instrument:
                                   secondary flight paths.
     @type __secondary_selector__: L{IndexSelectorBase}
 
-    @ivar __x_pix_offset__: The instrument's x detector pixel offset
-    @type __x_pix_offset__: C{list} of C{tuple}s or C{tuple}
-
-    @ivar __xoff_selector__: The appropriate index selection for retrieving
-                             the instrument's x detector pixel offset
-    @type __xoff_selector__: L{IndexSelectorBase}
-    
-    @ivar __y_pix_offset__: The instrument's y detector pixel offset
-    @type __y_pix_offset__: C{list} of C{tuple}s or C{tuple}    
-
-    @ivar __yoff_selector__: The appropriate index selection for retrieving
-                             the instrument's y detector pixel offset
-    @type __yoff_selector__: L{IndexSelectorBase}
-
     @ivar __diff_geom__: A dictionary holding the differential geometry
                          information for the instrument. Each dictionary entry
                          will have a key name based on the particular
@@ -147,12 +133,6 @@ class Instrument:
         @keyword diff_geom: A dictionary containing the differential geometry
                             for the instrument.
         @type diff_geom: C{dict}
-
-        @keyword x_pix_offset: The values of the x pixel offsets.
-        @type x_pix_offset: C{list} of C{tuple}s or C{tuple}
-
-        @keyword y_pix_offset: The values of the y pixel offsets.
-        @type y_pix_offset: C{list} of C{tuple}s or C{tuple}
         """
         # primary flight path
         try:
@@ -224,26 +204,12 @@ class Instrument:
             self.__diff_geom__ = None
             self.__diff_geom_keys__ = None
 
-        # x pixel offsets
-        try:
-            self.__x_pix_offset__ = kwargs["x_pix_offset"]
-        except KeyError:
-            self.__x_pix_offset__ = None;
-
-        # y pixel offsets
-        try:
-            self.__y_pix_offset__ = kwargs["y_pix_offset"]
-        except KeyError:
-            self.__y_pix_offset__ = None;
-            
         # set the selectors
         from indexselector import getIndexSelector
 
         self.__azimuthal_selector__ = getIndexSelector("IJSelector", Nj=extra)
         self.__polar_selector__     = getIndexSelector("IJSelector", Nj=extra)
         self.__secondary_selector__ = getIndexSelector("IJSelector", Nj=extra)
-        self.__xoff_selector__      = getIndexSelector("ISelector")
-        self.__yoff_selector__      = getIndexSelector("JSelector")
 
         # override capability mainly for backwards compatibility
         try:
@@ -480,59 +446,7 @@ class Instrument:
             return (val, err2)
         except TypeError:
             return (val, 0.)
-
-    def get_x_pix_offset(self, id=None, **kwargs):
-        """
-        This method returns the x pixel offset for a detector pixel in the
-        instrument.
-
-        @param id: The object containing the pixel ID
-        @type id: L{SOM.SO}
-        
-        @param kwargs: A list of keyword arguments that this function accepts
-        and that internal functions will use.
-
-
-        @returns: The detector x pixel offset
-        @rtype: C{float}
-        """
-        try:
-            offset = self.__xoff_selector__.getIndex(id)
-        except AttributeError:
-            raise RuntimeError("Do not have information for selecting " \
-                               +"correct x pixel offset")
-
-        try:
-            return self.__x_pix_offset__[offset]
-        except TypeError:
-            raise RuntimeError("Do not have information for x pixel offset")
-
-    def get_y_pix_offset(self, id=None, **kwargs):
-        """
-        This method returns the y pixel offset for a detector pixel in the
-        instrument.
-
-        @param id: The object containing the pixel ID
-        @type id: L{SOM.SO}
-        
-        @param kwargs: A list of keyword arguments that this function accepts
-        and that internal functions will use.
-
-
-        @returns: The detector y pixel offset
-        @rtype: C{float}
-        """
-        try:
-            offset = self.__yoff_selector__.getIndex(id)
-        except AttributeError:
-            raise RuntimeError("Do not have information for selecting " \
-                               +"correct y pixel offset")
-
-        try:
-            return self.__y_pix_offset__[offset]
-        except TypeError:
-            raise RuntimeError("Do not have information for y pixel offset")
-        
+    
     def get_diff_geom(self, key, id=None, **kwargs):
         """
         This method retrieves the differential geometry value and error^2 for
