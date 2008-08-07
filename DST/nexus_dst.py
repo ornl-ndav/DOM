@@ -1127,7 +1127,7 @@ class NeXusInstrument:
         diff_geom = {}
 
         # Starting point in data list for differential geometry
-        diff_geom_start = 4
+        diff_geom_start = 6
 
         # Handle differential geometry stuff
         if extra_stuff is None:
