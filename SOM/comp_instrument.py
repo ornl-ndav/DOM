@@ -161,6 +161,24 @@ class CompositeInstrument(instrument.Instrument):
         """
         return self.__inst_hash[id[0]].get_secondary(id, **kwargs)
 
+    def get_det_secondary(self, id, **kwargs):
+        """
+        This function obtains the detector bank secondary flight path from the
+        instrument object.
+
+        @param id: The object containing the pixel ID
+        @type id: L{SOM.SO}
+        
+        @param kwargs: A list of key word arguments that the function will
+                       accept        
+
+
+        @returns: The detector bank secondary flight path and its associated
+                  error^2 for the requested instrument
+        @rtype: C{tuple}
+        """
+        return self.__inst_hash[id[0]].get_det_secondary(id, **kwargs)
+
     def get_total_path(self, id, **kwargs):
         """
         This function obtains the total flight path from the instrument
