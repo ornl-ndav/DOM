@@ -985,7 +985,7 @@ class NeXusInstrument:
 
         self.__det_info = ["secondary_flight_path", "polar_angle",
                            "azimuthal_angle", "distance", "x_pixel_offset",
-                           "y_pixel_offset"]
+                           "y_pixel_offset", "origin/translation/distance"]
 
         try:
             self.__nexus.openpath(self.__entry_locations[-1] + "/name")
@@ -1127,7 +1127,7 @@ class NeXusInstrument:
         diff_geom = {}
 
         # Starting point in data list for differential geometry
-        diff_geom_start = 6
+        diff_geom_start = 7
 
         # Handle differential geometry stuff
         if extra_stuff is None:
@@ -1207,6 +1207,23 @@ class NeXusInstrument:
                 distance_err2 = geometry[3][1]
             else:
                 distance_err2 = geometry[0][1]
+
+            # Set detector bank secondary flight path
+            if self.__inst_name == "BSS":
+                det_secondary = (float('nan'), float('nan'))
+            else:
+                import math
+                x = geometry[6][0][0]
+                y = geometry[6][0][1]
+                z = geometry[6][0][2]
+                r = math.sqrt(x * x + y * y + z * z)
+
+                if geometry[6][1] is None:
+                    r_err2 = 0.0
+                else:
+                    r_err2 = geometry[6][1] * geometry[6][1]
+
+                det_secondary = (r, r_err2)
 
             if self.__inst_name == "BSS":
                 if label == "bank3":
@@ -1289,6 +1306,7 @@ class NeXusInstrument:
             return SOM.Instrument(instrument=instname,
                                   primary=(self.__primary[0],
                                            self.__primary[1]),
+                                  det_secondary=det_secondary,
                                   secondary=distance,
                                   secondary_err2=distance_err2,
                                   secondary_selector=sec_selector,
