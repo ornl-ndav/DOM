@@ -33,6 +33,10 @@ class Instrument:
     @ivar __L0: The instrument's primary (moderator to sample) flight path.
     @type __L0: C{tuple}
 
+    @ivar __L1: The instrument's main secondary (sample to detector) flight
+                path.
+    @type __L1: C{tuple}
+
     @ivar __azimuthal__: The instrument's detector pixel azimuthal angles
     @type __azimuthal__: C{list} of C{tuple}s or C{tuple}
 
@@ -117,6 +121,10 @@ class Instrument:
         @keyword azimuthal_selector: The name of the index selector for the
                                      azimuthal angle.
         @type azimuthal_selector: C{string}
+
+        @keyword det_secondary: The values of the detector bank secondary
+        flight path and it's associated uncertainty.
+        @type det_secondary: C{tuple}
         
         @keyword polar: The values of the polar angle.
         @type polar: C{list} of C{tuple}s or C{tuple}
@@ -159,7 +167,13 @@ class Instrument:
             self.__L0 = kwargs["primary"]
         except KeyError:
             self.__L0 = None
-            
+
+        # detector secondary flight path
+        try:
+            self.__L1 = kwargs["det_secondary"]
+        except KeyError:
+            self.__L1 = None            
+        
         #secondary flight path
         try:
             self.__secondary__ = kwargs["secondary"]
@@ -363,6 +377,32 @@ class Instrument:
 
         # set the value
         self.__L0 = distance
+
+    def get_det_secondary(self, id=None, **kwargs):
+        """
+        This method returns the detector bank secondary flight path in meters.
+
+        @param id: The object containing the pixel ID
+        @type id: L{SOM.SO}
+
+        @param kwargs: A list of keyword arguments that this function accepts
+        and that internal functions will use.
+
+
+        @returns: The instrument's detector bank secondary flight path
+        @rtype: C{tuple}
+        """
+        # parse the keywords
+        units=__get_units__(kwargs, "meter")
+
+        # return the result
+        if self.__L1 is None:
+            raise RuntimeError("Detector secondary flight path is not defined")
+        
+        if units == "meter":
+            return self.__L1
+        else:
+            raise RuntimeError("Do not know how to convert to \"%s\"" % units)
 
     def get_secondary(self, id=None, **kwargs):
         """
