@@ -448,12 +448,25 @@ class Instrument:
         @param kwargs: A list of keyword arguments that this function accepts
         and that internal functions will use.
 
+        @keyword det_secondary: A flag that signals the function to add the
+                                detector secondary flight path for the total
+                                flight path. The default is I{False}.
+        @type det_secondary: C{bool}
+
 
         @returns: The detector pixel total flight path
         @rtype: C{tuple}
         """
+        try:
+            det_secondary = kwargs["det_secondary"]
+        except KeyError:
+            det_secondary = False
+        
         L1 = self.get_primary(**kwargs)
-        L2 = self.get_secondary(id, **kwargs)
+        if not det_secondary:
+            L2 = self.get_secondary(id, **kwargs)
+        else:
+            L2 = self.get_det_secondary(id, **kwargs)
 
         return (L1[0] + L2[0], L1[1] + L2[1])
 
