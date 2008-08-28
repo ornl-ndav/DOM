@@ -67,6 +67,9 @@ class Dave2dDST(dst_base.DST_BASE):
                      is used during file write out.
     @type __axis_ok: C{boolean}
 
+    @ivar __comments: Comments to add to the file header.
+    @type __comments: C{list} of C{string}s
+
     @ivar __no_sqr__: A flag determining if the uncertainties will be squared
                       when they are read in from a file.
     @type __no_sqr__: C{boolean}    
@@ -93,6 +96,9 @@ class Dave2dDST(dst_base.DST_BASE):
                           axis information should be taken as is. This is only
                           used during write-out. The default value is I{False}.
         @type axis_ok: C{boolean}
+
+        @keyword comments: Comments to add to the file header.
+        @type comments: C{list} of C{string}s        
         """        
         import time
         
@@ -102,6 +108,11 @@ class Dave2dDST(dst_base.DST_BASE):
             self.__axis_ok = kwargs["axis_ok"]
         except KeyError:
             self.__axis_ok = False
+
+        try:
+            self.__comments = kwargs["comments"]
+        except KeyError:
+            self.__comments = None
 
     def release_resource(self):
         """
@@ -162,7 +173,8 @@ class Dave2dDST(dst_base.DST_BASE):
         """
         self.writeXValues(som)
         self.writeData(som[0])
-        dst_utils.write_spec_header(self.__file, self.__epoch, som)
+        dst_utils.write_spec_header(self.__file, self.__epoch, som,
+                                    comments=self.__comments)
 
     ########## Special functions
 
