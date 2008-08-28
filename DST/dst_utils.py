@@ -213,7 +213,7 @@ def __update_dictionary(idict, key, info, itype):
     else:
         idict[key] = item
     
-def write_spec_header(ofile, epoch, som):
+def write_spec_header(ofile, epoch, som, **kwargs):
     """
     This function writes a header based on the Spec file format.
     U{http://www.certif.com/spec_manual/user_1_4_1.html}
@@ -226,7 +226,18 @@ def write_spec_header(ofile, epoch, som):
     
     @param som: The associated data
     @type som: L{SOM.SOM}
+
+    @param kwargs: A list of keyword arguments that the class accepts:
+
+    @keyword comments: A list of arbitrary comments to write out to the header
+                       as is.
+    @type comments: C{list} of C{string}s
     """
+    try:
+        comments = kwargs["comments"]
+    except KeyError:
+        comments = None
+    
     write_dataset_tags(ofile, "-filename", "#F %s: %s", "#F", som)
 
     print >> ofile, "#E", epoch
@@ -281,6 +292,10 @@ def write_spec_header(ofile, epoch, som):
     write_dataset_tags(ofile, "-dtheta_over_theta",
                        "#C %s dtheta_over_theta: %s",
                        "#C dtheta_over_theta: %s", som)
+
+    if comments is not None:
+        for comment in comments:
+            print >> ofile, "#C", comment
     
     # Write out software version numbers
     import common_lib
