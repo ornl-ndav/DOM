@@ -69,6 +69,9 @@ class Ascii3ColDST(dst_base.DST_BASE):
     @ivar __no_sqr__: A flag determining if the uncertainties will be squared
                       when they are read in from a file.
     @type __no_sqr__: C{boolean}
+
+    @ivar __comments: Comments to add to the file header.
+    @type __comments: C{list} of C{string}s    
     """
     
     MIME_TYPE = "text/Spec"
@@ -87,12 +90,20 @@ class Ascii3ColDST(dst_base.DST_BASE):
         @param args: Argument objects that the class accepts (UNUSED)
 
         @param kwargs: A list of keyword arguments that the class accepts:
+
+        @keyword comments: Comments to add to the file header.
+        @type comments: C{list} of C{string}s
         """
         import time
         
         self.__file = resource
         self.__epoch = time.time()
         self.__columns = 0
+
+        try:
+            self.__comments = kwargs["comments"]
+        except KeyError:
+            self.__comments = None
 
     def release_resource(self):
         """
@@ -215,7 +226,8 @@ class Ascii3ColDST(dst_base.DST_BASE):
                            +"%s, extra_som=%s" % (self._data_type,
                                                   extra_som.getDataSetType()))
         
-        dst_utils.write_spec_header(self.__file, self.__epoch, som)
+        dst_utils.write_spec_header(self.__file, self.__epoch, som,
+                                    comments=self.__comments)
         (format_str, names) = self.__formatDataInfo(som, extra_som)
         self.__axes_and_units =  format_str % names
         self.__counter = 1
