@@ -585,7 +585,28 @@ class Instrument:
             return self.__y_pix_offset__[offset]
         except TypeError:
             raise RuntimeError("Do not have information for y pixel offset")
+
+    def get_radius(self, id=None, **kwargs):
+        """
+        This method returns the radius for a detector pixel in the instrument.
+        The radius = sqrt(x^2 + y^2).
+
+        @param id: The object containing the pixel ID
+        @type id: L{SOM.SO}
         
+        @param kwargs: A list of keyword arguments that this function accepts
+        and that internal functions will use.
+
+
+        @returns: The detector pixel radius
+        @rtype: C{float}
+        """
+        px = self.get_x_pix_offset(id)
+        py = self.get_y_pix_offset(id)
+
+        import math
+        return sqrt(px * px + py * py)
+
     def get_diff_geom(self, key, id=None, **kwargs):
         """
         This method retrieves the differential geometry value and error^2 for
