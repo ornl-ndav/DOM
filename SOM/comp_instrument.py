@@ -263,6 +263,22 @@ class CompositeInstrument(instrument.Instrument):
         """
         return self.__inst_hash[id[0]].get_y_pix_offset(id, **kwargs)    
 
+    def get_radius(self, id, **kwargs):
+        """
+        This function obtains the pixel radius from the instrument object.
+
+        @param id: The object containing the pixel ID
+        @type id: L{SOM.SO}
+        
+        @param kwargs: A list of key word arguments that the function will
+                       accept        
+
+
+        @returns: The pixel radius for the requested instrument
+        @rtype: C{float}
+        """
+        return self.__inst_hash[id[0]].get_radius(id, **kwargs) 
+
     def get_diff_geom(self, key, id, **kwargs):
         """
         This method obtains the specified differential geometry parameter from
