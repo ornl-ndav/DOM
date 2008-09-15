@@ -605,7 +605,7 @@ class Instrument:
         py = self.get_y_pix_offset(id)
 
         import math
-        return sqrt(px * px + py * py)
+        return (math.sqrt(px * px + py * py), 0.0)
 
     def get_diff_geom(self, key, id=None, **kwargs):
         """
