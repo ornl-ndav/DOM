@@ -64,6 +64,19 @@ class NeXusDST(dst_base.DST_BASE):
         # set the so axis
         self.__so_axis = so_axis
 
+    def getInstrument(self, SOM_id=None):
+        """
+        This method gets the instrument geometry information from the object.
+
+        @param SOM_id: The detector path to retrieve the geometry for.
+        @type SOM_id: C{string}
+
+
+        @returns: The instrument geometry information for the detector
+        @rtype: C{SOM.Instrument}
+        """
+        return self.__inst_info.getInstrument(SOM_id)
+
     def getResource(self):
         """
         This method returns the resource handle.
