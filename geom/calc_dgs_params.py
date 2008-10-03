@@ -1,5 +1,6 @@
 import DST
 import sns_timing
+import SOM
 import sys
 
 filename = sys.argv[1]
@@ -43,4 +44,11 @@ for bank_num in bank_nums:
     nexus.openpath(trans_path)
     translation = nexus.getdata()
 
-    
+    for i in xrange(nx):
+        for j in xrange(ny):
+            # Make the pixel ID
+            nexus_id = SOM.NeXusId(bank_id, i, j).toTuple()
+
+            # Get pixel center
+            x = cur_geom.get_x_pixel_offset(nexus_id)
+            y = cur_geom.get_y_pixel_offset(nexus_id)
