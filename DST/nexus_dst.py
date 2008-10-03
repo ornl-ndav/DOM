@@ -64,6 +64,15 @@ class NeXusDST(dst_base.DST_BASE):
         # set the so axis
         self.__so_axis = so_axis
 
+    def getResource(self):
+        """
+        This method returns the resource handle.
+
+        @return: The current resource handle.
+        @rtype: L{DST.NeXusFile}
+        """
+        return self.__nexus
+
     def getParameter(self, name):
         entry_locations = self.list_type("NXentry")
 
