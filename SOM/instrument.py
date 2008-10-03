@@ -586,6 +586,24 @@ class Instrument:
         except TypeError:
             raise RuntimeError("Do not have information for y pixel offset")
 
+    def get_num_x(self):
+        """
+        This method returns the number of x-pixel offsets.
+
+        @returns: The number of x-pixel offsets
+        @rtype: C{int}
+        """
+        return len(self.__x_pix_offset__)
+
+    def get_num_y(self):
+        """
+        This method returns the number of y-pixel offsets.
+
+        @returns: The number of y-pixel offsets
+        @rtype: C{int}
+        """
+        return len(self.__y_pix_offset__)    
+
     def get_radius(self, id=None, **kwargs):
         """
         This method returns the radius for a detector pixel in the instrument.
