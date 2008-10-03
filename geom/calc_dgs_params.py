@@ -33,3 +33,14 @@ for bank_num in bank_nums:
     nx = cur_geom.get_num_x()
     ny = cur_geom.get_num_y()
 
+    # Get the bank orienatation matrix
+    orient_path = main_path + "/origin/orientation/value"
+    nexus.openpath(orient_path)
+    orient = nexus.getdata()
+
+    # Get the bank translation point
+    trans_path = main_path + "/origin/translation/distance"
+    nexus.openpath(trans_path)
+    translation = nexus.getdata()
+
+    
