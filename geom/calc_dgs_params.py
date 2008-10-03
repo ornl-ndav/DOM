@@ -17,4 +17,6 @@ bank_nums = [int(id.replace('bank', '')) for id in bank_list
              if not id.startswith("monitor")]
 bank_nums.sort()
 
+# Grabbing file handle
+nexus = data_dst.getResource()
 
