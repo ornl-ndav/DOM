@@ -162,6 +162,16 @@ class NeXusId(object):
         """        
         return self.__y_index == yid
 
+    def toCommaStr(self):
+        """
+        This method returns a string representation of the information held
+        by the object in the following format: bankN,x,y.
+
+        @return: The object information
+        @rtype: C{string}
+        """
+        return "%s,%d,%d" % (self.__det_id, self.__x_index, self.__y_index)
+
     def toJoinedStr(self):
         """
         This method returns a string representation of the information held
