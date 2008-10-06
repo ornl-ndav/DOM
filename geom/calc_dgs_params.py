@@ -83,8 +83,8 @@ for bank_num in bank_nums:
             nexus_id = SOM.NeXusId(bank_id, i, j).toTuple()
 
             # Get pixel center
-            x = cur_geom.get_x_pixel_offset(nexus_id)
-            y = cur_geom.get_y_pixel_offset(nexus_id)
+            x = cur_geom.get_x_pix_offset(nexus_id)
+            y = cur_geom.get_y_pix_offset(nexus_id)
 
             # Get indicies for nearest neighbors
             xindex = nexus_id.getXindex() + 1
@@ -104,8 +104,8 @@ for bank_num in bank_nums:
                                        yindex).toTuple()
             
             # Get x and y from x and y neighbors
-            xp = cur_geom.get_x_pixel_offset(xneighbor_id)
-            yp = cur_geom.get_y_pixel_offset(yneighbor_id)
+            xp = cur_geom.get_x_pix_offset(xneighbor_id)
+            yp = cur_geom.get_y_pix_offset(yneighbor_id)
 
             # Get half width and half height from pixel centers
             hdw = math.fabs(x - xp) * 0.5
