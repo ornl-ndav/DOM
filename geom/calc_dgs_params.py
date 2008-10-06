@@ -7,8 +7,9 @@ import sys
 
 def __get_corner(point, transmat, orientmat):
     newpt = __point_transformation(point, transmat, orientmat)
-    pol = __calc_polar(newpt[0,0], newpt[0,1], newpt[0,2])
-    azi = __calc_azi(newpt[0,1], newpt[0,0])
+    print "New Point:", newpt
+    pol = __calc_polar(newpt[0], newpt[1], newpt[2])
+    azi = __calc_azi(newpt[1], newpt[0])
     return (pol, azi)
 
 def __point_transformation(pt, trans, rot):
@@ -71,16 +72,20 @@ for bank_num in bank_nums:
     # Put orientation matrix in correct order
     orientm = orient.toNumPy().reshape(3, 3).T
 
+    print "Orientation:", orientm
+
     # Get the bank translation point
     trans_path = main_path + "/origin/translation/distance"
     nexus.openpath(trans_path)
     translation = nexus.getdata().toNumPy()
 
+    print "Translation:", translation
+    
     for i in xrange(nx):
         for j in xrange(ny):
             # Make the pixel ID
             nexus_id = SOM.NeXusId(bank_id, i, j)
-
+            print nexus_id
             # Get pixel center
             x = cur_geom.get_x_pix_offset(nexus_id.toTuple())
             y = cur_geom.get_y_pix_offset(nexus_id.toTuple())
@@ -117,7 +122,10 @@ for bank_num in bank_nums:
             for signx in signs:
                 for signy in signs:
                     cpt = numpy.array([x+(signx*hdw), y+(signy*hdh), 0.0])
+                    print "Corner Pt:", cpt
                     values = __get_corner(cpt, translation, orientm)
                     polar_angles.append(values[0])
-                    azi_angle.append(values[1])
+                    azi_angles.append(values[1])
             
+            print "Polar:", polar_angles
+            print "Azi:", azi_angles
