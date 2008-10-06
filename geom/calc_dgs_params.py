@@ -1,8 +1,20 @@
 import DST
 import math
+import numpy
 import sns_timing
 import SOM
 import sys
+
+def __get_corner(point, transmat, orientmat):
+    newpt = __point_transformation(point, transmat, orientmat)
+    pol = __calc_polar(newpt[0,0], newpt[0,1], newpt[0,2])
+    azi = __calc_azi(newpt[0,1], newpt[0,0])
+    return (pol, azi)
+
+def __point_transformation(pt, trans, rot):
+    rotpt = numpy.dot(rot, pt)
+    return rotpt + trans
+
 
 def __calc_polar(xi, yi, zi):
     xi2 = xi * xi
@@ -30,6 +42,8 @@ SOM_ids = data_dst.get_SOM_ids()
 #bank_nums.sort()
 
 bank_nums = [1]
+
+signs = [-1.0, 1.0]
 
 # Grabbing file handle
 nexus = data_dst.getResource()
@@ -85,6 +99,18 @@ for bank_num in bank_nums:
             xp = cur_geom.get_x_pixel_offset(xneighbor_id)
             yp = cur_geom.get_y_pixel_offset(yneighbor_id)
 
-            # Get width and height from pixel centers
-            dw = math.fabs(x - xp)
-            dh = math.fabs(y - yp)
+            # Get half width and half height from pixel centers
+            hdw = math.fabs(x - xp) * 0.5
+            hdh = math.fabs(y - yp) * 0.5
+
+            polar_angles = []
+            azi_angles = []
+
+            # Make each corner and calculate the polar and azimuthal angles
+            for signx in signs:
+                for signy in signs:
+                    cpt = numpy.array([x+(signx*hdw), y+(signy*hdh), 0.0])
+                    values = __get_corner(cpt, translation, orient)
+                    polar_angles.append(values[0])
+                    azi_angle.append(values[1])
+            
