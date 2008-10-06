@@ -69,10 +69,13 @@ for bank_num in bank_nums:
     orient.append(orient[2]*orient[3] - orient[0]*orient[5])
     orient.append(orient[0]*orient[4] - orient[1]*orient[3])
 
+    # Put orientation matrix in correct order
+    orientm = orient.toNumPy().reshape(3, 3).T
+
     # Get the bank translation point
     trans_path = main_path + "/origin/translation/distance"
     nexus.openpath(trans_path)
-    translation = nexus.getdata()
+    translation = nexus.getdata().toNumPy()
 
     for i in xrange(nx):
         for j in xrange(ny):
@@ -115,7 +118,7 @@ for bank_num in bank_nums:
             for signx in signs:
                 for signy in signs:
                     cpt = numpy.array([x+(signx*hdw), y+(signy*hdh), 0.0])
-                    values = __get_corner(cpt, translation, orient)
+                    values = __get_corner(cpt, translation, orientm)
                     polar_angles.append(values[0])
                     azi_angle.append(values[1])
             
