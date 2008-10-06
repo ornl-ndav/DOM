@@ -82,6 +82,17 @@ class NeXusId(object):
         """
         return not self.__eq__(right)
 
+    def __str__(self):
+        """
+        This method returns the string representation of the information
+        held by the object. It has the format: (bankN, (x, y)).
+
+
+        @return: The object information
+        @rtype: C{string}
+        """
+        return str((self.__det_id, (self.__x_index, self.__y_index)))
+
     def getDetId(self):
         """
         This method returns the detector ID.
