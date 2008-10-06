@@ -5,6 +5,8 @@ import sns_timing
 import SOM
 import sys
 
+EMPTY = ""
+
 def __get_corner(point, transmat, orientmat, db):
     newpt = __point_transformation(point, transmat, orientmat)
     if db:
@@ -34,6 +36,11 @@ try:
 except IndexError:
     debug = False
 
+# Setup output file
+outtag = filename.split('/')[-1].split('_')[0]
+outfilename = outtag + "_geom.txt"
+outfile = open(outfilename, "w")
+
 timer = sns_timing.DiffTime()
 
 data_dst = DST.getInstance("application/x-NeXus", filename) 
@@ -42,14 +49,14 @@ timer.getTime(msg="After reading data ")
 SOM_ids = data_dst.get_SOM_ids()
 
 # Get the bank numbers sorted in proper order
-#bank_list = [SOM_id[0].split('/')[-1] for SOM_id in SOM_ids]
-#bank_nums = [int(id.replace('bank', '')) for id in bank_list
-#             if not id.startswith("monitor")]
-#bank_nums.sort()
-
-bank_nums = [1]
+bank_list = [SOM_id[0].split('/')[-1] for SOM_id in SOM_ids]
+bank_nums = [int(id.replace('bank', '')) for id in bank_list
+             if not id.startswith("monitor")]
+bank_nums.sort()
 
 signs = [-1.0, 1.0]
+
+timer.getTime(False)
 
 # Grabbing file handle
 nexus = data_dst.getResource()
@@ -95,8 +102,11 @@ for bank_num in bank_nums:
         for j in xrange(ny):
             # Make the pixel ID
             nexus_id = SOM.NeXusId(bank_id, i, j)
+
             if debug:
                 print nexus_id
+
+            print >> outfile, nexus_id.toJoinedStr()
                 
             # Get pixel center
             x = cur_geom.get_x_pix_offset(nexus_id.toTuple())
@@ -143,3 +153,15 @@ for bank_num in bank_nums:
             if debug:
                 print "Polar:", polar_angles
                 print "Azi:", azi_angles
+
+            for polar_angle in polar_angles:
+                print >> outfile, polar_angle,
+
+            print >> outfile, EMPTY
+
+            for azi_angle in azi_angles:
+                print >> outfile, azi_angle,
+
+            print >> outfile, EMPTY            
+
+timer.getTime(msg="After calculating and writing data ")
