@@ -1,7 +1,18 @@
 import DST
+import math
 import sns_timing
 import SOM
 import sys
+
+def __calc_polar(xi, yi, zi):
+    xi2 = xi * xi
+    yi2 = yi * yi
+    zi2 = zi * zi
+
+    return 0.5 * math.acos(zi / math.sqrt(xi2 + yi2 + zi2))
+
+def __calc_azi(xi, yi):
+    return math.atan2(yi, xi)
 
 filename = sys.argv[1]
 
@@ -52,3 +63,28 @@ for bank_num in bank_nums:
             # Get pixel center
             x = cur_geom.get_x_pixel_offset(nexus_id)
             y = cur_geom.get_y_pixel_offset(nexus_id)
+
+            # Get indicies for nearest neighbors
+            xindex = nexus_id.getXindex() + 1
+            if xindex == nx:
+                xindex -= 2
+
+            yindex = nexus_id.getYindex() + 1
+            if yindex == ny:
+                yindex -= 2                
+
+            # Make pixel ID for nearest x direction neighbor
+            xneighbor_id = SOM.NeXusID(nexus_id.getDetId(), xindex,
+                                       nexus_id.getYindex()).toTuple()
+
+            yneighbor_id = SOM.NeXusID(nexus_id.getDetId(), 
+                                       nexus_id.getXindex(),
+                                       yindex).toTuple()
+            
+            # Get x and y from x and y neighbors
+            xp = cur_geom.get_x_pixel_offset(xneighbor_id)
+            yp = cur_geom.get_y_pixel_offset(yneighbor_id)
+
+            # Get width and height from pixel centers
+            dw = math.fabs(x - xp)
+            dh = math.fabs(y - yp)
