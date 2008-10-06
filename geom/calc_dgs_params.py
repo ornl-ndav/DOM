@@ -10,7 +10,7 @@ def __get_corner(point, transmat, orientmat, db):
     if db:
         print "New Point:", newpt
     pol = __calc_polar(newpt[0], newpt[1], newpt[2])
-    azi = __calc_azi(newpt[1], newpt[0])
+    azi = __calc_azi(newpt[0], newpt[1])
     return (pol, azi)
 
 def __point_transformation(pt, trans, rot):
@@ -22,7 +22,7 @@ def __calc_polar(xi, yi, zi):
     yi2 = yi * yi
     zi2 = zi * zi
 
-    return 0.5 * math.acos(zi / math.sqrt(xi2 + yi2 + zi2))
+    return math.acos(zi / math.sqrt(xi2 + yi2 + zi2))
 
 def __calc_azi(xi, yi):
     return math.atan2(yi, xi)
