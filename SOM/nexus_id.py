@@ -162,6 +162,16 @@ class NeXusId(object):
         """        
         return self.__y_index == yid
 
+    def toJoinedStr(self):
+        """
+        This method returns a string representation of the information held
+        by the object in the following format: bankN_x_y.
+
+        @return: The object information
+        @rtype: C{string}
+        """
+        return "%s_%d_%d" % (self.__det_id, self.__x_index, self.__y_index)
+
     def toTuple(self):
         """
         This method creates a built-in object representation of the ID.
