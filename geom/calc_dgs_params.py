@@ -15,7 +15,6 @@ def __point_transformation(pt, trans, rot):
     rotpt = numpy.dot(rot, pt)
     return rotpt + trans
 
-
 def __calc_polar(xi, yi, zi):
     xi2 = xi * xi
     yi2 = yi * yi
@@ -80,11 +79,11 @@ for bank_num in bank_nums:
     for i in xrange(nx):
         for j in xrange(ny):
             # Make the pixel ID
-            nexus_id = SOM.NeXusId(bank_id, i, j).toTuple()
+            nexus_id = SOM.NeXusId(bank_id, i, j)
 
             # Get pixel center
-            x = cur_geom.get_x_pix_offset(nexus_id)
-            y = cur_geom.get_y_pix_offset(nexus_id)
+            x = cur_geom.get_x_pix_offset(nexus_id.toTuple())
+            y = cur_geom.get_y_pix_offset(nexus_id.toTuple())
 
             # Get indicies for nearest neighbors
             xindex = nexus_id.getXindex() + 1
@@ -96,16 +95,16 @@ for bank_num in bank_nums:
                 yindex -= 2                
 
             # Make pixel ID for nearest x direction neighbor
-            xneighbor_id = SOM.NeXusID(nexus_id.getDetId(), xindex,
-                                       nexus_id.getYindex()).toTuple()
+            xneighbor_id = SOM.NeXusId(nexus_id.getDetId(), xindex,
+                                       nexus_id.getYindex())
 
-            yneighbor_id = SOM.NeXusID(nexus_id.getDetId(), 
+            yneighbor_id = SOM.NeXusId(nexus_id.getDetId(), 
                                        nexus_id.getXindex(),
-                                       yindex).toTuple()
+                                       yindex)
             
             # Get x and y from x and y neighbors
-            xp = cur_geom.get_x_pix_offset(xneighbor_id)
-            yp = cur_geom.get_y_pix_offset(yneighbor_id)
+            xp = cur_geom.get_x_pix_offset(xneighbor_id.toTuple())
+            yp = cur_geom.get_y_pix_offset(yneighbor_id.toTuple())
 
             # Get half width and half height from pixel centers
             hdw = math.fabs(x - xp) * 0.5
