@@ -64,6 +64,11 @@ for bank_num in bank_nums:
     nexus.openpath(orient_path)
     orient = nexus.getdata()
 
+    # Fill out rest of 3x3 matrix
+    orient.append(orient[1]*orient[5] - orient[2]*orient[4])
+    orient.append(orient[2]*orient[3] - orient[0]*orient[5])
+    orient.append(orient[0]*orient[4] - orient[1]*orient[3])
+
     # Get the bank translation point
     trans_path = main_path + "/origin/translation/distance"
     nexus.openpath(trans_path)
