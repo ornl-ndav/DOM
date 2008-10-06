@@ -5,9 +5,10 @@ import sns_timing
 import SOM
 import sys
 
-def __get_corner(point, transmat, orientmat):
+def __get_corner(point, transmat, orientmat, db):
     newpt = __point_transformation(point, transmat, orientmat)
-    print "New Point:", newpt
+    if db:
+        print "New Point:", newpt
     pol = __calc_polar(newpt[0], newpt[1], newpt[2])
     azi = __calc_azi(newpt[1], newpt[0])
     return (pol, azi)
@@ -27,6 +28,11 @@ def __calc_azi(xi, yi):
     return math.atan2(yi, xi)
 
 filename = sys.argv[1]
+try:
+    temp = sys.argv[2]
+    debug = True
+except IndexError:
+    debug = False
 
 timer = sns_timing.DiffTime()
 
@@ -52,6 +58,8 @@ for bank_num in bank_nums:
     bank_id = "bank" + str(bank_num)
     main_path = "/entry/instrument/" + bank_id
 
+    print bank_id
+
     # Get the bank geometry
     cur_geom = data_dst.getInstrument(main_path)
 
@@ -72,20 +80,24 @@ for bank_num in bank_nums:
     # Put orientation matrix in correct order
     orientm = orient.toNumPy().reshape(3, 3).T
 
-    print "Orientation:", orientm
+    if debug:
+        print "Orientation:", orientm
 
     # Get the bank translation point
     trans_path = main_path + "/origin/translation/distance"
     nexus.openpath(trans_path)
     translation = nexus.getdata().toNumPy()
 
-    print "Translation:", translation
+    if debug:
+        print "Translation:", translation
     
     for i in xrange(nx):
         for j in xrange(ny):
             # Make the pixel ID
             nexus_id = SOM.NeXusId(bank_id, i, j)
-            print nexus_id
+            if debug:
+                print nexus_id
+                
             # Get pixel center
             x = cur_geom.get_x_pix_offset(nexus_id.toTuple())
             y = cur_geom.get_y_pix_offset(nexus_id.toTuple())
@@ -122,10 +134,12 @@ for bank_num in bank_nums:
             for signx in signs:
                 for signy in signs:
                     cpt = numpy.array([x+(signx*hdw), y+(signy*hdh), 0.0])
-                    print "Corner Pt:", cpt
-                    values = __get_corner(cpt, translation, orientm)
+                    if debug:
+                        print "Corner Pt:", cpt
+                    values = __get_corner(cpt, translation, orientm, debug)
                     polar_angles.append(values[0])
                     azi_angles.append(values[1])
-            
-            print "Polar:", polar_angles
-            print "Azi:", azi_angles
+
+            if debug:
+                print "Polar:", polar_angles
+                print "Azi:", azi_angles
