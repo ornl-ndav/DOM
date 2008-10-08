@@ -54,7 +54,9 @@ bank_nums = [int(id.replace('bank', '')) for id in bank_list
              if not id.startswith("monitor")]
 bank_nums.sort()
 
-signs = [-1.0, 1.0]
+signsx = [-1.0, 1.0]
+signsy1 = signsx
+signsy2 = [1.0, -1.0] 
 
 timer.getTime(False)
 
@@ -141,7 +143,11 @@ for bank_num in bank_nums:
             azi_angles = []
 
             # Make each corner and calculate the polar and azimuthal angles
-            for signx in signs:
+            for signx in signsx:
+                if signx < 0:
+                    signs = signsy1
+                else:
+                    signs = signsy2
                 for signy in signs:
                     cpt = numpy.array([x+(signx*hdw), y+(signy*hdh), 0.0])
                     if debug:
