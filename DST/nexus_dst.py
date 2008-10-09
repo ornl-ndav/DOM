@@ -1392,8 +1392,8 @@ class SnsInformation:
                                            "RSlit1/value"],
                             "aperture3" : ["distance", "LSlit3/value",
                                            "RSlit3/value"],
-                            "bank1" : ["TwoTheta/readback"],
-                            "sample" : ["Omega/readback"]}
+                            "bank1" : ["DANGLE/readback"],
+                            "sample" : ["SANGLE/readback"]}
 
             self.__get_data(SOM_keys, data_loc, index_sel, get_number=False)
 
@@ -1442,13 +1442,21 @@ class SnsInformation:
 
                     path = location + "/" + dpath
                     info = (self.__get_value(path))
-                    if self.__inst_name == "REF_M":
-                        if key == "Theta":
-                            path = "/"+entry_pt+"/instrument/bank1/" + dpath
-                        elif "Slit1" in key or "Slit3" in key:
-                            path = "/"+entry_pt+"/" + dpath
 
+                    if self.__inst_name == "REF_M":
                         if info[0] is None:
+                            if key == "Theta":
+                                path = path.replace("SANGLE", "Omega")
+                                try:
+                                    self.__nexus.openpath(path)
+                                except IOError:
+                                    path = "/"+entry_pt+\
+                                           "/instrument/bank1/Omega/readback"
+                            elif "Slit1" in key or "Slit3" in key:
+                                path = "/"+entry_pt+"/" + dpath
+                            elif key == "TwoTheta":
+                                path = path.replace("DANGLE", "TwoTheta")
+
                             info = (self.__get_value(path))
                             
                     if get_number:
