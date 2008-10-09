@@ -1161,13 +1161,14 @@ class NeXusInstrument:
     
 
     def getInstrument(self, path, **kwargs):
+        print "A:", path
 
         try:
             from_saf = kwargs["from_saf"]
         except KeyError:
             from_saf = False
         
-        label = path.split('/')[-1]
+        (entry_pt, label) = path.split('/')[1:]
 
         # Set a differential geometry holder to None
         diff_geom_dict = None
@@ -1281,8 +1282,9 @@ class NeXusInstrument:
                     dis_path = "/instrument/"+label+"/distance"
                     az_path = "/instrument/"+label+"/azimuthal_angle"
                 else:
-                    dis_path = "/entry/instrument/"+label+"/distance"
-                    az_path = "/entry/instrument/"+label+"/azimuthal_angle"
+                    dis_path = "/"+entry_pt+"/instrument/"+label+"/distance"
+                    az_path = "/"+entry_pt+"/instrument/"+label+\
+                              "/azimuthal_angle"
                     
                 self.__nexus.openpath(dis_path)
                 dims = self.__nexus.getdims()
@@ -1298,7 +1300,7 @@ class NeXusInstrument:
                 if from_saf:
                     path = "/instrument/"+label+"/distance"
                 else:
-                    path = "/entry/instrument/"+label+"/distance"
+                    path = "/"+entry_pt+"/instrument/"+label+"/distance"
                 self.__nexus.openpath(path)
                 dims = self.__nexus.getdims()
                 extra_stuff = dims[0][1]                
@@ -1409,6 +1411,7 @@ class SnsInformation:
         myre = re.compile(expression)
 
         for location in self.__det_locations:
+            print "G:", location
             label = location.split('/')[-1]
             if self.__inst_name == "BSS" and label == "bank3":
                 continue
