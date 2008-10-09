@@ -124,6 +124,16 @@ class NeXusDST(dst_base.DST_BASE):
         """Available keywords are start_id,end_id which provide a way
         to carve out the data to retrieve"""
 
+        # Get the entry point
+        if som_id is not None:
+            if type([]) == type(som_id):
+                # List has more than one path, so just get the first
+                entry_pt = som_id[0][0].split('/')[1]
+            else:
+                entry_pt = som_id[0].split('/')[1]
+        else:
+            entry_pt = "entry"
+        
         # grab the keyword paramaters
         if kwds.has_key("start_id"):
             start_id = kwds["start_id"]
@@ -242,7 +252,7 @@ class NeXusDST(dst_base.DST_BASE):
 
         info_keys = self.__sns_info.getKeys()
         for key in info_keys:
-            if key is not None:
+            if key is not None and entry_pt in key:
                 pair_list = self.__sns_info.getInformation(key)
                 if pair_list[1] is None:
                     info = None
@@ -252,6 +262,8 @@ class NeXusDST(dst_base.DST_BASE):
                     else:
                         info = pair_list[1]
 
+                # Take out the entry point label
+                key = key.replace("-"+entry_pt, "")
                 result.attr_list[key] = info
 
         return result
@@ -1161,7 +1173,6 @@ class NeXusInstrument:
     
 
     def getInstrument(self, path, **kwargs):
-        print "A:", path
 
         try:
             from_saf = kwargs["from_saf"]
@@ -1405,7 +1416,7 @@ class SnsInformation:
             get_number = kwargs["get_number"]
         except KeyError:
             get_number = True
-        
+
         import re
         expression = r'\d+$'
         myre = re.compile(expression)
@@ -1435,8 +1446,9 @@ class SnsInformation:
                 for key, dpath, sel in map(None, keys[value], data[value],
                                            selectors[value]):
 
-                    if not self.__det_data.has_key(key):
-                        self.__det_data[key] = []
+                    listkey = key + "-" + entry_pt
+                    if not self.__det_data.has_key(listkey):
+                        self.__det_data[listkey] = []
                     else:
                         pass
 
@@ -1464,7 +1476,7 @@ class SnsInformation:
                     else:
                         data_label = value
 
-                    self.__det_data[key].append(data_label)
+                    self.__det_data[listkey].append(data_label)
 
                     if sel == "IJSelector":
                         try:
@@ -1472,7 +1484,7 @@ class SnsInformation:
                             dims = self.__nexus.getdims()
                             try:
                                 dim = dims[0][1]
-                                self.__det_data[key].append(\
+                                self.__det_data[listkey].append(\
                                 SOM.Information(info[0],
                                                 info[1],
                                                 info[2],
@@ -1482,21 +1494,22 @@ class SnsInformation:
                                 # Need this for backwards compatibility
                                 if self.__inst_name == "BSS" and \
                                        dpath == "wavelength":
-                                    self.__det_data[key].append(\
+                                    self.__det_data[listkey].append(\
                                         SOM.Information(info[0],
                                                         info[1],
                                                         info[2],
                                                         "JSelector"))
                                 else:
-                                    self.__det_data[key].append(None)
+                                    self.__det_data[listkey].append(None)
                             
                         except IOError:
-                            self.__det_data[key].append(None)
+                            self.__det_data[listkey].append(None)
                     else:
-                        self.__det_data[key].append(SOM.Information(info[0],
-                                                                    info[1],
-                                                                    info[2],
-                                                                    sel))
+                        self.__det_data[listkey].append(\
+                            SOM.Information(info[0],
+                                            info[1],
+                                            info[2],
+                                            sel))
             except KeyError:
                 continue
 
