@@ -1411,8 +1411,8 @@ class SnsInformation:
         myre = re.compile(expression)
 
         for location in self.__det_locations:
-            print "G:", location
             label = location.split('/')[-1]
+            entry_pt = location.split('/')[1]
             if self.__inst_name == "BSS" and label == "bank3":
                 continue
             else:
@@ -1444,9 +1444,9 @@ class SnsInformation:
                     info = (self.__get_value(path))
                     if self.__inst_name == "REF_M":
                         if key == "Theta":
-                            path = "/entry/instrument/bank1/" + dpath
+                            path = "/"+entry_pt+"/instrument/bank1/" + dpath
                         elif "Slit1" in key or "Slit3" in key:
-                            path = "/entry/" + dpath
+                            path = "/"+entry_pt+"/" + dpath
 
                         if info[0] is None:
                             info = (self.__get_value(path))
