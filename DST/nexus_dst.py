@@ -1173,12 +1173,11 @@ class NeXusInstrument:
     
 
     def getInstrument(self, path, **kwargs):
-
         try:
             from_saf = kwargs["from_saf"]
         except KeyError:
             from_saf = False
-        
+
         (entry_pt, label) = path.split('/')[1:]
 
         # Set a differential geometry holder to None
@@ -1341,7 +1340,12 @@ class NeXusInstrument:
             return None
 
 class SnsInformation:
-    def __init__(self, filehandle, tree, inst_name):
+    def __init__(self, filehandle, tree, inst_name, **kwargs):
+        try:
+            from_saf = kwargs["from_saf"]
+        except KeyError:
+            from_saf = False
+        
         self.__tag = "/instrument"
         self.__nexus = filehandle
         self.__tree = tree
@@ -1357,7 +1361,7 @@ class SnsInformation:
             data_loc = {"analyzer" : ["wavelength"]}
             index_sel = {"analyzer" : ["IJSelector"]}
 
-            self.__get_data(SOM_keys, data_loc, index_sel)
+            self.__get_data(SOM_keys, data_loc, index_sel, from_saf=from_saf)
 
         elif self.__inst_name == "REF_L" or self.__inst_name == "REF_M":
             self.__det_locations.extend(self.__list_type(tree, "NXaperture"))
@@ -1406,7 +1410,8 @@ class SnsInformation:
                             "bank1" : ["DANGLE/readback"],
                             "sample" : ["SANGLE/readback"]}
 
-            self.__get_data(SOM_keys, data_loc, index_sel, get_number=False)
+            self.__get_data(SOM_keys, data_loc, index_sel, get_number=False,
+                            from_saf=from_saf)
 
         else:
             self.__det_data = {None : (None, None, None)}
@@ -1416,6 +1421,11 @@ class SnsInformation:
             get_number = kwargs["get_number"]
         except KeyError:
             get_number = True
+
+        try:
+            from_saf = kwargs["from_saf"]
+        except KeyError:
+            from_saf = False
 
         import re
         expression = r'\d+$'
@@ -1445,8 +1455,11 @@ class SnsInformation:
             try:
                 for key, dpath, sel in map(None, keys[value], data[value],
                                            selectors[value]):
-
-                    listkey = key + "-" + entry_pt
+                    if not from_saf:
+                       listkey = key + "-" + entry_pt
+                    else:
+                        listkey = key
+                        
                     if not self.__det_data.has_key(listkey):
                         self.__det_data[listkey] = []
                     else:
