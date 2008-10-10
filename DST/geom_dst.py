@@ -71,7 +71,8 @@ class GeomDST(dst_base.DST_BASE):
                                                      self.__tree,
                                                      from_saf=True)
         self.__sns_info = nexus_dst.SnsInformation(self.__nexus, self.__tree,
-                                                   self.__inst_info.getName())
+                                                   self.__inst_info.getName(),
+                                                   from_saf=True)
 
     def setGeometry(self, som_id, som):
         """
