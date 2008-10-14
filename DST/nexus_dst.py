@@ -133,7 +133,7 @@ class NeXusDST(dst_base.DST_BASE):
                 entry_pt = som_id[0].split('/')[1]
         else:
             entry_pt = "entry"
-        
+
         # grab the keyword paramaters
         if kwds.has_key("start_id"):
             start_id = kwds["start_id"]
@@ -575,16 +575,14 @@ class NeXusDST(dst_base.DST_BASE):
         if data_group is None:
             return {}
 
-        id = data_group.split('/')[-1]
+        path, id = data_group.split('/')[1:]
         
         # get the list of SDS in the data group
         SDS_list = []
         for key in self.__tree:
             if self.__tree[key] == "SDS":
-                # Due to leading /, 0th entry is blank so bank ID is 2nd
-                # element
-                kid = key.split('/')[2]
-                if kid == id:
+                # Need the instrument on to stop double counting links
+                if path in key and id in key and "instrument" not in key:
                     SDS_list.append(key)
 
         # create the list of children with attributes
@@ -909,16 +907,14 @@ class NeXusData:
         if data_group is None:
             return {}
 
-        id = data_group.split('/')[-1]
+        path, id = data_group.split('/')[1:]
 
         # get the list of SDS in the data group
         SDS_list = []
         for key in tree:
             if tree[key] == "SDS":
-                # Due to leading /, 0th entry is blank so bank ID is 2nd
-                # element
-                kid = key.split('/')[2]
-                if kid == id:
+                # Need the instrument on to stop double counting links
+                if path in key and id in key and "instrument" not in key:
                     SDS_list.append(key)
 
         # create the list of children with attributes
