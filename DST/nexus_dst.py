@@ -64,28 +64,6 @@ class NeXusDST(dst_base.DST_BASE):
         # set the so axis
         self.__so_axis = so_axis
 
-    def getInstrument(self, SOM_id=None):
-        """
-        This method gets the instrument geometry information from the object.
-
-        @param SOM_id: The detector path to retrieve the geometry for.
-        @type SOM_id: C{string}
-
-
-        @returns: The instrument geometry information for the detector
-        @rtype: C{SOM.Instrument}
-        """
-        return self.__inst_info.getInstrument(SOM_id)
-
-    def getResource(self):
-        """
-        This method returns the resource handle.
-
-        @return: The current resource handle.
-        @rtype: L{DST.NeXusFile}
-        """
-        return self.__nexus
-
     def getParameter(self, name):
         entry_locations = self.list_type("NXentry")
 
@@ -145,6 +123,16 @@ class NeXusDST(dst_base.DST_BASE):
     def getSOM(self, som_id=None, so_axis=None, **kwds):
         """Available keywords are start_id,end_id which provide a way
         to carve out the data to retrieve"""
+
+        # Get the entry point
+        if som_id is not None:
+            if type([]) == type(som_id):
+                # List has more than one path, so just get the first
+                entry_pt = som_id[0][0].split('/')[1]
+            else:
+                entry_pt = som_id[0].split('/')[1]
+        else:
+            entry_pt = "entry"
 
         # grab the keyword paramaters
         if kwds.has_key("start_id"):
@@ -264,7 +252,7 @@ class NeXusDST(dst_base.DST_BASE):
 
         info_keys = self.__sns_info.getKeys()
         for key in info_keys:
-            if key is not None:
+            if key is not None and entry_pt in key:
                 pair_list = self.__sns_info.getInformation(key)
                 if pair_list[1] is None:
                     info = None
@@ -274,6 +262,8 @@ class NeXusDST(dst_base.DST_BASE):
                     else:
                         info = pair_list[1]
 
+                # Take out the entry point label
+                key = key.replace("-"+entry_pt, "")
                 result.attr_list[key] = info
 
         return result
@@ -585,16 +575,14 @@ class NeXusDST(dst_base.DST_BASE):
         if data_group is None:
             return {}
 
-        id = data_group.split('/')[-1]
+        path, id = data_group.split('/')[1:]
         
         # get the list of SDS in the data group
         SDS_list = []
         for key in self.__tree:
             if self.__tree[key] == "SDS":
-                # Due to leading /, 0th entry is blank so bank ID is 2nd
-                # element
-                kid = key.split('/')[2]
-                if kid == id:
+                # Need the instrument on to stop double counting links
+                if path in key and id in key and "instrument" not in key:
                     SDS_list.append(key)
 
         # create the list of children with attributes
@@ -919,16 +907,14 @@ class NeXusData:
         if data_group is None:
             return {}
 
-        id = data_group.split('/')[-1]
+        path, id = data_group.split('/')[1:]
 
         # get the list of SDS in the data group
         SDS_list = []
         for key in tree:
             if tree[key] == "SDS":
-                # Due to leading /, 0th entry is blank so bank ID is 2nd
-                # element
-                kid = key.split('/')[2]
-                if kid == id:
+                # Need the instrument on to stop double counting links
+                if path in key and id in key and "instrument" not in key:
                     SDS_list.append(key)
 
         # create the list of children with attributes
@@ -1183,13 +1169,12 @@ class NeXusInstrument:
     
 
     def getInstrument(self, path, **kwargs):
-
         try:
             from_saf = kwargs["from_saf"]
         except KeyError:
             from_saf = False
-        
-        label = path.split('/')[-1]
+
+        (entry_pt, label) = path.split('/')[1:]
 
         # Set a differential geometry holder to None
         diff_geom_dict = None
@@ -1303,8 +1288,9 @@ class NeXusInstrument:
                     dis_path = "/instrument/"+label+"/distance"
                     az_path = "/instrument/"+label+"/azimuthal_angle"
                 else:
-                    dis_path = "/entry/instrument/"+label+"/distance"
-                    az_path = "/entry/instrument/"+label+"/azimuthal_angle"
+                    dis_path = "/"+entry_pt+"/instrument/"+label+"/distance"
+                    az_path = "/"+entry_pt+"/instrument/"+label+\
+                              "/azimuthal_angle"
                     
                 self.__nexus.openpath(dis_path)
                 dims = self.__nexus.getdims()
@@ -1320,7 +1306,7 @@ class NeXusInstrument:
                 if from_saf:
                     path = "/instrument/"+label+"/distance"
                 else:
-                    path = "/entry/instrument/"+label+"/distance"
+                    path = "/"+entry_pt+"/instrument/"+label+"/distance"
                 self.__nexus.openpath(path)
                 dims = self.__nexus.getdims()
                 extra_stuff = dims[0][1]                
@@ -1350,7 +1336,12 @@ class NeXusInstrument:
             return None
 
 class SnsInformation:
-    def __init__(self, filehandle, tree, inst_name):
+    def __init__(self, filehandle, tree, inst_name, **kwargs):
+        try:
+            from_saf = kwargs["from_saf"]
+        except KeyError:
+            from_saf = False
+        
         self.__tag = "/instrument"
         self.__nexus = filehandle
         self.__tree = tree
@@ -1366,7 +1357,7 @@ class SnsInformation:
             data_loc = {"analyzer" : ["wavelength"]}
             index_sel = {"analyzer" : ["IJSelector"]}
 
-            self.__get_data(SOM_keys, data_loc, index_sel)
+            self.__get_data(SOM_keys, data_loc, index_sel, from_saf=from_saf)
 
         elif self.__inst_name == "REF_L" or self.__inst_name == "REF_M":
             self.__det_locations.extend(self.__list_type(tree, "NXaperture"))
@@ -1412,10 +1403,11 @@ class SnsInformation:
                                            "RSlit1/value"],
                             "aperture3" : ["distance", "LSlit3/value",
                                            "RSlit3/value"],
-                            "bank1" : ["TwoTheta/readback"],
-                            "sample" : ["Omega/readback"]}
+                            "bank1" : ["DANGLE/readback"],
+                            "sample" : ["SANGLE/readback"]}
 
-            self.__get_data(SOM_keys, data_loc, index_sel, get_number=False)
+            self.__get_data(SOM_keys, data_loc, index_sel, get_number=False,
+                            from_saf=from_saf)
 
         else:
             self.__det_data = {None : (None, None, None)}
@@ -1425,13 +1417,19 @@ class SnsInformation:
             get_number = kwargs["get_number"]
         except KeyError:
             get_number = True
-        
+
+        try:
+            from_saf = kwargs["from_saf"]
+        except KeyError:
+            from_saf = False
+
         import re
         expression = r'\d+$'
         myre = re.compile(expression)
 
         for location in self.__det_locations:
             label = location.split('/')[-1]
+            entry_pt = location.split('/')[1]
             if self.__inst_name == "BSS" and label == "bank3":
                 continue
             else:
@@ -1453,21 +1451,33 @@ class SnsInformation:
             try:
                 for key, dpath, sel in map(None, keys[value], data[value],
                                            selectors[value]):
-
-                    if not self.__det_data.has_key(key):
-                        self.__det_data[key] = []
+                    if not from_saf:
+                       listkey = key + "-" + entry_pt
+                    else:
+                        listkey = key
+                        
+                    if not self.__det_data.has_key(listkey):
+                        self.__det_data[listkey] = []
                     else:
                         pass
 
                     path = location + "/" + dpath
                     info = (self.__get_value(path))
-                    if self.__inst_name == "REF_M":
-                        if key == "Theta":
-                            path = "/entry/instrument/bank1/" + dpath
-                        elif "Slit1" in key or "Slit3" in key:
-                            path = "/entry/" + dpath
 
+                    if self.__inst_name == "REF_M":
                         if info[0] is None:
+                            if key == "Theta":
+                                path = path.replace("SANGLE", "Omega")
+                                try:
+                                    self.__nexus.openpath(path)
+                                except IOError:
+                                    path = "/"+entry_pt+\
+                                           "/instrument/bank1/Omega/readback"
+                            elif "Slit1" in key or "Slit3" in key:
+                                path = "/"+entry_pt+"/" + dpath
+                            elif key == "TwoTheta":
+                                path = path.replace("DANGLE", "TwoTheta")
+
                             info = (self.__get_value(path))
                             
                     if get_number:
@@ -1475,7 +1485,7 @@ class SnsInformation:
                     else:
                         data_label = value
 
-                    self.__det_data[key].append(data_label)
+                    self.__det_data[listkey].append(data_label)
 
                     if sel == "IJSelector":
                         try:
@@ -1483,7 +1493,7 @@ class SnsInformation:
                             dims = self.__nexus.getdims()
                             try:
                                 dim = dims[0][1]
-                                self.__det_data[key].append(\
+                                self.__det_data[listkey].append(\
                                 SOM.Information(info[0],
                                                 info[1],
                                                 info[2],
@@ -1493,21 +1503,22 @@ class SnsInformation:
                                 # Need this for backwards compatibility
                                 if self.__inst_name == "BSS" and \
                                        dpath == "wavelength":
-                                    self.__det_data[key].append(\
+                                    self.__det_data[listkey].append(\
                                         SOM.Information(info[0],
                                                         info[1],
                                                         info[2],
                                                         "JSelector"))
                                 else:
-                                    self.__det_data[key].append(None)
+                                    self.__det_data[listkey].append(None)
                             
                         except IOError:
-                            self.__det_data[key].append(None)
+                            self.__det_data[listkey].append(None)
                     else:
-                        self.__det_data[key].append(SOM.Information(info[0],
-                                                                    info[1],
-                                                                    info[2],
-                                                                    sel))
+                        self.__det_data[listkey].append(\
+                            SOM.Information(info[0],
+                                            info[1],
+                                            info[2],
+                                            sel))
             except KeyError:
                 continue
 
