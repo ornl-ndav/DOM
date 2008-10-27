@@ -219,6 +219,8 @@ class NeXusDST(dst_base.DST_BASE):
 
         inst_keys = []
 
+        result.attr_list.sample = self.__sample_info.getSample()
+
         # If there is only one ID in the list, expect that starting and
         # ending ids are a single tuple each
         if len(id_list) == 1:
