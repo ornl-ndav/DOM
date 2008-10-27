@@ -53,6 +53,8 @@ class NeXusDST(dst_base.DST_BASE):
         self.__inst_info = NeXusInstrument(self.__nexus, self.__tree)
         self.__sns_info = SnsInformation(self.__nexus, self.__tree,
                                          self.__inst_info.getName())
+        self.__sample_info = SampleInformation(self.__nexus, self.__tree,
+                                               self.__inst_info.getName())
 
         # set the data group to be all NXdata
         if data_group_path is None:
@@ -1617,3 +1619,45 @@ class SnsInformation:
             return self.__det_data[key]
         except KeyError:
             return None
+
+class SampleInformation:
+    def __init__(self, filehandle, tree, inst_name, **kwargs):
+        try:
+            from_saf = kwargs["from_saf"]
+        except KeyError:
+            from_saf = False
+        
+        self.__nexus = filehandle
+        self.__tree = tree
+        self.__inst_name = inst_name
+
+        self.__samp_locations = self.__list_type(tree, "NXsample")
+        
+        self.__sample = SOM.Sample()
+        
+        self.__sample.name = self.__get_info("name")
+        self.__sample.nature = self.__get_info("nature")
+        self.__sample.identifier = self.__get_info("identifier")
+        self.__sample.holder = self.__get_info("holder")
+        self.__sample.changer_position = self.__get_info("changer_position")
+
+    def __list_type(self, tree, type):
+        my_list = []
+        for key in tree:
+            if tree[key] == type:
+                my_list.append(key)
+        return my_list
+
+    def __get_val_as_str(self, path):
+        self.__nexus.openpath(path)
+        return str(self.__nexus.getdata())
+
+    def __get_info(self, path):
+        infopath = self.__samp_locations[-1] + "/" + path
+        try:
+            return self.__get_val_as_str(infopath)
+        except IOError:
+            pass
+
+    def getSample(self):
+        return self.__sample
