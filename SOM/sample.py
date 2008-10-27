@@ -29,9 +29,25 @@ class Sample:
 
     @ivar name: The name of the sample
     @type name: C{string}
+
+    @ivar nature: The type of sample
+    @type nature: C{string}
+
+    @ivar identifier: Serial number or other ID tagging scheme
+    @type identifier: C{string}
+
+    @ivar holder: The type of holder for the sample
+    @type holder: C{string}
+
+    @ivar changer_position: The location of the sample in a sample changer
+    @type changer_position: C{string}
     """
     def __init__(self):
         """
         Object constructor
         """
         self.name = ""
+        self.nature = ""
+        self.identifier = ""
+        self.holder = ""
+        self.changer_position = ""
