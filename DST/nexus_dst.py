@@ -268,6 +268,12 @@ class NeXusDST(dst_base.DST_BASE):
 
         return result
 
+    def writeSO(self):
+        pass
+
+    def writeSOM(self):
+        pass
+
     def __construct_SOM(self, result, data, so_axis, bank_id, **kwargs):
 
         if kwargs.has_key("start_id"):
@@ -1454,7 +1460,7 @@ class SnsInformation:
                 for key, dpath, sel in map(None, keys[value], data[value],
                                            selectors[value]):
                     if not from_saf:
-                       listkey = key + "-" + entry_pt
+                        listkey = key + "-" + entry_pt
                     else:
                         listkey = key
                         
