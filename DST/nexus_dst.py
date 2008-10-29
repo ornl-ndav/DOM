@@ -53,8 +53,6 @@ class NeXusDST(dst_base.DST_BASE):
         self.__inst_info = NeXusInstrument(self.__nexus, self.__tree)
         self.__sns_info = SnsInformation(self.__nexus, self.__tree,
                                          self.__inst_info.getName())
-        self.__sample_info = SampleInformation(self.__nexus, self.__tree,
-                                               self.__inst_info.getName())
 
         # set the data group to be all NXdata
         if data_group_path is None:
@@ -65,28 +63,6 @@ class NeXusDST(dst_base.DST_BASE):
 
         # set the so axis
         self.__so_axis = so_axis
-
-    def getInstrument(self, SOM_id=None):
-        """
-        This method gets the instrument geometry information from the object.
-
-        @param SOM_id: The detector path to retrieve the geometry for.
-        @type SOM_id: C{string}
-
-
-        @returns: The instrument geometry information for the detector
-        @rtype: C{SOM.Instrument}
-        """
-        return self.__inst_info.getInstrument(SOM_id)
-
-    def getResource(self):
-        """
-        This method returns the resource handle.
-
-        @return: The current resource handle.
-        @rtype: L{DST.NeXusFile}
-        """
-        return self.__nexus
 
     def getParameter(self, name):
         entry_locations = self.list_type("NXentry")
@@ -219,8 +195,6 @@ class NeXusDST(dst_base.DST_BASE):
 
         inst_keys = []
 
-        result.attr_list.sample = self.__sample_info.getSample()
-
         # If there is only one ID in the list, expect that starting and
         # ending ids are a single tuple each
         if len(id_list) == 1:
@@ -293,6 +267,12 @@ class NeXusDST(dst_base.DST_BASE):
                 result.attr_list[key] = info
 
         return result
+
+    def writeSO(self):
+        pass
+
+    def writeSOM(self):
+        pass
 
     def __construct_SOM(self, result, data, so_axis, bank_id, **kwargs):
 
@@ -1244,7 +1224,7 @@ class NeXusInstrument:
             # Set detector bank secondary flight path
             if self.__inst_name == "BSS":
                 det_secondary = (float('nan'), float('nan'))
-            else:
+            elif self.__inst_name is not None:
                 import math
                 x = geometry[6][0][0]
                 y = geometry[6][0][1]
@@ -1257,6 +1237,8 @@ class NeXusInstrument:
                     r_err2 = geometry[6][1] * geometry[6][1]
 
                 det_secondary = (r, r_err2)
+            else:
+                det_secondary = (None, None)
 
             if self.__inst_name == "BSS":
                 if label == "bank3":
@@ -1478,7 +1460,7 @@ class SnsInformation:
                 for key, dpath, sel in map(None, keys[value], data[value],
                                            selectors[value]):
                     if not from_saf:
-                       listkey = key + "-" + entry_pt
+                        listkey = key + "-" + entry_pt
                     else:
                         listkey = key
                         
@@ -1621,45 +1603,3 @@ class SnsInformation:
             return self.__det_data[key]
         except KeyError:
             return None
-
-class SampleInformation:
-    def __init__(self, filehandle, tree, inst_name, **kwargs):
-        try:
-            from_saf = kwargs["from_saf"]
-        except KeyError:
-            from_saf = False
-        
-        self.__nexus = filehandle
-        self.__tree = tree
-        self.__inst_name = inst_name
-
-        self.__samp_locations = self.__list_type(tree, "NXsample")
-        
-        self.__sample = SOM.Sample()
-        
-        self.__sample.name = self.__get_info("name")
-        self.__sample.nature = self.__get_info("nature")
-        self.__sample.identifier = self.__get_info("identifier")
-        self.__sample.holder = self.__get_info("holder")
-        self.__sample.changer_position = self.__get_info("changer_position")
-
-    def __list_type(self, tree, type):
-        my_list = []
-        for key in tree:
-            if tree[key] == type:
-                my_list.append(key)
-        return my_list
-
-    def __get_val_as_str(self, path):
-        self.__nexus.openpath(path)
-        return str(self.__nexus.getdata())
-
-    def __get_info(self, path):
-        infopath = self.__samp_locations[-1] + "/" + path
-        try:
-            return self.__get_val_as_str(infopath)
-        except IOError:
-            pass
-
-    def getSample(self):
-        return self.__sample

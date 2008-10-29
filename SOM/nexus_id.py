@@ -82,17 +82,6 @@ class NeXusId(object):
         """
         return not self.__eq__(right)
 
-    def __str__(self):
-        """
-        This method returns the string representation of the information
-        held by the object. It has the format: (bankN, (x, y)).
-
-
-        @return: The object information
-        @rtype: C{string}
-        """
-        return str((self.__det_id, (self.__x_index, self.__y_index)))
-
     def getDetId(self):
         """
         This method returns the detector ID.
@@ -161,26 +150,6 @@ class NeXusId(object):
         @rtype: C{boolean}
         """        
         return self.__y_index == yid
-
-    def toCommaStr(self):
-        """
-        This method returns a string representation of the information held
-        by the object in the following format: bankN,x,y.
-
-        @return: The object information
-        @rtype: C{string}
-        """
-        return "%s,%d,%d" % (self.__det_id, self.__x_index, self.__y_index)
-
-    def toJoinedStr(self):
-        """
-        This method returns a string representation of the information held
-        by the object in the following format: bankN_x_y.
-
-        @return: The object information
-        @rtype: C{string}
-        """
-        return "%s_%d_%d" % (self.__det_id, self.__x_index, self.__y_index)
 
     def toTuple(self):
         """
