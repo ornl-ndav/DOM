@@ -1218,7 +1218,7 @@ class NeXusInstrument:
             # Set detector bank secondary flight path
             if self.__inst_name == "BSS":
                 det_secondary = (float('nan'), float('nan'))
-            else:
+            elif self.__inst_name is not None:
                 import math
                 x = geometry[6][0][0]
                 y = geometry[6][0][1]
@@ -1231,6 +1231,8 @@ class NeXusInstrument:
                     r_err2 = geometry[6][1] * geometry[6][1]
 
                 det_secondary = (r, r_err2)
+            else:
+                det_secondary = (None, None)
 
             if self.__inst_name == "BSS":
                 if label == "bank3":
