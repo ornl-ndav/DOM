@@ -294,6 +294,12 @@ class NeXusDST(dst_base.DST_BASE):
 
         return result
 
+    def writeSO(self):
+        pass
+
+    def writeSOM(self):
+        pass
+
     def __construct_SOM(self, result, data, so_axis, bank_id, **kwargs):
 
         if kwargs.has_key("start_id"):
@@ -1244,7 +1250,7 @@ class NeXusInstrument:
             # Set detector bank secondary flight path
             if self.__inst_name == "BSS":
                 det_secondary = (float('nan'), float('nan'))
-            else:
+            elif self.__inst_name is not None:
                 import math
                 x = geometry[6][0][0]
                 y = geometry[6][0][1]
@@ -1257,6 +1263,8 @@ class NeXusInstrument:
                     r_err2 = geometry[6][1] * geometry[6][1]
 
                 det_secondary = (r, r_err2)
+            else:
+                det_secondary = (None, None)
 
             if self.__inst_name == "BSS":
                 if label == "bank3":
@@ -1478,7 +1486,7 @@ class SnsInformation:
                 for key, dpath, sel in map(None, keys[value], data[value],
                                            selectors[value]):
                     if not from_saf:
-                       listkey = key + "-" + entry_pt
+                        listkey = key + "-" + entry_pt
                     else:
                         listkey = key
                         
