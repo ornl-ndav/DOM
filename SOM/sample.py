@@ -80,12 +80,16 @@ class Sample:
         if not self.__is_empty(self.name):
             result.append("Name: "+self.name)
         if not self.__is_empty(self.nature):
+            result.append("|")
             result.append("Nature: "+self.nature)
         if not self.__is_empty(self.identifier):
+            result.append("|")
             result.append("Identifier: "+self.identifier)
         if not self.__is_empty(self.holder):
+            result.append("|")
             result.append("Holder: "+self.holder)
         if not self.__is_empty(self.changer_position):
+            result.append("|")
             result.append("Changer Position: "+self.changer_position)
 
         return " ".join(result)
