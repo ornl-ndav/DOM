@@ -93,3 +93,40 @@ class Sample:
             result.append("Changer Position: "+self.changer_position)
 
         return " ".join(result)
+
+    def __eq__(self, other):
+        """
+        This method checks to see if the incoming C{Sample} object and current
+        one are equal.
+
+        @param other: Object to check for equality
+        @type other: C{Sample}
+
+        @return: I{True} is the C{Sample} objects are equal, I{False} if they
+                 are not.
+        @rtype: C{boolean}
+        """
+        is_equal = False
+        for key in self.__dict__:
+            if "Sample" in key:
+                continue
+            if self.__dict__[key] == other.__dict__[key]:
+                is_equal = True
+            else:
+                is_equal = False
+
+        return is_equal
+
+    def __ne__(self, other):
+        """
+        This method checks to see if the incoming C{Sample} object and current
+        one are not equal.
+
+        @param other: Object to check for inequality
+        @type other: C{Sample}
+
+        @return: I{True} is the C{Sample} objects are not equal, I{False} if
+                 they are.
+        @rtype: C{boolean}        
+        """
+        return not self.__eq__(other)
