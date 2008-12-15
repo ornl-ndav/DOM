@@ -454,7 +454,7 @@ class NeXusDST(dst_base.DST_BASE):
         
     def __get_attr_list(self, data_path):
         # prefix of what attributes to use
-        data_path = "/" + data_path.split("/")[0]
+        data_path = "/" + data_path.split("/")[1]
 
         # generate the full list of attributes to use
         possible_list = self.list_type("SDS")
