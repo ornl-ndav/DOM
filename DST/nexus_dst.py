@@ -36,7 +36,7 @@ class NeXusDST(dst_base.DST_BASE):
 
         # allocate places for everything
         self.__nexus = nexus_file.NeXusFile(resource)
-        self.__tree = self.__build_tree()
+        self.__tree = self.__build_tree2()
         self.__data_group = []
         self.__data_signal = []
         self.__so_axis = None
@@ -576,6 +576,37 @@ class NeXusDST(dst_base.DST_BASE):
         for key in listing:
             my_list[("%s/%s" % (parent, key))] = listing[key]
         return my_list
+
+    def __parse_class(self, nodename, classname, path):
+        listing = {}
+        name = "rubbish"
+        self.__nexus.opengroup(nodename, classname)
+        #if (classname is not (None)):
+        #    listing[("%s%s" % (path, nodename))] = classname
+        #print path+"/"+nodename, classname
+        self.__nexus.initgroupdir()
+        while name is not None:
+            name, classname = self.__nexus.getnextentry()
+            if (name is not None) and (type != "CDF0.0"):
+                #print path+"/"+nodename+"/"+name, classname
+                listing[("%s%s" % (path, name))] = classname
+            if (classname is not None) and (classname.startswith("NX")):
+                listing.update(self.__parse_class(name, classname, path+name+"/"))
+        self.__nexus.closegroup()
+        return listing
+
+    def __build_tree2(self, listing={}):
+        # set up result
+        my_listing = listing.copy()
+        print "__build_tree2()"
+        name = "rubbish"
+        self.__nexus.initgroupdir()
+        while name is not None:
+            name, classname = self.__nexus.getnextentry()
+            if (classname is not None) and (classname.startswith("NX")):
+                path = "/"+name+"/"
+                my_listing.update(self.__parse_class(name, classname, path))
+        return my_listing
 
     def __build_tree(self, listing={}):
         # set up result
