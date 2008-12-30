@@ -598,12 +598,15 @@ class NeXusDST(dst_base.DST_BASE):
     def __build_tree2(self, listing={}):
         # set up result
         my_listing = listing.copy()
-        print "__build_tree2()"
+        #print "using __build_tree2()"
         name = "rubbish"
         self.__nexus.initgroupdir()
         while name is not None:
             name, classname = self.__nexus.getnextentry()
+            #print "(%s) %s" %(classname, name) 
             if (classname is not None) and (classname.startswith("NX")):
+                listing[("/%s" % name)] = classname
+                my_listing.update(listing)
                 path = "/"+name+"/"
                 my_listing.update(self.__parse_class(name, classname, path))
         return my_listing
