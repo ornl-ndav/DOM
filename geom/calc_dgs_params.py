@@ -66,11 +66,12 @@ nexus = data_dst.getResource()
 for bank_num in bank_nums:
     bank_id = "bank" + str(bank_num)
     main_path = "/entry/instrument/" + bank_id
+    inst_path = "/entry/" + bank_id
 
     print bank_id
 
     # Get the bank geometry
-    cur_geom = data_dst.getInstrument(main_path)
+    cur_geom = data_dst.getInstrument(inst_path)
 
     # Get the number of pixels in each direction of the bank
     nx = cur_geom.get_num_x()
