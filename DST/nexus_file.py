@@ -45,7 +45,8 @@ class NeXusFile:
         if self.__HANDLE__ is None:
             raise SystemError("Failed to read file: %s" % filename)
         self.__filename    = filename
-        self.__path        = ""
+        self.__path        = []
+        self.__dataopen    = False
 
     def filename(self):
         return self.__filename
@@ -61,21 +62,105 @@ class NeXusFile:
         return sns_napi.makegroup(self.__HANDLE__, name, type)
 
     def opengroup(self, name, type):
-        self.__path = ""
+        self.__path.append(name)
         return sns_napi.opengroup(self.__HANDLE__, name, type)
 
     def openpath(self, path):
-        if path == self.__path:
-            return None
-        self.__path = path
-        return sns_napi.openpath(self.__HANDLE__, path)
+        #print "\n"
+        #print "=== %s" % path
+        #print self.__path
         
+        if self.__path != []:
+            if path == self.__path[-1]:
+                #print "We are here already"
+                return
+        
+        # This next case is when we are asked for a data item alone, and we are already have
+        # a data item open.  Otherwise it will do a groupdir and find the new item and just
+        # try to open it!
+        if self.__dataopen and path.find("/") == -1:
+            self.closedata()
+        
+        if path == "/":
+            destination = []
+        elif path.startswith("/"):
+            destination = path[1:].split("/")
+        else:
+            destination = self.__path + path.split("/")
+    
+        temp = []
+        # Now lets deal with any "." or ".." 
+        for item in destination:
+                if item == ".":
+                    # Don't bother adding it.
+                    pass
+                elif item == "..":
+                    if temp != []:
+                        # go up a directory
+                        temp.pop()
+                    else:
+                        raise NeXusError("You can't go further up the tree than the top!")
+                else:
+                    temp.append(item)
+        
+        destination = temp
+        #print "current path",self.__path
+        #print "%s"%path,destination
+        
+        up = []
+        down = []
+        
+        for i, name in enumerate(destination):
+            if i == len(self.__path):
+                # destination is longer than current dir
+                up = []
+                down = destination[i:]
+                break
+            elif self.__path[i] != name:
+                up = self.__path[i:]
+                down = destination[i:]
+                break
+            else:
+                up = self.__path[len(destination):]
+                down = []
+                
+        up.reverse()
+        
+        #print "close,open",up,down
+        
+        # Close stuff on the way up
+        if self.__dataopen and up != []:
+            # Data item is open and we actually want to move!
+            #print "closedata(%s)" % up[0]
+            self.closedata()
+            up.pop(0)
+        for dir in up:
+            #print up.index(dir)
+            #print "closegroup(%s)" % dir
+            self.closegroup()
+                        
+        # Open stuff on the way down.
+        for dir in down:
+            #print "looking for %s" % dir
+            name = "crap.py :-)"
+            self.initgroupdir()
+            while name is not None:
+                (name,classname) = self.getnextentry()
+                #print name,dir
+                if name != dir: continue
+                if classname != "SDS":
+                    #print "opengroup(%s)" % name
+                    self.opengroup(name, classname)
+                else:
+                    #print "opendata(%s)" % name
+                    self.opendata(name)
+                
     def opengrouppath(self, path):
-        self.__path = ""
+        #self.__path = ""
         return sns_napi.opengrouppath(self.__HANDLE__, path)
         
     def closegroup(self):
-        self.__path = ""
+        self.__path.pop()
         return sns_napi.closegroup(self.__HANDLE__)
 
     def makedata(self, name, type, dims):
@@ -88,11 +173,13 @@ class NeXusFile:
         return sns_napi.compress(self.__HANDLE__, compression)
 
     def opendata(self, name):
-        self.__path = ""
+        self.__path.append(name)
+        self.__dataopen = True
         return sns_napi.opendata(self.__HANDLE__, name)
 
     def closedata(self):
-        self.__path = ""
+        self.__path.pop()
+        self.__dataopen = False
         return sns_napi.closedata(self.__HANDLE__)
 
     def putdata(self, c_ptr):
@@ -117,7 +204,7 @@ class NeXusFile:
         return sns_napi.makelink(self.__HANDLE__, link)
 
     def opensourcegroup(self):
-        self.__path = ""
+        #self.__path = ""
         return sns_napi.opensourcegroup(self.__HANDLE__)
 
     def getdims(self):
