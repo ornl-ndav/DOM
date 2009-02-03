@@ -42,7 +42,7 @@ class NeXusDST(dst_base.DST_BASE):
         self.__so_axis = None
         self.__avail_data = {}
         self.__inst_info = None
-        self.__extra_params = param_map.ParameterMap()        
+        self.__extra_params = param_map.ParameterMap()
 
         # create the data list
         som_ids = self.__generate_SOM_ids()
@@ -974,7 +974,7 @@ class NeXusData:
             return {}
 
         path, id = data_group.split('/')[1:]
-
+        id = id + "/"
         # get the list of SDS in the data group
         SDS_list = []
         for key in tree:
