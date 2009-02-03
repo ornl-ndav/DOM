@@ -642,7 +642,7 @@ class NeXusDST(dst_base.DST_BASE):
             return {}
 
         path, id = data_group.split('/')[1:]
-        
+        id = id + "/"
         # get the list of SDS in the data group
         SDS_list = []
         for key in self.__tree:
