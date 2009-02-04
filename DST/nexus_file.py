@@ -48,6 +48,21 @@ class NeXusFile:
         self.__path        = []
         self.__dataopen    = False
 
+    def __getnxclass(self, name):
+        """
+        Return the nxclass of the supplied name.
+        """
+        self.initgroupdir()
+        (myname, nxclass) = self.getnextentry()
+        if (myname, nxclass) != (None, None):
+            if myname == name:
+                return nxclass
+        while (myname, nxclass) != (None, None):
+            (myname, nxclass) = self.getnextentry()
+            if myname == name:
+                return nxclass
+        return None
+
     def filename(self):
         return self.__filename
 
@@ -66,98 +81,124 @@ class NeXusFile:
         return sns_napi.opengroup(self.__HANDLE__, name, type)
 
     def openpath(self, path):
-        #print "\n"
-        #print "=== %s" % path
-        #print self.__path
-        
-        if self.__path != []:
-            if path == self.__path[-1]:
-                #print "We are here already"
-                return
-        
-        # This next case is when we are asked for a data item alone, and we are already have
-        # a data item open.  Otherwise it will do a groupdir and find the new item and just
-        # try to open it!
-        if self.__dataopen and path.find("/") == -1:
-            self.closedata()
-        
-        if path == "/":
-            destination = []
-        elif path.startswith("/"):
-            destination = path[1:].split("/")
+        """
+        Open a particular group '/path/to/group'.  Paths can be
+        absolute or relative to the currently open group.  If openpath
+        fails, then currently open path may not be different from the
+        starting path. For better performation the types can be
+        specified as well using '/path:type1/to:type2/group:type3'
+        which will prevent searching the file for the types associated
+        with the supplied names.
+
+        Raises ValueError.
+
+        Corresponds to NXopenpath(handle, path)
+        """
+        self._openpath(path, opendata=True)
+
+    def _openpath(self, path, opendata=True):
+        """helper function: open relative path and maybe data"""
+        # Determine target node as sequence of group names
+        if path == '/':
+            target = []
         else:
-            destination = self.__path + path.split("/")
-    
-        temp = []
-        # Now lets deal with any "." or ".." 
-        for item in destination:
-                if item == ".":
-                    # Don't bother adding it.
-                    pass
-                elif item == "..":
-                    if temp != []:
-                        # go up a directory
-                        temp.pop()
-                    else:
-                        raise NeXusError("You can't go further up the tree than the top!")
+            if path.endswith("/"):
+                path = path[:-1]
+            if path.startswith('/'):
+                target = path[1:].split('/')
+            else:
+                target = self.__path + path.split('/')
+
+        # Remove relative path indicators from target
+        L = []
+        for t in target: 
+            if t == '.': 
+                # Skip current node
+                pass
+            elif t == '..':
+                if L == []:
+                    raise ValueError("too many '..' in path")
+                L.pop()
+            else:
+                L.append(t)
+        target = L
+
+        # split out nxclass from each level if available
+        L = []
+        for t in target:
+            try:
+                item = t.split(":")
+                if len(item) == 1:
+                    L.append((item[0], None))
                 else:
-                    temp.append(item)
-        
-        destination = temp
+                    L.append(tuple(item))
+            except AttributeError:
+                L.append(t)
+        target = L
+
         #print "current path",self.__path
-        #print "%s"%path,destination
-        
+        #print "%s"%path,target
+
+        # Find which groups need to be closed and opened
         up = []
         down = []
-        
-        for i, name in enumerate(destination):
+        for i,name in enumerate(target):
             if i == len(self.__path):
-                # destination is longer than current dir
+                #print "target longer than current"
                 up = []
-                down = destination[i:]
+                down = target[i:]
                 break
             elif self.__path[i] != name:
+                #print "target and current differ at",name
                 up = self.__path[i:]
-                down = destination[i:]
+                down = target[i:]
                 break
-            else:
-                up = self.__path[len(destination):]
-                down = []
-                
-        up.reverse()
-        
+        else:
+            #print "target shorter than current"
+            up = self.__path[len(target):]
+            down = []
+
+        # add more information to the down path
+        for i in xrange(len(down)):
+            try:
+                (name, nxclass) = down[i]
+            except ValueError:
+                down[i] = (down[i], None)
         #print "close,open",up,down
-        
-        # Close stuff on the way up
+
+        # Close groups on the way up
         if self.__dataopen and up != []:
-            # Data item is open and we actually want to move!
-            #print "closedata(%s)" % up[0]
             self.closedata()
-            up.pop(0)
-        for dir in up:
-            #print up.index(dir)
-            #print "closegroup(%s)" % dir
+            up.pop()
+        for target in up:
             self.closegroup()
-                        
-        # Open stuff on the way down.
-        for dir in down:
-            #print "looking for %s" % dir
-            name = "crap.py :-)"
-            self.initgroupdir()
-            while name is not None:
-                (name,classname) = self.getnextentry()
-                #print name,dir
-                if name != dir: continue
-                if classname != "SDS":
-                    #print "opengroup(%s)" % name
-                    self.opengroup(name, classname)
-                else:
-                    #print "opendata(%s)" % name
-                    self.opendata(name)
-                
+        
+        # Open groups on the way down
+        for target in down:
+            (name, nxclass) = target
+            if nxclass is None:
+                nxclass = self.__getnxclass(name)
+                if nxclass is None:
+                    raise KeyError("Failed to find entry with name \"%s\"" \
+                                   % name)
+            if nxclass != "SDS":
+                self.opengroup(name, nxclass)
+            elif opendata:
+                self.opendata(name)
+            else:
+                raise ValueError("node %s not in %s"%(name,self.path))
+
     def opengrouppath(self, path):
-        #self.__path = ""
-        return sns_napi.opengrouppath(self.__HANDLE__, path)
+        """
+        Open a particular group '/path/to/group', or the dataset containing
+        the group if the path refers to a dataset.  Paths can be relative to
+        the currently open group.
+
+        Raises ValueError.
+
+        Corresponds to NXopengrouppath(handle, path)
+        """
+        self._openpath(path,opendata=False)
         
     def closegroup(self):
         self.__path.pop()
