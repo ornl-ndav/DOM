@@ -53,10 +53,7 @@ class NeXusFile:
         Return the nxclass of the supplied name.
         """
         self.initgroupdir()
-        (myname, nxclass) = self.getnextentry()
-        if (myname, nxclass) != (None, None):
-            if myname == name:
-                return nxclass
+        (myname, nxclass) = ("crap name","crap class")
         while (myname, nxclass) != (None, None):
             (myname, nxclass) = self.getnextentry()
             if myname == name:
@@ -98,6 +95,12 @@ class NeXusFile:
 
     def _openpath(self, path, opendata=True):
         """helper function: open relative path and maybe data"""
+        
+        if self.__path != []:
+            if path == self.__path[-1]:
+                #print "We are here already"
+                return
+        
         # Determine target node as sequence of group names
         if path == '/':
             target = []
@@ -142,7 +145,10 @@ class NeXusFile:
         # Find which groups need to be closed and opened
         up = []
         down = []
-        for i,name in enumerate(target):
+        #print "target is" ,target
+        for (i, (name, nxclass)) in enumerate(target):
+            
+            #print i,name
             if i == len(self.__path):
                 #print "target longer than current"
                 up = []
@@ -168,22 +174,25 @@ class NeXusFile:
 
         # Close groups on the way up
         if self.__dataopen and up != []:
+            #print "closedata(%s)" % up[-1]
             self.closedata()
             up.pop()
         for target in up:
+            #print "closegroup(%s)" % target
             self.closegroup()
         
         # Open groups on the way down
-        for target in down:
-            (name, nxclass) = target
+        for (name, nxclass) in down:
             if nxclass is None:
                 nxclass = self.__getnxclass(name)
                 if nxclass is None:
                     raise KeyError("Failed to find entry with name \"%s\"" \
                                    % name)
             if nxclass != "SDS":
+                #print "opengroup(%s)" % name
                 self.opengroup(name, nxclass)
             elif opendata:
+                #print "opendata(%s)" % name
                 self.opendata(name)
             else:
                 raise ValueError("node %s not in %s"%(name,self.path))
@@ -214,6 +223,8 @@ class NeXusFile:
         return sns_napi.compress(self.__HANDLE__, compression)
 
     def opendata(self, name):
+        if self.__dataopen:
+            self.closedata()
         self.__path.append(name)
         self.__dataopen = True
         return sns_napi.opendata(self.__HANDLE__, name)
