@@ -186,7 +186,7 @@ class NeXusFile:
             if nxclass is None:
                 nxclass = self.__getnxclass(name)
                 if nxclass is None:
-                    raise KeyError("Failed to find entry with name \"%s\"" \
+                    raise IOError("Failed to find entry with name \"%s\"" \
                                    % name)
             if nxclass != "SDS":
                 #print "opengroup(%s)" % name
@@ -195,7 +195,7 @@ class NeXusFile:
                 #print "opendata(%s)" % name
                 self.opendata(name)
             else:
-                raise ValueError("node %s not in %s"%(name,self.path))
+                raise IOError("node %s not in %s"%(name,self.path))
 
     def opengrouppath(self, path):
         """
