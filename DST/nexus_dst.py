@@ -1697,7 +1697,10 @@ class SampleInformation:
         return str(self.__nexus.getdata())
 
     def __get_info(self, path):
-        infopath = self.__samp_locations[-1] + "/" + path
+        try:
+            infopath = self.__samp_locations[-1] + "/" + path
+        except IndexError:
+            return None
         try:
             return self.__get_val_as_str(infopath)
         except IOError:
