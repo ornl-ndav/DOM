@@ -49,7 +49,7 @@ class Sample:
         """
         Object constructor
         """
-        self.name = ""
+        self.name =  ""
         self.nature = ""
         self.identifier = ""
         self.holder = ""
