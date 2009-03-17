@@ -121,6 +121,7 @@ def parse_spec_header(ifile):
         "theta": ["theta", "nxpar"],
         "dtheta": ["delta_theta", "nxpar"],
         "dtheta_over_theta": ["dtheta_over_theta", "nxpar"],
+        "Scaling": ["scaling", "str"]
         }
 
     attr_list = SOM.AttributeList()
@@ -292,6 +293,9 @@ def write_spec_header(ofile, epoch, som, **kwargs):
     write_dataset_tags(ofile, "-dtheta_over_theta",
                        "#C %s dtheta_over_theta: %s",
                        "#C dtheta_over_theta: %s", som)
+
+    write_dataset_tags(ofile, "-Scaling", "#C %s Scaling: %s",
+                       "#C Scaling: %s", som)
 
     if comments is not None:
         for comment in comments:
