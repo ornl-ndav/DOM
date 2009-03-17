@@ -25,7 +25,7 @@
 # $Id$
 
 import sys
-import DST 
+import DST
 
 filename = sys.argv[1]
 

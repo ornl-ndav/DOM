@@ -36,13 +36,13 @@ class NeXusDST(dst_base.DST_BASE):
 
         # allocate places for everything
         self.__nexus = nexus_file.NeXusFile(resource)
-        self.__tree = self.__build_tree2()
+        self.__tree = self.__build_tree()
         self.__data_group = []
         self.__data_signal = []
         self.__so_axis = None
         self.__avail_data = {}
         self.__inst_info = None
-        self.__extra_params = param_map.ParameterMap()
+        self.__extra_params = param_map.ParameterMap()        
 
         # create the data list
         som_ids = self.__generate_SOM_ids()
@@ -53,8 +53,6 @@ class NeXusDST(dst_base.DST_BASE):
         self.__inst_info = NeXusInstrument(self.__nexus, self.__tree)
         self.__sns_info = SnsInformation(self.__nexus, self.__tree,
                                          self.__inst_info.getName())
-        self.__sample_info = SampleInformation(self.__nexus, self.__tree,
-                                               self.__inst_info.getName())
 
         # set the data group to be all NXdata
         if data_group_path is None:
@@ -65,28 +63,6 @@ class NeXusDST(dst_base.DST_BASE):
 
         # set the so axis
         self.__so_axis = so_axis
-
-    def getInstrument(self, SOM_id=None):
-        """
-        This method gets the instrument geometry information from the object.
-
-        @param SOM_id: The detector path to retrieve the geometry for.
-        @type SOM_id: C{string}
-
-
-        @returns: The instrument geometry information for the detector
-        @rtype: C{SOM.Instrument}
-        """
-        return self.__inst_info.getInstrument(SOM_id)
-
-    def getResource(self):
-        """
-        This method returns the resource handle.
-
-        @return: The current resource handle.
-        @rtype: L{DST.NeXusFile}
-        """
-        return self.__nexus
 
     def getParameter(self, name):
         entry_locations = self.list_type("NXentry")
@@ -218,8 +194,6 @@ class NeXusDST(dst_base.DST_BASE):
             result.setTitle("")
 
         inst_keys = []
-
-        result.attr_list.sample = self.__sample_info.getSample()
 
         # If there is only one ID in the list, expect that starting and
         # ending ids are a single tuple each
@@ -577,40 +551,6 @@ class NeXusDST(dst_base.DST_BASE):
             my_list[("%s/%s" % (parent, key))] = listing[key]
         return my_list
 
-    def __parse_class(self, nodename, classname, path):
-        listing = {}
-        name = "rubbish"
-        self.__nexus.opengroup(nodename, classname)
-        #if (classname is not (None)):
-        #    listing[("%s%s" % (path, nodename))] = classname
-        #print path+"/"+nodename, classname
-        self.__nexus.initgroupdir()
-        while name is not None:
-            name, classname = self.__nexus.getnextentry()
-            if (name is not None) and (type != "CDF0.0"):
-                #print path+"/"+nodename+"/"+name, classname
-                listing[("%s%s" % (path, name))] = classname
-            if (classname is not None) and (classname.startswith("NX")):
-                listing.update(self.__parse_class(name, classname, path+name+"/"))
-        self.__nexus.closegroup()
-        return listing
-
-    def __build_tree2(self, listing={}):
-        # set up result
-        my_listing = listing.copy()
-        #print "using __build_tree2()"
-        name = "rubbish"
-        self.__nexus.initgroupdir()
-        while name is not None:
-            name, classname = self.__nexus.getnextentry()
-            #print "(%s) %s" %(classname, name) 
-            if (classname is not None) and (classname.startswith("NX")):
-                listing[("/%s" % name)] = classname
-                my_listing.update(listing)
-                path = "/"+name+"/"
-                my_listing.update(self.__parse_class(name, classname, path))
-        return my_listing
-
     def __build_tree(self, listing={}):
         # set up result
         my_listing = listing.copy()
@@ -642,7 +582,7 @@ class NeXusDST(dst_base.DST_BASE):
             return {}
 
         path, id = data_group.split('/')[1:]
-        id = id + "/"
+        
         # get the list of SDS in the data group
         SDS_list = []
         for key in self.__tree:
@@ -974,7 +914,7 @@ class NeXusData:
             return {}
 
         path, id = data_group.split('/')[1:]
-        id = id + "/"
+
         # get the list of SDS in the data group
         SDS_list = []
         for key in tree:
@@ -1663,48 +1603,3 @@ class SnsInformation:
             return self.__det_data[key]
         except KeyError:
             return None
-
-class SampleInformation:
-    def __init__(self, filehandle, tree, inst_name, **kwargs):
-        try:
-            from_saf = kwargs["from_saf"]
-        except KeyError:
-            from_saf = False
-        
-        self.__nexus = filehandle
-        self.__tree = tree
-        self.__inst_name = inst_name
-
-        self.__samp_locations = self.__list_type(tree, "NXsample")
-        
-        self.__sample = SOM.Sample()
-        
-        self.__sample.name = self.__get_info("name")
-        self.__sample.nature = self.__get_info("nature")
-        self.__sample.identifier = self.__get_info("identifier")
-        self.__sample.holder = self.__get_info("holder")
-        self.__sample.changer_position = self.__get_info("changer_position")
-
-    def __list_type(self, tree, type):
-        my_list = []
-        for key in tree:
-            if tree[key] == type:
-                my_list.append(key)
-        return my_list
-
-    def __get_val_as_str(self, path):
-        self.__nexus.openpath(path)
-        return str(self.__nexus.getdata())
-
-    def __get_info(self, path):
-        try:
-            infopath = self.__samp_locations[-1] + "/" + path
-        except IndexError:
-            return None
-        try:
-            return self.__get_val_as_str(infopath)
-        except IOError:
-            pass
-
-    def getSample(self):
-        return self.__sample
