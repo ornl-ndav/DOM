@@ -98,8 +98,8 @@ class PhxDST(dst_base.DST_BASE):
         pol2 = (cangles.getPolar(2) + cangles.getPolar(3)) / 2.0
         delta_pol = pol1 - pol2
 
-        azi1 = (cangles.getAzimuthal(0) + cangles.getAzimuthal(1)) / 2.0
-        azi2 = (cangles.getAzimuthal(2) + cangles.getAzimuthal(3)) / 2.0
+        azi1 = (cangles.getAzimuthal(0) + cangles.getAzimuthal(3)) / 2.0
+        azi2 = (cangles.getAzimuthal(1) + cangles.getAzimuthal(2)) / 2.0
         delta_azi = azi1 - azi2
 
         return (delta_pol, delta_azi)
