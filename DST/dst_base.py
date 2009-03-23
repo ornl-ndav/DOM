@@ -149,5 +149,7 @@ def getInstance(mime_type, resource, *args, **kwargs):
         return mdw_dst.MdwDST(*my_args, **kwargs)
     elif mime_type == numinfo_dst.NumInfoDST.MIME_TYPE:
         return numinfo_dst.NumInfoDST(*my_args, **kwargs)
+    elif mime_type == phx_dst.PhxDST.MIME_TYPE:
+        return phx_dst.PhxDST(*my_args, **kwargs)    
     else:
         raise Exception("Cannot create DST for type %s" % mime_type)
