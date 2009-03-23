@@ -23,6 +23,7 @@
 # $Id$
 
 import dst_base
+import hlr_utils
 
 class PhxDST(dst_base.DST_BASE):
     """
@@ -81,11 +82,29 @@ class PhxDST(dst_base.DST_BASE):
         # Write the total number of pixels to the file
         print >> self.__file, len(som)
         for so in som:
-            self.writeData(so, som.attr_list.instrument)
+            self.writeData(so, som.attr_list.instrument,
+                           som.attr_list["corner_geom"])
 
     ############# Special functions
 
-    def writeData(self, so, inst):
+    def __get_widths(self, cangles):
+        """
+        This method calculates the widths in polar and aziumthal angles.
+
+        @param cangles: The corner angle information for a given pixel
+        @type cangles: C{hlr_utils.Angles}
+        """
+        pol1 = (cangles.getPolar(0) + cangles.getPolar(1)) / 2.0
+        pol2 = (cangles.getPolar(2) + cangles.getPolar(3)) / 2.0
+        delta_pol = pol1 - pol2
+
+        azi1 = (cangles.getAzimuthal(0) + cangles.getAzimuthal(1)) / 2.0
+        azi2 = (cangles.getAzimuthal(2) + cangles.getAzimuthal(3)) / 2.0
+        delta_azi = azi1 - azi2
+
+        return (delta_pol, delta_azi)
+
+    def writeData(self, so, inst, cgeom):
         """
         This method is responsible for writing the actual data contained within
         the L{SOM.SO}s to the attached file. 
@@ -95,8 +114,10 @@ class PhxDST(dst_base.DST_BASE):
 
         @param inst: The object containing the geometrical information
         @type inst: L{SOM.Instrument} or L{SOM.CompositeInstrument}
-        """
 
+        @param cgeom: The object containing the corner angle information
+        @type cgeom: C{dict}
+        """
         formatStr="%d\t%d\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d"
 
         dummy1 = 1
@@ -106,8 +127,7 @@ class PhxDST(dst_base.DST_BASE):
         polar = inst.get_polar(so.id)[0]
         azi = inst.get_azimuthal(so.id)[0]
 
-        dpolar = -0.999
-        dazi = -0.999
+        (dpolar, dazi) = self.__get_widths(cgeom[str(so.id)])
 
         print >> self.__file, formatStr % (dummy1, dummy2, polar, azi,
                                            dpolar, dazi, dummy7)
