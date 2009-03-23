@@ -78,4 +78,37 @@ class PhxDST(dst_base.DST_BASE):
 
         @param kwargs: A list of keyword arguments that the method accepts:
         """
-        pass
+        # Write the total number of pixels to the file
+        print >> self.__file, len(som)
+        for so in som:
+            self.writeData(so, som.attr_list.instrument)
+
+    ############# Special functions
+
+    def writeData(self, so, inst):
+        """
+        This method is responsible for writing the actual data contained within
+        the L{SOM.SO}s to the attached file. 
+
+        @param so: Object containing data to be written to file
+        @type so: L{SOM.SO}
+
+        @param inst: The object containing the geometrical information
+        @type inst: L{SOM.Instrument} or L{SOM.CompositeInstrument}
+        """
+
+        formatStr="%d\t%d\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d"
+
+        dummy1 = 1
+        dummy2 = 0
+        dummy7 = 0
+    
+        polar = inst.get_polar(so.id)[0]
+        azi = inst.get_azimuthal(so.id)[0]
+
+        dpolar = -0.999
+        dazi = -0.999
+
+        print >> self.__file, formatStr % (dummy1, dummy2, polar, azi,
+                                           dpolar, dazi, dummy7)
+        
