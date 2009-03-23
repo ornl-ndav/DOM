@@ -22,6 +22,8 @@
 
 # $Id$
 
+import dst_base
+
 class PhxDST(dst_base.DST_BASE):
     """
     This class creates a so-called PHX file for programs like MSlice. The first
