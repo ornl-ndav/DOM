@@ -103,6 +103,7 @@ def getInstance(mime_type, resource, *args, **kwargs):
        - text/rmd
        - text/num-info
        - text/GSAS
+       - text/PHX
     @type mime_type: C{string}
 
     @param resource: A handle to the file resource
@@ -133,6 +134,7 @@ def getInstance(mime_type, resource, *args, **kwargs):
     import mdw_dst
     import nexus_dst
     import numinfo_dst
+    import phx_dst
 
     # do the factory stuff
     if mime_type == nexus_dst.NeXusDST.MIME_TYPE:
