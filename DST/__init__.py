@@ -35,6 +35,7 @@ from mdw_dst import MdwDST
 from nexus_dst import NeXusDST
 from numinfo_dst import NumInfoDST
 from param_map import ParameterMap
+from spe_dst import SpeDST
 from phx_dst import PhxDST
 
 from DOM_version import version as __version__
