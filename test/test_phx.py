@@ -25,6 +25,8 @@
 # $Id$
 
 import DST
+import hlr_utils
+import SOM
 import sys
 
 if __name__ == "__main__":
@@ -37,6 +39,43 @@ if __name__ == "__main__":
     dst = DST.getInstance("application/x-NeXus", filename)
     som = dst.getSOM(("/entry/bank1", 1))
 
+    if "ARCS" in filename:
+        cgeom = "/SNS/ARCS/2009_2_18_CAL/calibrations/ARCS_cgeom_20090128.txt"
+    elif "CNCS" in filename:
+        cgeom="/SNS/CNCS/2009_2_5_CAL/calibrations/CNCS_cgeom_20090224.txt"
+    elif "SEQ" in filename or "SEQUOIA" in filename:
+        cgeom="/SNS/SEQ/2009_2_17_CAL/calibrations/SEQ_cgeom_20090302.txt"
+    else:
+        raise RuntimeError("Cannot get corner geometry file")
+
+    # Get corner geometry
+    infile = open(hlr_utils.fix_filename(cgeom), "r")
+
+    angle_info = {}
+    counter = 0
+    nexus_id = None
+    angle_obj = None
+    for line in infile:
+        if line.startswith("b"):
+            nexus_id = SOM.NeXusId.fromString(line.rstrip()).toTuple()
+            counter = 0
+            angle_obj = hlr_utils.Angles()
+        else:
+            angle_list = line.rstrip().split(' ')
+            angles = [float(angle) for angle in angle_list]
+            if counter == 1:
+                angle_obj.setPolar(angles)
+            else:
+                angle_obj.setAzimuthal(angles)
+
+        if counter == 2:
+            angle_info[str(nexus_id)] = angle_obj
+
+        counter += 1
+
+    som.attr_list["corner_geom"] = angle_info
+
+    # Write out file
     ofile = open("test.phx", "w")
     phx = DST.PhxDST(ofile)
     phx.writeSOM(som)
