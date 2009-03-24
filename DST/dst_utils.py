@@ -264,6 +264,9 @@ def write_spec_header(ofile, epoch, som, **kwargs):
               som.attr_list["angle_offset"]
     else:
         pass
+
+    write_dataset_tags(ofile, "-sample", "#C % s Sample: %s", "#C Sample:",
+                       som)
     
     write_dataset_tags(ofile, "-proton_charge", "#C %s Proton Charge: %s",
                        "#C Proton Charge:", som)
