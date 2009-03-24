@@ -152,9 +152,12 @@ def parse_spec_header(ifile):
 
             if found_data_set[0]:
                 pkey = parts[0].lstrip(found_data_set[1]).strip()
-                akey = found_data_set[1] + "-" + HEADER_KEYS[pkey][0]
-                __update_dictionary(attr_list, akey, parts[1],
-                                    HEADER_KEYS[pkey][1])
+                try:
+                    akey = found_data_set[1] + "-" + HEADER_KEYS[pkey][0]
+                    __update_dictionary(attr_list, akey, parts[1],
+                                        HEADER_KEYS[pkey][1])    
+                except KeyError:
+                    __update_dictionary(attr_list, pkey, parts[1], "str")
             else:
                 pkey = parts[0].strip()
                 try:
