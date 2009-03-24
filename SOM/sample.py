@@ -22,7 +22,7 @@
 
 # $Id$
 
-class Sample:
+class Sample(object):
     """
     This is an abstract base class representing important information about
     the sample.
