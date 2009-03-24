@@ -119,10 +119,10 @@ class SpeDST(dst_base.DST_BASE):
 	len_det = len(som)
         len_energy = len(so.axis[0].val)
         
-        print >> self.__file, len_det, len_energy
+        print >> self.__file, len_det, len_energy-1
 
         print >> self.__file, "### Phi Grid"
-	for i in range(len_det):
+	for i in range(len_det+1):
 	    print >> self.__file, " %10.3e" % ((i*0.5)+0.5),
 	    if ((i+1) % 8) == 0:
 		print >> self.__file
@@ -132,7 +132,7 @@ class SpeDST(dst_base.DST_BASE):
 		print >> self.__file
 
         print >> self.__file, "### Energy Grid"
-        for i in range(len_energy-1):
+        for i in range(len_energy):
             print >> self.__file, " %10.3e" % (so.axis[0].val[i]),  
 	    if ((i+1) % 8) == 0:
 		print >> self.__file
