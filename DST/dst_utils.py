@@ -266,7 +266,7 @@ def write_spec_header(ofile, epoch, som, **kwargs):
         pass
 
     write_dataset_tags(ofile, "-sample", "#C % s Sample: %s", "#C Sample:",
-                       som)
+                       som, tag_check=["data", "normalization"])
     
     write_dataset_tags(ofile, "-proton_charge", "#C %s Proton Charge: %s",
                        "#C Proton Charge:", som)
@@ -318,7 +318,7 @@ def write_spec_header(ofile, epoch, som, **kwargs):
     # SCL
     print >> ofile, "#C SCL Version -", utils.__version__    
     
-def write_dataset_tags(ofile, tag, format_multi, format_one, som):
+def write_dataset_tags(ofile, tag, format_multi, format_one, som, **kwargs):
     """
     This function searches a L{SOM.SOM} for a particular tag that has dataset
     dependent instances and writes that information to a file with the given
@@ -342,11 +342,16 @@ def write_dataset_tags(ofile, tag, format_multi, format_one, som):
     @param som: The object containing the information for search and retreival.
     @type som: L{SOM.SOM}
     """
+    tag_check = kwargs.get("tag_check")
+    
     info_keys = [key for key in som.attr_list if key.find(tag) != -1]
 
     if len(info_keys):
         for info_key in info_keys:
             tag = info_key.split('-')[0]
+            if tag_check is not None:
+                if tag not in tag_check:
+                    continue
             try:
                 som.attr_list[info_key].reverse()
                 som.attr_list[info_key].reverse()
