@@ -55,7 +55,7 @@ class PhxDST(dst_base.DST_BASE):
 
     ########## DST_BASE functions
 
-    def __init__(self, resource):
+    def __init__(self, resource, *args, **kwargs):
         """
         Object constructor
 
