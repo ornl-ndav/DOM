@@ -128,7 +128,7 @@ class SpeDST(dst_base.DST_BASE):
 		print >> self.__file
 
 	# Make sure that there is a newline at the end of this section
-	if ((len_det) % 8) != 0:
+	if ((len_det+1) % 8) != 0:
 		print >> self.__file
 
         print >> self.__file, "### Energy Grid"
@@ -138,7 +138,7 @@ class SpeDST(dst_base.DST_BASE):
 		print >> self.__file
 	    
 	# Make sure that there is a newline at the end of this section
-	if ((len_energy-1) % 8) != 0:
+	if ((len_energy) % 8) != 0:
 		print >> self.__file
         
     def writeData(self, so):
