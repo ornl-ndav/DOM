@@ -56,6 +56,10 @@ class SOM(list):
                              The last two are describing the same type of data.
     @type __data_set_type__: C{string}
 
+    @ivar __data_set_tag__: A classification of the data contained within the
+                            C{SOM}. Examples are I{data}, I{ecan} and I{norm}.
+    @type __data_set_tag__: C{string}
+
     @ivar attr_list: The dictionary of metadata for the dataset
     @type attr_list: L{AttributeList}
 
@@ -76,6 +80,7 @@ class SOM(list):
         self.__y_label__ = SOM.EMPTY
         self.__y_units__ = SOM.EMPTY
         self.__data_set_type__ = SOM.EMPTY
+        self.__data_set_tag__ = SOM.EMPTY
         
         self.attr_list = attribute.AttributeList()
         self.dst = None
@@ -332,6 +337,8 @@ class SOM(list):
         @param dataset_tag: The name to prepend to the key
         @type dataset_tag: C{string}
         """
+        self.__data_set_tag__ = dataset_tag
+        
         nxpar_keys = [item[0] for item in self.attr_list.iteritems() \
                       if isinstance(item[1], NxParameter)]
         
