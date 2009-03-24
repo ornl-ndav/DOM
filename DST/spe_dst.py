@@ -133,7 +133,7 @@ class SpeDST(dst_base.DST_BASE):
 
         print >> self.__file, "### Energy Grid"
         for i in range(len_energy-1):
-            print >> self.__file, " %10.3e" % (so.axis[0].val[i])  
+            print >> self.__file, " %10.3e" % (so.axis[0].val[i]),  
 	    if ((i+1) % 8) == 0:
 		print >> self.__file
 	    
