@@ -343,6 +343,9 @@ class SOM(list):
         for nxpar_rekeyed in itertools.izip(nxpar_keys, nxpar_values):
             self.attr_list[dataset_tag+"-"+nxpar_rekeyed[0]] = nxpar_rekeyed[1]
 
+        # Copy sample information to attribute list
+        self.attr_list[dataset_tag+"-sample"] = self.attr_list.sample
+
     def setAllAxisLabels(self, labels):
         """
         This method sets all of the labels for the independent axes.
