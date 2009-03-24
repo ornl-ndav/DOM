@@ -167,7 +167,11 @@ class SOM(list):
             self.attr_list = copy.copy(other.attr_list)
         else:
             self.attr_list.instrument = copy.copy(other.attr_list.instrument)
-            self.attr_list.sample = copy.copy(other.attr_list.sample)
+            if self.getDataSetTag() != other.getDataSetTag():
+                stag = other.getDataSetTag()+"-sample"
+                self.attr_list[stag] = copy.copy(other.attr_list.sample)
+            else:
+                self.attr_list.sample = copy.copy(other.attr_list.sample)
 
             if add_nxpars:
                 nxpar_keys = [item[0] for item in self.attr_list.iteritems() \
