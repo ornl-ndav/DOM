@@ -121,7 +121,8 @@ def parse_spec_header(ifile):
         "theta": ["theta", "nxpar"],
         "dtheta": ["delta_theta", "nxpar"],
         "dtheta_over_theta": ["dtheta_over_theta", "nxpar"],
-        "Scaling": ["scaling", "str"]
+        "Scaling": ["scaling", "str"],
+        "Sample": ["sample", "sample"]
         }
 
     attr_list = SOM.AttributeList()
@@ -208,6 +209,9 @@ def __update_dictionary(idict, key, info, itype):
 
     if itype == "nxpar":
         item = SOM.NxParameter.fromString(item)
+
+    if itype == "sample":
+        item = SOM.Sample.fromString(item)
 
     if itype == "lstr":
         try:
