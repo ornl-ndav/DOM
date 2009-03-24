@@ -130,3 +130,37 @@ class Sample:
         @rtype: C{boolean}        
         """
         return not self.__eq__(other)
+
+    def fromString(cls, istr):
+        """
+        This method provides an alternative constructor method for creating a
+        L{SOM.Sample} from a C{string} representation of the object.
+        
+        @param istr: Object containing the string representation
+        @type istr: C{string}
+        
+        
+        @return: A new object with the information from the C{string}
+        @rtype: L{SOM.Sample}
+        """
+        print "0:", istr
+        parts = istr.split('|')
+        print "A:", parts
+        sample = Sample()
+        for part in parts:
+            temp = part.split(':')
+            print "B:", temp
+            if "Name" in temp[0]:
+                sample.name = temp[1]
+            elif "Nature" in temp[0]:
+                sample.nature = temp[1]
+            elif "Identifier" in temp[0]:
+                sample.identifier = temp[1]
+            elif "Holder" in temp[0]:
+                sample.holder = temp[1]
+            elif "Changer Position" in temp[0]:
+                sample.changer_position = temp[1]            
+                
+        return sample
+
+    fromString = classmethod(fromString)
