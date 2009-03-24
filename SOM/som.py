@@ -246,6 +246,15 @@ class SOM(list):
         """        
         return self.__axis_units__[dim]
 
+    def getDataSetTag(self):
+        """
+        This method returns the dataset tag of this C{SOM}.
+
+        @return: The dataset tag
+        @rtype: C{string}
+        """
+        return self.__data_set_tag__
+
     def getDataSetType(self):
         """
         This method returns the dataset type of this C{SOM}.
