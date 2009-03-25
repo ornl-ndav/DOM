@@ -117,7 +117,7 @@ class PhxDST(dst_base.DST_BASE):
         azi2 = (cangles.getAzimuthal(1) + cangles.getAzimuthal(2)) / 2.0
         delta_azi = self.__convert_to_deg(azi1 - azi2)
 
-        return (delta_pol, delta_azi)
+        return (math.fabs(delta_pol), math.fabs(delta_azi))
 
     def writeData(self, so, inst, cgeom):
         """
