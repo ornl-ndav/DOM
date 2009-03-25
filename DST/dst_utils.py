@@ -273,7 +273,8 @@ def write_spec_header(ofile, epoch, som, **kwargs):
         pass
 
     write_dataset_tags(ofile, "-sample", "#C % s Sample: %s", "#C Sample:",
-                       som, tag_check=["data", "normalization"])
+                       som, tag_check=["data", "normalization"],
+                       info_check="")
     
     write_dataset_tags(ofile, "-proton_charge", "#C %s Proton Charge: %s",
                        "#C Proton Charge:", som)
@@ -350,6 +351,7 @@ def write_dataset_tags(ofile, tag, format_multi, format_one, som, **kwargs):
     @type som: L{SOM.SOM}
     """
     tag_check = kwargs.get("tag_check")
+    info_check = kwargs.get("info_check")
     
     info_keys = [key for key in som.attr_list if key.find(tag) != -1]
 
@@ -365,6 +367,9 @@ def write_dataset_tags(ofile, tag, format_multi, format_one, som, **kwargs):
                 for info in som.attr_list[info_key]:
                     print >> ofile, format_multi % (tag, str(info))
             except AttributeError:
+                if info_check is not None:
+                    if str(som.attr_list[info_key]) == info_check:
+                        continue
                 print >> ofile, format_multi % (tag,
                                                 str(som.attr_list[info_key]))
     else:
