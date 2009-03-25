@@ -24,12 +24,14 @@
 
 import dst_base
 import hlr_utils
+import math
 
 class PhxDST(dst_base.DST_BASE):
     """
     This class creates a so-called PHX file for programs like MSlice. The first
     row in the file is the total number of pixels present in the output file.
-    Each pixel is then given a separate line in the file. The columns are
+    Each pixel is then given a separate line in the file. The angles specified
+    below should be in I{degrees}. The columns are
     arranged with the following information:
       1. Historically redundant info (set to 1)
       2. Historically redundant info (set to 0)
@@ -87,6 +89,19 @@ class PhxDST(dst_base.DST_BASE):
 
     ############# Special functions
 
+    def __convert_to_deg(self, angle):
+        """
+        This method converts an angle from radians to degrees.
+
+        @param angle: The angle to be converted
+        @type angle: C{float}
+
+
+        @return: The converted angle
+        @rtype: C{float}
+        """
+        return (180.0 / math.pi) * angle
+
     def __get_widths(self, cangles):
         """
         This method calculates the widths in polar and aziumthal angles.
@@ -96,11 +111,11 @@ class PhxDST(dst_base.DST_BASE):
         """
         pol1 = (cangles.getPolar(0) + cangles.getPolar(1)) / 2.0
         pol2 = (cangles.getPolar(2) + cangles.getPolar(3)) / 2.0
-        delta_pol = pol1 - pol2
+        delta_pol = self.__convert_to_deg(pol1 - pol2)
 
         azi1 = (cangles.getAzimuthal(0) + cangles.getAzimuthal(3)) / 2.0
         azi2 = (cangles.getAzimuthal(1) + cangles.getAzimuthal(2)) / 2.0
-        delta_azi = azi1 - azi2
+        delta_azi = self.__convert_to_deg(azi1 - azi2)
 
         return (delta_pol, delta_azi)
 
@@ -124,8 +139,8 @@ class PhxDST(dst_base.DST_BASE):
         dummy2 = 0
         dummy7 = 0
     
-        polar = inst.get_polar(so.id)[0]
-        azi = inst.get_azimuthal(so.id)[0]
+        polar = self.__convert_to_deg(inst.get_polar(so.id)[0])
+        azi = self.__convert_to_deg(inst.get_azimuthal(so.id)[0])
 
         (dpolar, dazi) = self.__get_widths(cgeom[str(so.id)])
 
