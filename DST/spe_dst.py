@@ -115,7 +115,7 @@ class SpeDST(dst_base.DST_BASE):
 
         print >> self.__file, "### Phi Grid"
 	for i in range(len_det+1):
-	    print >> self.__file, " %.1f" % 1.0,
+	    print >> self.__file, "%10.3f" % 1.0,
 	    if ((i+1) % 8) == 0:
 		print >> self.__file
 
@@ -125,7 +125,7 @@ class SpeDST(dst_base.DST_BASE):
 
         print >> self.__file, "### Energy Grid"
         for i in range(len_energy):
-            print >> self.__file, " %.3e" % (so.axis[0].val[i]),  
+            print >> self.__file, "%10.3e" % (so.axis[0].val[i]),  
 	    if ((i+1) % 8) == 0:
 		print >> self.__file
 	    
@@ -141,35 +141,33 @@ class SpeDST(dst_base.DST_BASE):
         @param so: Object containing data to be written to file
         @type so: L{SOM.SO}
         """
-        len_x1 = len(so.axis[0].val)
 
-        for i in range(len_x1):
-            print >> self.__file, "### S(Phi,w)"
-	    counter_y=1
-	    for y in so.y:	
-	        print >> self.__file, "%.3e" % (y),
-		if (counter_y % 8) == 0:
-			print >> self.__file
-                counter_y=counter_y+1
+	print >> self.__file, "### S(Phi,w)"
+	counter_y=1
+	for y in so.y:	
+	    print >> self.__file, "%10.3e" % (y),
+	    if (counter_y % 8) == 0:
+		    print >> self.__file
+	    counter_y=counter_y+1
 
-	    # Make sure that there is a newline at the end of this section
-	    # (we subtract the 1 because we've just added it at the end of 
-	    # the above loop!
-	    if ((counter_y-1) % 8) != 0:
-		print >> self.__file
+	# Make sure that there is a newline at the end of this section
+	# (we subtract the 1 because we've just added it at the end of 
+	# the above loop!
+	if ((counter_y-1) % 8) != 0:
+	    print >> self.__file
 
-            print >> self.__file, "### Errors"
-	    counter_var_y = 1
-	    for var_y in so.var_y:
-	        print >> self.__file, "%.3e" % (math.sqrt(math.fabs(var_y))),
-		if (counter_var_y % 8) == 0:
-			print >> self.__file
-		counter_var_y = counter_var_y + 1
-	    
-	    # Make sure that there is a newline at the end of this section
-	    # (we subtract the 1 because we've just added it at the end of 
-	    # the above loop!
-	    if ((counter_var_y-1) % 8) != 0:
-		print >> self.__file
+	print >> self.__file, "### Errors"
+	counter_var_y = 1
+	for var_y in so.var_y:
+	    print >> self.__file, "%10.3e" % (math.sqrt(math.fabs(var_y))),
+	    if (counter_var_y % 8) == 0:
+		    print >> self.__file
+	    counter_var_y = counter_var_y + 1
+	
+	# Make sure that there is a newline at the end of this section
+	# (we subtract the 1 because we've just added it at the end of 
+	# the above loop!
+	if ((counter_var_y-1) % 8) != 0:
+	    print >> self.__file
 
 
