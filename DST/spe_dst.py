@@ -30,6 +30,23 @@ import SOM
 class SpeDST(dst_base.DST_BASE):
     """
     This class creates a SPE ASCII file.
+    
+    The first line contains the number of angle and energy bins.
+    Then the angle bin boundaries are listed (not used so are nonsense).
+    The the energy bin bounaries are listed.
+    
+    Then for each angle, the grid of energy/error values are listed
+    
+    The format for the grids is 8E10.3 (fortran) or 8 values of %10.3e per line. 
+    
+    @cvar MIME_TYPE: The MIME-TYPE of the class
+    @type MIME_TYPE: C{string}
+    
+    @cvar EMPTY: Variable for holding an empty string
+    @type EMPTY: C{string}
+    
+    @cvar SPACE: Variable for holding a space
+    @type SPACE: C{string}
     """
     
     MIME_TYPE = "text/SPE"
@@ -38,38 +55,14 @@ class SpeDST(dst_base.DST_BASE):
 
     ########## DST_BASE functions
 
-    def __init__(self, resource, *args, **kwargs):
+    def __init__(self, resource):
         """
         Object constructor
 
         @param resource: The handle to the output data file
         @type resource: C{file}
-
-        @param args: Argument objects that the class accepts (UNUSED)
-
-        @param kwargs: A list of keyword arguments that the class accepts:
-
-        @keyword axis_ok: A flag that lets the instance know that the incoming
-                          axis information should be taken as is. This is only
-                          used during write-out. The default value is I{False}.
-        @type axis_ok: C{boolean}
-
-        @keyword comments: Comments to add to the file header.
-        @type comments: C{list} of C{string}s        
-        """        
-        import time
-        
+        """
         self.__file = resource
-        self.__epoch = time.time()
-        try:
-            self.__axis_ok = kwargs["axis_ok"]
-        except KeyError:
-            self.__axis_ok = False
-
-        try:
-            self.__comments = kwargs["comments"]
-        except KeyError:
-            self.__comments = None
 
     def release_resource(self):
         """
@@ -102,7 +95,6 @@ class SpeDST(dst_base.DST_BASE):
         #                            comments=self.__comments)
 
     ########## Special functions
-
 
     def writeXValues(self, som):
         """
@@ -151,7 +143,6 @@ class SpeDST(dst_base.DST_BASE):
         """
         len_x1 = len(so.axis[0].val)
 
-
         for i in range(len_x1):
             print >> self.__file, "### S(Phi,w)"
 	    counter_y=1
@@ -181,105 +172,4 @@ class SpeDST(dst_base.DST_BASE):
 	    if ((counter_var_y-1) % 8) != 0:
 		print >> self.__file
 
-    def __create_axis(self, axis, som):
-        """
-        This method fills in the axis values for a given axis and it also
-        retrieves the label and unit information as well.
 
-        @param axis: The particular axis to set the values for. The values for
-                     this parameter are I{x} or I{y}.
-        @type axis: C{string}
-        
-        @param som: The object to have its information read from file.
-        @type som: L{SOM.SOM}
-        """
-        import os
-
-        # Add label and unit information for axis
-        lline = self.__file.readline().rstrip(os.linesep)
-        self.__axis_info.append(self.__get_label_units(lline))
-        
-        if axis == "x":
-            num_vals = self.__nx
-            axis_index = 0
-        else:
-            num_vals = self.__ny
-            axis_index = 1
-
-        # Set the axis values
-        for i in xrange(num_vals):
-            line = self.__file.readline().rstrip(os.linesep)
-            som[0].axis[axis_index].val.append(float(line))
-
-    def __get_label_units(self, lline):
-        """
-        This method strips out the axis label and units from the provided
-        information.
-
-        @param lline: The object containing the label and unit information.
-        @type lline: C{string}
-
-
-        @return: The axis label and units
-        @rtype: C{tuple} of two C{string}s
-        """
-        parts = lline.split()
-
-        # The units sit at -2 in the list
-        return (" ".join(parts[1:-2]), dst_utils.units_from_string(parts[-2]))
-            
-    def __readData(self, som):
-        """
-        This method reads through the data adding the counts and associated
-        squared errors.
-
-        @param som: The object to have its information read from file.
-        @type som: L{SOM.SOM}
-        """
-        import os
-        for i in xrange(self.__nx):
-            for j in xrange(self.__ny):
-                # Skip the Group tag
-                if j == 0:
-                    lline = self.__file.readline()
-                    
-                lline = self.__file.readline().rstrip(os.linesep)
-                parts = lline.split()
-
-                som[0].y.append(float(parts[0]))
-                if self.__no_sqr__:
-                    som[0].var_y.append(float(parts[1]))
-                else:
-                    som[0].var_y.append(float(parts[1]) * float(parts[1]))
-                
-    def __set_axes(self, som):
-        """
-        This method sets up the x and y axes for the spectrum object
-
-        @param som: The object to have its information read from file.
-        @type som: L{SOM.SOM}
-        """
-        import os
-        # Need the top four lines of the file to get the number of axis
-        # elements
-        for i in xrange(4):
-            line = self.__file.readline().rstrip(os.linesep)
-            if i == 1:
-                self.__ny = int(line)
-            elif i == 3:
-                self.__nx = int(line)
-
-        self.__axis_info = []
-
-        so = SOM.SO(id=0, dim=2, construct=True)
-        som.append(so)
-
-        # Y axis is fastest runner, so do it first
-        self.__create_axis("y", som)
-        self.__create_axis("x", som)
-
-        # Get the x and y axis label and units
-        som.setAllAxisLabels([self.__axis_info[1][0], self.__axis_info[0][0]])
-        som.setAllAxisUnits([self.__axis_info[1][1], self.__axis_info[0][1]])
-
-        
