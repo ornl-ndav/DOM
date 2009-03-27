@@ -33,11 +33,12 @@ class SpeDST(dst_base.DST_BASE):
     
     The first line contains the number of angle and energy bins.
     Then the angle bin boundaries are listed (not used so are nonsense).
-    The the energy bin bounaries are listed.
+    Then the energy bin bounaries are listed.
     
     Then for each angle, the grid of energy/error values are listed
     
-    The format for the grids is 8E10.3 (fortran) or 8 values of %10.3e per line. 
+    The format for the grids is 8E10.3 (fortran) or 8 values of %10.3e per
+    line. 
     
     @cvar MIME_TYPE: The MIME-TYPE of the class
     @type MIME_TYPE: C{string}
@@ -55,7 +56,7 @@ class SpeDST(dst_base.DST_BASE):
 
     ########## DST_BASE functions
 
-    def __init__(self, resource):
+    def __init__(self, resource, *args, **kwargs):
         """
         Object constructor
 
