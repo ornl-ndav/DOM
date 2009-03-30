@@ -591,7 +591,8 @@ class NeXusDST(dst_base.DST_BASE):
                 #print path+"/"+nodename+"/"+name, classname
                 listing[("%s%s" % (path, name))] = classname
             if (classname is not None) and (classname.startswith("NX")):
-                listing.update(self.__parse_class(name, classname, path+name+"/"))
+                listing.update(self.__parse_class(name, classname,
+                                                  path+name+"/"))
         self.__nexus.closegroup()
         return listing
 
