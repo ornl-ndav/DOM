@@ -23,7 +23,6 @@
 # $Id$
 
 import dst_base
-import hlr_utils
 import math
 
 class PhxDST(dst_base.DST_BASE):
@@ -86,6 +85,23 @@ class PhxDST(dst_base.DST_BASE):
         for so in som:
             self.writeData(so, som.attr_list.instrument,
                            som.attr_list["corner_geom"])
+
+    ########## Call inherited functions
+
+    def getSOM(self, som_id):
+        super(dst_base.DST_BASE, self).getSOM(som_id)
+
+    def get_SOM_ids(self):
+        super(dst_base.DST_BASE, self).get_SOM_ids()        
+
+    def getSO(self, som_id, so_id):
+        super(dst_base.DST_BASE, self).getSO(som_id, so_id)
+
+    def get_SO_ids(self, som_id):
+        super(dst_base.DST_BASE, self).get_SO_ids(som_id) 
+
+    def writeSO(self, so):
+        super(dst_base.DST_BASE, self).writeSO(so)
 
     ############# Special functions
 
