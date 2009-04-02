@@ -122,11 +122,11 @@ class SpeDST(dst_base.DST_BASE):
         len_det = len(som)
         len_energy = len(so.axis[0].val)
         
-        print >> self.__file, len_det, len_energy-1
+        print >> self.__file, "%5i%5i" % (len_det, len_energy-1)
         
         print >> self.__file, "### Phi Grid"
         for i in range(len_det+1):
-            print >> self.__file, "%10.3f" % 1.0,
+            self.__file.write("%10.3E" % 1.0)
             if ((i+1) % 8) == 0:
                 print >> self.__file
 
@@ -136,7 +136,7 @@ class SpeDST(dst_base.DST_BASE):
 
         print >> self.__file, "### Energy Grid"
         for i in range(len_energy):
-            print >> self.__file, "%10.3e" % (so.axis[0].val[i]),  
+            self.__file.write("%10.3E" % (so.axis[0].val[i]))  
             if ((i+1) % 8) == 0:
                 print >> self.__file
                 
@@ -154,12 +154,12 @@ class SpeDST(dst_base.DST_BASE):
         """
 
         print >> self.__file, "### S(Phi,w)"
-        counter_y=1
+        counter_y = 1
         for y in so.y:	
-            print >> self.__file, "%10.3e" % (y),
+            self.__file.write("%10.3E" % (y))
             if (counter_y % 8) == 0:
                 print >> self.__file
-            counter_y=counter_y+1
+            counter_y = counter_y + 1
 
 	# Make sure that there is a newline at the end of this section
 	# (we subtract the 1 because we've just added it at the end of 
@@ -170,7 +170,7 @@ class SpeDST(dst_base.DST_BASE):
         print >> self.__file, "### Errors"
         counter_var_y = 1
         for var_y in so.var_y:
-            print >> self.__file, "%10.3e" % (math.sqrt(math.fabs(var_y))),
+            self.__file.write("%10.3E" % (math.sqrt(math.fabs(var_y))))
             if (counter_var_y % 8) == 0:
                 print >> self.__file
             counter_var_y = counter_var_y + 1
