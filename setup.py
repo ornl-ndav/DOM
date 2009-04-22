@@ -119,10 +119,11 @@ class build_doc(Command):
     epydoc system.
     """
     description = "Build the Python API documentation"
-    user_options = []
+    user_options = [("no-sourcecode", None, "Do not output source code")]
+    boolean_options = ["no-sourcecode"]    
     
     def initialize_options(self):
-        pass
+        self.no_sourcecode = False
     
     def finalize_options(self):
         pass
@@ -146,11 +147,16 @@ class build_doc(Command):
             os.rename(true_init, temp_init)
             
             old_argv = sys.argv[1:]
-            
-            sys.argv[1:] = [
+            cli_call = [
                 "--config=%s" % epydoc_conf,
                 "--verbose"
                 ]
+            if self.no_sourcecode:
+                cli_call.append("--no-sourcecode")
+            else:
+                cli_call.append("--show-sourcecode")
+
+            sys.argv[1:] = cli_call
             cli.cli()
             
             sys.argv[1:] = old_argv
@@ -161,7 +167,10 @@ class build_doc(Command):
             print "Epydoc is needed to create API documentation. Skipping.."
 
         # Make SNS NAPI documentation via doxygen
-        doxygen_conf = os.path.join('doc', 'config.dox')
+        if self.no_sourcecode:
+            doxygen_conf = os.path.join('doc', 'config_ns.dox')
+        else:
+            doxygen_conf = os.path.join('doc', 'config.dox')
 
         doxygen_cmd = "doxygen " + doxygen_conf
 
