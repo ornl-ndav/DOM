@@ -129,6 +129,7 @@ def getInstance(mime_type, resource, *args, **kwargs):
 
     # import the appropriate concrete classes
     import ascii3col_dst
+    import cansas1d_dst
     import dave2d_dst
     import geom_dst
     import gsas_dst
@@ -145,6 +146,8 @@ def getInstance(mime_type, resource, *args, **kwargs):
         return ascii3col_dst.Ascii3ColDST(*my_args, **kwargs)
     elif mime_type == dave2d_dst.Dave2dDST.MIME_TYPE:
         return dave2d_dst.Dave2dDST(*my_args, **kwargs)
+    elif mime_type == cansas1d_dat.CanSas1dDST.MIME_TYPE:
+        return cansas1d_dst.CanSas1dDST(*my_args, **kwargs)
     elif mime_type == gsas_dst.GsasDST.MIME_TYPE:
         return gsas_dst.GsasDST(*my_args, **kwargs)
     elif mime_type == geom_dst.GeomDST.MIME_TYPE:
@@ -156,6 +159,6 @@ def getInstance(mime_type, resource, *args, **kwargs):
     elif mime_type == spe_dst.SpeDST.MIME_TYPE:
         return spe_dst.SpeDST(*my_args, **kwargs)
     elif mime_type == phx_dst.PhxDST.MIME_TYPE:
-        return phx_dst.PhxDST(*my_args, **kwargs)    
+        return phx_dst.PhxDST(*my_args, **kwargs)
     else:
         raise Exception("Cannot create DST for type %s" % mime_type)

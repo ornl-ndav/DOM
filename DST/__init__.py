@@ -25,6 +25,7 @@ utilities that support those functions.
 """
 
 from ascii3col_dst import Ascii3ColDST
+from cansas1d_dst import CanSas1dDST
 from dave2d_dst import Dave2dDST
 from dst_base import DST_BASE
 from dst_base import getInstance
