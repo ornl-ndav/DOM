@@ -23,6 +23,7 @@
 # $Id$
 
 import dst_base
+import lxml.etree as le
 
 class CanSas1dDST(dst_base.DST_BASE):
     """
@@ -67,5 +68,11 @@ class CanSas1dDST(dst_base.DST_BASE):
         @param som: The object to have its information written to file.
         @type som: L{SOM.SOM}
         """
-        pass
+        root = le.Element("SASroot", attrib={"version" : "1.0",
+                                             "xmlns" : "cansas1d/1.0"})
+               #"xmlns:xsi" : "http://www.w3.org/2001/XMLSchema-instance",
+               #"xsi:schemaLocation" : "cansas1d/1.0 http://svn.smallangles.net/svn/canSAS/1dwg/trunk/cansas1d.xsd"})
+
+        self.__file.write(le.tostring(root, pretty_print=True,
+                                      xml_declaration=True))
         
