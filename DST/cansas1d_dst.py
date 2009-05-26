@@ -68,10 +68,69 @@ class CanSas1dDST(dst_base.DST_BASE):
         @param som: The object to have its information written to file.
         @type som: L{SOM.SOM}
         """
-        root = le.Element("SASroot", attrib={"version" : "1.0",
-                                             "xmlns" : "cansas1d/1.0"})
-               #"xmlns:xsi" : "http://www.w3.org/2001/XMLSchema-instance",
-               #"xsi:schemaLocation" : "cansas1d/1.0 http://svn.smallangles.net/svn/canSAS/1dwg/trunk/cansas1d.xsd"})
+        root = le.Element("SASroot",
+                          attrib={"version" : "1.0",
+                                  "xmlns" : "cansas1d/1.0"})
+
+        entry = le.SubElement(root, "SASentry")
+
+        title = le.SubElement(entry, "Title")
+        title.text = som.attr_list["data-title"]
+        run_numbers = som.attr_list["data-run_number"].split('/')
+        for run_number in run_numbers:
+            run = le.SubElement(entry, "Run")
+            run.text = run_number.strip()
+
+        data = le.SubElement(entry, "SASdata")
+
+        bin_centers = som[0].axis[0].val.toNumPy(True)
+
+        import math
+        for i, bin_center in enumerate(bin_centers):
+            idata = le.SubElement(data, "Idata")
+            Q = le.SubElement(idata, "Q",
+                              attrib={"unit" : som.getAxisUnits(0)})
+            Q.text = str(som[0].axis[0].val[i])
+            I = le.SubElement(idata, "I",
+                              attrib={"unit" : som.getYUnits()})
+            I.text = str(som[0].y[i])
+            Idev = le.SubElement(idata, "Idev",
+                                 attrib={"unit" : som.getYUnits()})
+            Idev.text = str(math.sqrt(som[0].var_y[i]))
+
+        sample = le.SubElement(entry, "SASsample")
+        sample_id = le.SubElement(sample, "ID")
+        sample_id.text = som.attr_list.sample.name
+
+        inst = le.SubElement(entry, "SASinstrument")
+        inst_name = le.SubElement(inst, "name")
+        inst_name.text = som.attr_list.instrument.get_name()
+
+        source = le.SubElement(inst, "SASsource")
+        radiation = le.SubElement(source, "radiation")
+        radiation.text = "neutron"
+
+        collimation = le.SubElement(inst, "SAScollimation")
+
+        detector = le.SubElement(inst, "SASdetector")
+        det_name = le.SubElement(detector, "name")
+        if som.attr_list.instrument.get_name() == "EQSANS":
+            det_name.text = "He3 LPSD"
+        elif som.attr_list.instrument.get_name() == "SANS":
+            det_name.text = "ORDELA"
+        else:
+            raise RuntimeError("Do not understand instrument %s" %\
+                               som.attr_list.instrument.get_name())
+
+        det_sdd = le.SubElement(detector, "SDD", attrib={"unit" : "m"})
+        det_sdd.text = str(som.attr_list.instrument.get_det_secondary()[0])
+        
+        note = le.SubElement(entry, "SASnote")
+
+        xsd_doc = le.parse("/SNS/users/2zr/XML-Schema/cansas1d.xsd")
+        xsd = le.XMLSchema(xsd_doc)
+        print "Validation:", xsd.validate(root)
+        
 
         self.__file.write(le.tostring(root, pretty_print=True,
                                       xml_declaration=True))

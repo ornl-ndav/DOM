@@ -25,7 +25,7 @@
 # $Id$
 
 import DST
-from SOM import SOM, SO
+from SOM import SOM, SO, Sample, Instrument
 
 SOM1 = SOM()
 SOM1.setDataSetType("histogram")
@@ -33,6 +33,29 @@ SOM1.setYLabel("Intensity")
 SOM1.setYUnits("counts A")
 SOM1.setAllAxisLabels(["Q"])
 SOM1.setAllAxisUnits(["1/A"])
+SOM1.attr_list["data-title"] = "Test File"
+SOM1.attr_list["data-run_number"] = "1344"
+
+DSample = Sample()
+DSample.name = "Test Sample"
+DSample.nature = "K3NO+"
+SOM1.attr_list.sample = DSample
+
+DInst = Instrument(instrument="SANS", primary=(15.0,0.0),
+                   det_secondary=(2.0,0.0),
+                   x_pix_offset=[(), (), ])
+SOM1.attr_list.instrument = DInst
+
+length = 10
+SO1 = SO(construct=True, withXVar=True)
+for i in range(length):
+    SO1.axis[0].val.append(float(i)) 
+    SO1.y.append(float(100*i))
+    SO1.var_y.append(float(100*i))
+
+SO1.axis[0].val.append(length)
+
+SOM1.append(SO1)
 
 ifile = open("test_cansas1d.xml", "w")
 
