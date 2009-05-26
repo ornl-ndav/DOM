@@ -68,9 +68,20 @@ class CanSas1dDST(dst_base.DST_BASE):
         @param som: The object to have its information written to file.
         @type som: L{SOM.SOM}
         """
-        root = le.Element("SASroot",
-                          attrib={"version" : "1.0",
-                                  "xmlns" : "cansas1d/1.0"})
+        # CanSAS front matter
+        CANSAS_VERSION = "1.0"
+        CANSAS_NS = "cansas1d/" + CANSAS_VERSION
+        CANSAS_XSD_LOC = CANSAS_NS + " " + \
+        "http://svn.smallangles.net/svn/canSAS/1dwg/trunk/cansas1d.xsd"
+
+        NSMAP = {None : CANSAS_NS,
+                 "xsi" : "http://www.w3.org/2001/XMLSchema-instance"}
+
+        xsd_location = '{%s}schemaLocation' % NSMAP["xsi"]
+        
+        root = le.Element("SASroot", nsmap=NSMAP,
+                          attrib={"version" : CANSAS_VERSION,
+                                  xsd_location : CANSAS_XSD_LOC})
 
         entry = le.SubElement(root, "SASentry")
 
@@ -126,11 +137,6 @@ class CanSas1dDST(dst_base.DST_BASE):
         det_sdd.text = str(som.attr_list.instrument.get_det_secondary()[0])
         
         note = le.SubElement(entry, "SASnote")
-
-        xsd_doc = le.parse("/SNS/users/2zr/XML-Schema/cansas1d.xsd")
-        xsd = le.XMLSchema(xsd_doc)
-        print "Validation:", xsd.validate(root)
-        
 
         self.__file.write(le.tostring(root, pretty_print=True,
                                       xml_declaration=True))
