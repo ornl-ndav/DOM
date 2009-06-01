@@ -146,7 +146,7 @@ def getInstance(mime_type, resource, *args, **kwargs):
         return ascii3col_dst.Ascii3ColDST(*my_args, **kwargs)
     elif mime_type == dave2d_dst.Dave2dDST.MIME_TYPE:
         return dave2d_dst.Dave2dDST(*my_args, **kwargs)
-    elif mime_type == cansas1d_dat.CanSas1dDST.MIME_TYPE:
+    elif mime_type == cansas1d_dst.CanSas1dDST.MIME_TYPE:
         return cansas1d_dst.CanSas1dDST(*my_args, **kwargs)
     elif mime_type == gsas_dst.GsasDST.MIME_TYPE:
         return gsas_dst.GsasDST(*my_args, **kwargs)
