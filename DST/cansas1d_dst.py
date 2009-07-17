@@ -86,8 +86,8 @@ class CanSas1dDST(dst_base.DST_BASE):
         entry = le.SubElement(root, "SASentry")
 
         title = le.SubElement(entry, "Title")
-        title.text = som.attr_list["data-title"]
-        run_numbers = som.attr_list["data-run_number"].split('/')
+        title.text = str(som.attr_list["data-title"])
+        run_numbers = str(som.attr_list["data-run_number"]).split('/')
         for run_number in run_numbers:
             run = le.SubElement(entry, "Run")
             run.text = run_number.strip()
