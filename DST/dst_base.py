@@ -105,6 +105,7 @@ def getInstance(mime_type, resource, *args, **kwargs):
        - text/GSAS
        - test/SPE
        - text/PHX
+       - text/canSAS
     @type mime_type: C{string}
 
     @param resource: A handle to the file resource
