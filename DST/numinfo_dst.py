@@ -132,6 +132,10 @@ class NumInfoDST(dst_base.DST_BASE):
         @keyword roi_file: A list of spectrum IDs to filter the data on
         @type roi_file: C{string}
 
+        @keyword mask_file: A list of spectrum IDs to filter (exclude) the
+                            data on
+        @type mask_file: C{string}        
+
         @keyword no_sqr: Do not square the error values from the file. This is
                          important if the data will be subsequently plotted.
                          The default value is I{False}.
@@ -153,6 +157,17 @@ class NumInfoDST(dst_base.DST_BASE):
                 roi = None
         except KeyError:
             roi = None
+
+        # Check to see if a mask file was passed
+        try:
+            mask_filename = kwargs["mask_file"]
+            try:
+                mask = SOM.Roi(mask_filename)
+            except TypeError:
+                # mask_filename is None
+                mask = None
+        except KeyError:
+            mask = None            
 
         try:
             self.__no_sqr__ = kwargs["no_sqr"]
@@ -185,6 +200,11 @@ class NumInfoDST(dst_base.DST_BASE):
                 # Check the ROI list
                 if roi is not None:
                     if so_id not in roi:
+                        filter_so = True
+
+                # Check the Mask list
+                if mask is not None:
+                    if so_id in mask:
                         filter_so = True
 
                 if not filter_so:
