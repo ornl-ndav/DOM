@@ -141,3 +141,20 @@ class CanSas1dDST(dst_base.DST_BASE):
         self.__file.write(le.tostring(root, pretty_print=True,
                                       xml_declaration=True))
         
+    ########## Call inherited functions
+
+    def getSOM(self, som_id):
+        super(dst_base.DST_BASE, self).getSOM(som_id)
+
+    def get_SOM_ids(self):
+        super(dst_base.DST_BASE, self).get_SOM_ids()        
+
+    def getSO(self, som_id, so_id):
+        super(dst_base.DST_BASE, self).getSO(som_id, so_id)
+
+    def get_SO_ids(self, som_id):
+        super(dst_base.DST_BASE, self).get_SO_ids(som_id) 
+
+    def writeSO(self, so):
+        super(dst_base.DST_BASE, self).writeSO(so)
+        
