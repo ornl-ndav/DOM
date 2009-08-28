@@ -54,11 +54,11 @@ SO1 = SO(2)
 SO1.id = ("bank1", (4, 32))
 SO1.y = z
 SO1.var_y = z
-SO1.axis[0].var = x
-SO1.axis[1].var = y
+SO1.axis[0].val = x
+SO1.axis[1].val = y
 
 SOM1.append(SO1)
 
 rednxs = DST.RedNxsDST("test_red.nxs")
-rednxs.writeSOM(SOM1)
+rednxs.writeSOM(SOM1, entry_name="sqe")
 rednxs.release_resource()
