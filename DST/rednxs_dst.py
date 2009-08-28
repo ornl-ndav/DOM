@@ -27,7 +27,14 @@ import nxs
 
 class RedNxsDST(dst_base.DST_BASE):
     """
+    This class creates a HDF5-based reduced
+    U{NeXus<http://www.nexusformat.org>} file.
 
+    @cvar MIME_TYPE: The MIME-TYPE of the class
+    @type MIME_TYPE: C{string}
+
+    @ivar __file: The handle to the output data file
+    @type __file: C{file}
     """
 
     MIME_TYPE = "application/x-RedNxs"
