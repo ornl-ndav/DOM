@@ -26,13 +26,13 @@
 
 import DST
 from SOM import SOM, SO, Sample, Instrument
-from nessi_list import NessiList()
+from nessi_list import NessiList
 
 SOM1 = SOM()
 SOM1.setDataSetType("histogram")
 SOM1.setYLabel("Intensity")
 SOM1.setYUnits("counts A / meV")
-SOM1.SOM1.setAllAxisLabels(["momentum transfer", "energy transfer"])
+SOM1.setAllAxisLabels(["momentum transfer", "energy transfer"])
 SOM1.setAllAxisUnits(["1/A", "meV"])
 SOM1.attr_list["data-title"] = "Test S(Q,E)"
 SOM1.attr_list["data-run_number"] = "1344"
