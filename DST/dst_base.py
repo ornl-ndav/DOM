@@ -100,6 +100,7 @@ def getInstance(mime_type, resource, *args, **kwargs):
        - text/Dave2d
        - application/x-NeXus
        - application/x-NxsGeom
+       - application/x-RedNxs
        - text/rmd
        - text/num-info
        - text/GSAS
@@ -137,6 +138,7 @@ def getInstance(mime_type, resource, *args, **kwargs):
     import mdw_dst
     import nexus_dst
     import numinfo_dst
+    import rednxs_dst
     import spe_dst
     import phx_dst
 
@@ -157,6 +159,8 @@ def getInstance(mime_type, resource, *args, **kwargs):
         return mdw_dst.MdwDST(*my_args, **kwargs)
     elif mime_type == numinfo_dst.NumInfoDST.MIME_TYPE:
         return numinfo_dst.NumInfoDST(*my_args, **kwargs)
+    elif mime_type == rednxs_dst.RedNxsDST.MIME_TYPE:
+        return rednxs_dst.RedNxsDST(*my_args, **kwargs)
     elif mime_type == spe_dst.SpeDST.MIME_TYPE:
         return spe_dst.SpeDST(*my_args, **kwargs)
     elif mime_type == phx_dst.PhxDST.MIME_TYPE:
