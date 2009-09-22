@@ -128,7 +128,8 @@ class GeomDST(dst_base.DST_BASE):
                 else:
                     info = pair_list[1]
 
-            som.attr_list[key] = info
+            if key is not None:
+                som.attr_list[key] = info
 
         return
 

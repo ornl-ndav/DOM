@@ -134,7 +134,22 @@ class CanSas1dDST(dst_base.DST_BASE):
                                som.attr_list.instrument.get_name())
 
         det_sdd = le.SubElement(detector, "SDD", attrib={"unit" : "m"})
-        det_sdd.text = str(som.attr_list.instrument.get_det_secondary()[0])
+        try:
+            instobj = som.attr_list.instrument
+            det_secondary = str(instobj.get_det_secondary()[0])
+        except TypeError:
+            # This is a multibank detector, get the one closest to the
+            # center
+            inst_name = instobj.get_name()
+            if inst_name == "EQSANS":
+                # Pixel index is irrelevant
+                bank_id = ("bank12", (0, 0))
+                det_secondary = str(instobj.get_det_secondary(bank_id)[0])
+            else:
+                raise RunTimeError("Do not know how to get secondary "\
+                                   +"distance for %s" % inst_name)
+        
+        det_sdd.text = det_secondary
         
         note = le.SubElement(entry, "SASnote")
 
