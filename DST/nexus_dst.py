@@ -148,6 +148,8 @@ class NeXusDST(dst_base.DST_BASE):
         """Available keywords are start_id,end_id which provide a way
         to carve out the data to retrieve"""
 
+        tof_offset = kwds.get("tof_offset")
+
         # Get the entry point
         if som_id is not None:
             if type([]) == type(som_id):
@@ -267,6 +269,8 @@ class NeXusDST(dst_base.DST_BASE):
             else:
                 pass
 
+            kwargs["tof_offset"] = tof_offset
+
             self.__construct_SOM(result, data, so_axis, bank_id, **kwargs)
             count += 1
 
@@ -320,6 +324,8 @@ class NeXusDST(dst_base.DST_BASE):
             roi_file = kwargs["roi_file"]
         except KeyError:
             roi_file = None
+
+        tof_offset = kwargs.get("tof_offset")
 
         orig_axis = data.variable
         if orig_axis.label == so_axis or orig_axis.location == so_axis:
@@ -377,7 +383,8 @@ class NeXusDST(dst_base.DST_BASE):
             
         for item in ids:
             #so = data.get_so(item)
-            so = data.get_so2(item, num_tof_chan, num_y_pix)
+            so = data.get_so2(item, num_tof_chan, num_y_pix,
+                              tof_offset=tof_offset)
             result.append(so)
 
         if orig_axis is not None:
@@ -695,7 +702,7 @@ class NeXusDST(dst_base.DST_BASE):
             raise ValueError("Invalid data specified (%s,%d)" % (path, signal))
 
 class NeXusData:
-    def __init__(self, filehandle, tree, path, signal):
+    def __init__(self, filehandle, tree, path, signal, tof_offset=None):
         # do the easy part
         self.location = path
         self.__nexus = filehandle
@@ -845,7 +852,7 @@ class NeXusData:
 
         return spectrum
 
-    def get_so2(self, so_id, tof_chan, num_y):
+    def get_so2(self, so_id, tof_chan, num_y, tof_offset=None):
         # Determine if data block is cached. If not, read in the block and
         # set the flag True
         if not self.__is_cached:
@@ -863,8 +870,12 @@ class NeXusData:
 
         #print "A:",so_id
         # give it the appropriate independent variable
-        spectrum.axis[0].val = copy.deepcopy(self.variable.value)
-
+        if tof_offset is None:
+            spectrum.axis[0].val = copy.deepcopy(self.variable.value)
+        else:
+            spectrum.axis[0].val = copy.deepcopy(self.variable.value + \
+                                                 tof_offset)
+            
         # locate the data slice
         start_dim = self.__id_to_index(so_id)
 
