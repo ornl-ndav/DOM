@@ -873,8 +873,11 @@ class NeXusData:
         if tof_offset is None:
             spectrum.axis[0].val = copy.deepcopy(self.variable.value)
         else:
-            spectrum.axis[0].val = copy.deepcopy(self.variable.value + \
-                                                 tof_offset)
+            import array_manip
+            new_tof = array_manip.add_ncerr(self.variable.value,
+                                            self.variable.value,
+                                            tof_offset, 0.0)
+            spectrum.axis[0].val = copy.deepcopy(new_tof[0])
             
         # locate the data slice
         start_dim = self.__id_to_index(so_id)
