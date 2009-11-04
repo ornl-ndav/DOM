@@ -36,7 +36,6 @@ from mdw_dst import MdwDST
 from nexus_dst import NeXusDST
 from numinfo_dst import NumInfoDST
 from param_map import ParameterMap
-from rednxs_dst import RedNxsDST
 from spe_dst import SpeDST
 from phx_dst import PhxDST
 
