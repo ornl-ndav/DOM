@@ -104,18 +104,23 @@ class MdwDST(dst_base.DST_BASE):
         self.__doc.appendChild(mainnode)
 
         for key, value in config.__dict__.iteritems():
-
             if value is not False and value is not None:
                 snode = self.__doc.createElement(key)
                 stype = str(type(value)).split('\'')[1]
                 snode.setAttribute("type", stype)
                 try:
                     snode = value.toXmlConfig(self.__doc, snode)
+                    if snode is None:
+                        nodeOK = False
+                    else:
+                        nodeOK = True
                 except AttributeError:
                     tnode = self.__doc.createTextNode(str(value))
                     snode.appendChild(tnode)
+                    nodeOK = True
 
-                mainnode.appendChild(snode)
+                if nodeOK:
+                    mainnode.appendChild(snode)
             else:
                 pass
 
