@@ -107,8 +107,8 @@ class RedNxsDST(dst_base.DST_BASE):
         @param yunits: The units for the dependent axis.
         @type yunits: C{string}
 
-        @param xlabel: The label for the independent axi(e)s.
-        @type xlabel: C{list} of C{string}(s)
+        @param xlabels: The label for the independent axi(e)s.
+        @type xlabels: C{list} of C{string}(s)
 
         @param xunits: The units for the independent axi(e)s.
         @type xunits: C{list} of C{string}(s)
@@ -176,7 +176,7 @@ class RedNxsDST(dst_base.DST_BASE):
 
 
         @return: The modified labels.
-        @type: C{tuple}
+        @rtype: C{tuple}
         """
         import re
         ms = re.compile(r'\s+')
