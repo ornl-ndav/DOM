@@ -38,6 +38,7 @@ from numinfo_dst import NumInfoDST
 from param_map import ParameterMap
 from rednxs_dst import RedNxsDST
 from spe_dst import SpeDST
+from pa_dst import ParDST
 from phx_dst import PhxDST
 
 from DOM_version import version as __version__
