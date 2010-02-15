@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #                        Data Object Model
 #           A part of the SNS Analysis Software Suite.
 #
@@ -19,29 +21,26 @@
 # information, apparatus, product, or process disclosed, or represents that
 # its use would not infringe privately owned rights.
 #
-"""
-This module contains classes that handle reading and writing various file types and
-utilities that support those functions.
-"""
 
-from ascii3col_dst import Ascii3ColDST
-from cansas1d_dst import CanSas1dDST
-from dave2d_dst import Dave2dDST
-from dst_base import DST_BASE
-from dst_base import getInstance
-from dst_utils import *
-from geom_dst import GeomDST
-from gsas_dst import GsasDST
-from mdw_dst import MdwDST
-from nexus_dst import NeXusDST
-from numinfo_dst import NumInfoDST
-from param_map import ParameterMap
-from rednxs_dst import RedNxsDST
-from spe_dst import SpeDST
-from par_dst import ParDST
-from phx_dst import PhxDST
+# $Id$
 
-from DOM_version import version as __version__
+import DST
+import hlr_utils
+import SOM
+import sys
 
-# version
-__id__ = "$Id$"
+if __name__ == "__main__":
+    filename = None
+    try:
+        filename = sys.argv[1]
+    except IndexError:
+        pass # use the default name
+
+    dst = DST.getInstance("application/x-NeXus", filename)
+    som = dst.getSOM(("/entry/bank1", 1))
+
+    # Write out file
+    ofile = open("test.par", "w")
+    par = DST.ParDST(ofile)
+    par.writeSOM(som)
+    par.release_resource()

@@ -279,7 +279,7 @@ class Ascii3ColDST(dst_base.DST_BASE):
         self.__dataSelfCheck(som)
 
         names = []
-        result = ["#L"];
+        result = ["#L"]
 
         if som1 is not None:
             self.__dataSelfCheck(som1)

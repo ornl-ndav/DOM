@@ -105,6 +105,7 @@ def getInstance(mime_type, resource, *args, **kwargs):
        - text/num-info
        - text/GSAS
        - test/SPE
+       - text/PAR
        - text/PHX
        - text/canSAS
     @type mime_type: C{string}
@@ -140,6 +141,7 @@ def getInstance(mime_type, resource, *args, **kwargs):
     import numinfo_dst
     import rednxs_dst
     import spe_dst
+    import par_dst
     import phx_dst
 
     # do the factory stuff
@@ -163,6 +165,8 @@ def getInstance(mime_type, resource, *args, **kwargs):
         return rednxs_dst.RedNxsDST(*my_args, **kwargs)
     elif mime_type == spe_dst.SpeDST.MIME_TYPE:
         return spe_dst.SpeDST(*my_args, **kwargs)
+    elif mime_type == par_dst.ParDST.MIME_TYPE:
+        return par_dst.ParDST(*my_args, **kwargs)    
     elif mime_type == phx_dst.PhxDST.MIME_TYPE:
         return phx_dst.PhxDST(*my_args, **kwargs)
     else:

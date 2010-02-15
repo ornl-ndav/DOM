@@ -190,7 +190,7 @@ class Instrument:
         try:
             self.__polar__ = kwargs["polar"]
         except KeyError:
-            self.__polar__ = None;
+            self.__polar__ = None
         try:
             self.__polar_err2__ = kwargs["polar_err2"]
             if self.__polar__ is None:
@@ -202,7 +202,7 @@ class Instrument:
         try:
             self.__azimuthal__ = kwargs["azimuthal"]
         except KeyError:
-            self.__azimuthal__ = None;
+            self.__azimuthal__ = None
         try:
             self.__azimuthal_err2__ = kwargs["azimuthal_err2"]
             if self.__azimuthal__ is None:
@@ -242,13 +242,13 @@ class Instrument:
         try:
             self.__x_pix_offset__ = kwargs["x_pix_offset"]
         except KeyError:
-            self.__x_pix_offset__ = None;
+            self.__x_pix_offset__ = None
 
         # y pixel offsets
         try:
             self.__y_pix_offset__ = kwargs["y_pix_offset"]
         except KeyError:
-            self.__y_pix_offset__ = None;
+            self.__y_pix_offset__ = None
             
         # set the selectors
         from indexselector import getIndexSelector
