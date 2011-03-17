@@ -62,6 +62,13 @@ class ASG_Instrument(Instrument):
 
         self.__L1 = distance
 
+    def get_det_secondary(self, id=None, **kwargs):
+        """
+        The detector secondary flight path (neutronic distance from sample to
+        detector). This is fixed at 1.0+/-0.05 meters.
+        """
+        return self.__L1
+
     def get_polar(self, id=None, **kwargs):
         """
         The polar angle (angle between incident beam and detector). This is
