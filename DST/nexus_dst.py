@@ -1316,7 +1316,8 @@ class NeXusInstrument:
                 det_secondary = (None, None)
 
             if self.__inst_name == "BSS":
-                if label == "bank3":
+                label_name = "bank%d" % len(self.__det_data)
+                if label == label_name:
                     instname = "BSS_diff"
                     if from_saf:
                         btype = "/instrument-diffraction"
@@ -1351,7 +1352,7 @@ class NeXusInstrument:
                     extra_stuff = dims[0][1]                    
 
                 # Only read azimuthal angles for diffraction bank
-                if label == "bank3":
+                if label == label_name:
                     self.__nexus.openpath(az_path)
                     dims = self.__nexus.getdims()
                     if len(dims[0]) < 2:
@@ -1432,9 +1433,10 @@ class SnsInformation:
 
         self.__det_locations = self.__list_type(tree, "NXdetector")
         self.__det_data = {}
+        self.__label_name = None
 
         if self.__inst_name == "BSS":
-
+            self.__label_name = "bank%d" % len(self.__det_locations)
             self.__det_locations.extend(self.__list_type(tree, "NXcrystal"))
             SOM_keys = {"analyzer" : ["Wavelength_final"]}
             data_loc = {"analyzer" : ["wavelength"]}
@@ -1509,11 +1511,11 @@ class SnsInformation:
         import re
         expression = r'\d+$'
         myre = re.compile(expression)
-
+        
         for location in self.__det_locations:
             label = location.split('/')[-1]
             entry_pt = location.split('/')[1]
-            if self.__inst_name == "BSS" and label == "bank3":
+            if self.__inst_name == "BSS" and label == self.__label_name:
                 continue
             else:
                 pass
