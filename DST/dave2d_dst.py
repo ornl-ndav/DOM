@@ -149,7 +149,11 @@ class Dave2dDST(dst_base.DST_BASE):
         uscale = som.getAxisUnits(1) + " " + som.getAxisUnits(0)
         som.setYUnits("Counts / " + uscale)
 
-        som.attr_list = dst_utils.parse_spec_header(self.__file)
+        try:
+            som.attr_list = dst_utils.parse_spec_header(self.__file)
+        except KeyError:
+            # Let Mantid files fall through
+            pass
 
         return som
 

@@ -37,6 +37,7 @@
 #include <vector>
 #include <stdexcept>
 #include <string>
+#include <cctype>
 
 enum res_type {FLOAT,INT,PYTHON};
 
@@ -91,8 +92,12 @@ static PyObject * NeXusFile_type_to_string(int type)
     return PyString_FromString("UINT16");
   }else if(type==NX_INT32){
     return PyString_FromString("INT32");
-  }else if(type==NX_UINT8){
+  }else if(type==NX_UINT32){
     return PyString_FromString("UINT32");
+  }else if(type==NX_INT64){
+    return PyString_FromString("INT64");
+  }else if(type==NX_UINT64){
+    return PyString_FromString("UINT64");
   }else{
     Py_INCREF(Py_None);
     return Py_None;
@@ -162,7 +167,12 @@ static PyObject * NeXusFile_convertscalar(void *value, int type, long index)
     result=PyInt_FromLong(static_cast<long>((static_cast<int*>(value))[index]));
   }else if(type==NX_UINT32){
     result=PyInt_FromLong(static_cast<long>((static_cast<unsigned int*>(value))[index]));
-  }else{
+  }else if(type==NX_INT64){
+    result=PyInt_FromLong(static_cast<long>((static_cast<int64_t*>(value))[index]));
+  }else if(type==NX_UINT64){
+    result=PyInt_FromLong(static_cast<long>((static_cast<uint64_t*>(value))[index]));
+  }
+  else{
     return NULL;
   }
   return result;
@@ -221,6 +231,10 @@ static PyObject * NeXusFile_convertobj2(void *value,int type, long length,res_ty
       data = NeXusFile_convertobj2<int,double>(value,length);
     }else if(type==NX_UINT32){
       data = NeXusFile_convertobj2<unsigned int,double>(value,length);
+    }else if(type==NX_INT64){
+      data = NeXusFile_convertobj2<int64_t,double>(value,length);
+    }else if(type==NX_UINT64){
+      data = NeXusFile_convertobj2<uint64_t,double>(value,length);
     }else{
       PyErr_SetString(PyExc_AttributeError,"Do not understand type");
     }
@@ -247,6 +261,10 @@ static PyObject * NeXusFile_convertobj2(void *value,int type, long length,res_ty
       data = NeXusFile_convertobj2<int,int>(value,length);
     }else if(type==NX_UINT32){
       data = NeXusFile_convertobj2<unsigned int,int>(value,length);
+    }else if(type==NX_INT64){
+      data = NeXusFile_convertobj2<int64_t,int>(value,length);
+    }else if(type==NX_UINT64){
+      data = NeXusFile_convertobj2<uint64_t,int>(value,length);
     }else{
       PyErr_SetString(PyExc_AttributeError,"Do not understand type");
     }
